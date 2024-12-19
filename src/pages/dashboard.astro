@@ -1,0 +1,43 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { app } from "../firebase/server";
+import { getAuth } from "firebase-admin/auth";
+
+const auth = getAuth(app)
+if (!Astro.cookies.has("__session")) {
+    return Astro.redirect("/")
+}
+const sessionCookie = Astro.cookies.get("__session").value
+const decodedCookie = await auth.verifySessionCookie(sessionCookie)
+const user = await auth.getUser(decodedCookie.uid)
+
+if (!user) {
+    return Astro.redirect("/")
+}
+
+---
+
+<Layout>
+    <main>
+        <h1>Dashboard</h1>
+        <button id="signout-button">Sign out</button>
+        <h1>Welcome {user.email}</h1>
+    </main>
+    <script>
+        const signoutBtn = document.getElementById("signout-button") as HTMLButtonElement
+        signoutBtn.addEventListener("click", async () => {
+            try {
+                const res = await fetch("/api/auth/signout")
+                if (!res.ok) {
+                    alert("response not okay")
+                    return
+                }
+                return window.location.assign("/")
+            }
+            catch (err) {
+                alert("cannot sign out")
+                console.log(err)
+            }
+        })
+    </script>
+</Layout>

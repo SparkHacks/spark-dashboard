@@ -1,0 +1,17 @@
+{
+  "name": "sparkhacks-dashboard",
+  "type": "module",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/vercel": "^8.0.1",
+    "astro": "^5.0.9",
+    "firebase": "^11.1.0",
+    "firebase-admin": "^13.0.1"
+  }
+}

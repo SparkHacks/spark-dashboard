@@ -1,0 +1,68 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { app } from "../firebase/server";
+import { getAuth } from "firebase-admin/auth";
+
+const auth = getAuth(app)
+if (Astro.cookies.has("__session")) {
+	const sessionCookie = Astro.cookies.get("__session").value;
+	const decodedCookie = await auth.verifySessionCookie(sessionCookie);
+	if (decodedCookie) {
+		return Astro.redirect("/dashboard")
+	}
+}
+---
+
+<Layout>
+	<main>
+		<img src="/logo-sparkhacks-finalized.png" alt="sparkhacks logo" height="200"/>
+		<h1>Welcome to SparkHacks</h1>
+		<div id="errMsg" style="color: red; display: none"></div>
+		<button id="google-sign-btn">Sign in with Google</button>
+	</main>
+	<script>
+		import { auth, provider } from '../firebase/client';
+		import { signInWithPopup } from "firebase/auth";
+
+		const btn = document.getElementById("google-sign-btn")
+		const errMsg = document.getElementById("errMsg") as HTMLElement
+		btn?.addEventListener("click", async () => {
+			errMsg.textContent = ""
+			errMsg.style.display = "none"
+			
+			try {
+				const userCredential = await signInWithPopup(auth, provider)
+				const idToken = await userCredential.user.getIdToken()
+				const res = await fetch("/api/auth/signin", {
+					headers: {
+						Authorization: `Bearer ${idToken}`
+					},
+				})
+
+				if (!res.ok) {
+					alert("response not okay")
+					return
+				}
+
+				window.location.assign("/register")
+			} catch (err) {
+				console.log(err)
+				errMsg.textContent = "Failed to sign in with Google account"
+				errMsg.style.display = "unset"
+			}
+		})
+
+	</script>
+</Layout>
+<style>
+	main {
+		width: 100%;
+		height: 100%;
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		align-items: center;
+	}
+</style>
+
+
