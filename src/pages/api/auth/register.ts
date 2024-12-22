@@ -34,14 +34,13 @@ export const POST: APIRoute = async ({request, cookies, redirect}) => {
         }
 
         // check if account is already registered
-        const docSnap = await db.collection("Accounts").doc(decodedCookie.uid).get()
+        const docSnap = await db.collection("Accounts").doc(decodedCookie.email as string).get()
         if (!docSnap.exists) {
             console.log("new user!", decodedCookie.email)
             // put to firestore
-            await db.collection("Accounts").doc(decodedCookie.uid).set({
+            await db.collection("Accounts").doc(decodedCookie.email as string).set({
                 firstName: firstName,
                 lastName: lastName,
-                email: decodedCookie.email as string
             })
         }
         // successful register leads to redirecting to dashboard page
