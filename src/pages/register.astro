@@ -21,7 +21,7 @@ if (!decodedCookie) {
 // const user = await auth.getUser(decodedCookie.uid)
 
 const db = getFirestore(app)
-const docRef = db.collection("Users").doc(decodedCookie.uid)
+const docRef = db.collection("Accounts").doc(decodedCookie.uid)
 const docSnap = await docRef.get()
 
 // if user already registers, redirect to dashboard
