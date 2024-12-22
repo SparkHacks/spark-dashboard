@@ -18,10 +18,22 @@ if (!user) {
 ---
 
 <Layout>
-    <main>
-        <h1>Dashboard</h1>
-        <button id="signout-button">Sign out</button>
-        <h1>Welcome {user.email}</h1>
+    <main id="dashboard">
+        <nav>
+            <h1>Dashboard</h1>
+            <button id="signout-button">Sign out</button> 
+        </nav>
+        <main id="dashboard-main">
+            <h1>Welcome {user.email}</h1>
+            <section class="dashboard-result" style="display: none">
+                Result of application:
+            </section>
+            <section class="dashboard-app">
+                <h3>Application to SparkHacks</h3>
+                <button id="app-btn">Start application</button>
+            </section>
+        </main>
+        <footer>Made by SparkHacks with 🩵</footer>
     </main>
     <script>
         const signoutBtn = document.getElementById("signout-button") as HTMLButtonElement
@@ -41,3 +53,30 @@ if (!user) {
         })
     </script>
 </Layout>
+<style>
+    #dashboard {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+    nav {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        height: 60px;
+        padding: 20px 40px;
+        box-sizing: border-box;
+        background-color:rgb(47, 109, 191);
+        color: white;
+    }
+    #dashboard-main {
+        flex: 1;
+    }
+    footer {
+        text-align: center;
+        padding: 10px 20px;
+        background-color: cyan;
+    }
+</style>

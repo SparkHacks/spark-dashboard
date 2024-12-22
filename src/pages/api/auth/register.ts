@@ -41,6 +41,7 @@ export const POST: APIRoute = async ({request, cookies, redirect}) => {
             await db.collection("Accounts").doc(decodedCookie.uid).set({
                 firstName: firstName,
                 lastName: lastName,
+                email: decodedCookie.email as string
             })
         }
         // successful register leads to redirecting to dashboard page
