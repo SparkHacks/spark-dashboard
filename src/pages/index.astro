@@ -3,13 +3,17 @@ import Layout from '../layouts/Layout.astro';
 import { app } from "../firebase/server";
 import { getAuth } from "firebase-admin/auth";
 
-const auth = getAuth(app)
-if (Astro.cookies.has("__session")) {
-	const sessionCookie = Astro.cookies.get("__session").value;
-	const decodedCookie = await auth.verifySessionCookie(sessionCookie);
-	if (decodedCookie) {
-		return Astro.redirect("/dashboard")
+try {
+	const auth = getAuth(app)
+	if (Astro.cookies.has("__session")) {
+		const sessionCookie = Astro.cookies.get("__session").value;
+		const decodedCookie = await auth.verifySessionCookie(sessionCookie);
+		if (decodedCookie) {
+			return Astro.redirect("/dashboard")
+		}
 	}
+} catch (err) {
+	console.error(err)
 }
 ---
 

@@ -1,9 +1,8 @@
 ---
 import DashboardLayout from "../layouts/DashboardLayout.astro";
+import AppForm from "../components/AppForm.tsx"
 import { app } from "../firebase/server";
 import { getAuth } from "firebase-admin/auth";
-
-let userEmail;
 
 try {
     const auth = getAuth(app)
@@ -17,27 +16,12 @@ try {
     if (!user) {
         return Astro.redirect("/")
     }
-    userEmail = user.email
 }
 catch (err) {
     console.error(err)
 }
 
 ---
-
 <DashboardLayout>
-    <h1>Welcome {userEmail}</h1>
-    <section class="dashboard-result" style="display: none">
-        Result of application:
-    </section>
-    <section class="dashboard-app">
-        <h3>Application to SparkHacks</h3>
-        <button id="app-btn">Start application</button>
-    </section>
-    <script>
-        const appBtn = document.getElementById("app-btn")
-        appBtn?.addEventListener("click", () => {
-            window.location.assign("/application")
-        })
-    </script>
+    <AppForm client:load/>
 </DashboardLayout>
