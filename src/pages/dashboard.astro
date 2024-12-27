@@ -4,40 +4,47 @@ import { app } from "../firebase/server";
 import { getAuth } from "firebase-admin/auth";
 
 let userEmail;
+let userName;
 
 try {
-    const auth = getAuth(app)
-    if (!Astro.cookies.has("__session")) {
-        return Astro.redirect("/")
-    }
-    const sessionCookie = Astro.cookies.get("__session").value
-    const decodedCookie = await auth.verifySessionCookie(sessionCookie)
-    const user = await auth.getUser(decodedCookie.uid)
+  const auth = getAuth(app);
+  const sessionCookieObj = Astro.cookies.get("__session");
+  if (!sessionCookieObj) {
+    return Astro.redirect("/");
+  }
+  const sessionCookie = sessionCookieObj.value;
+  const decodedCookie = await auth.verifySessionCookie(sessionCookie);
+  if (!decodedCookie) {
+    return Astro.redirect("/");
+  }
 
-    if (!user) {
-        return Astro.redirect("/")
-    }
-    userEmail = user.email
-}
-catch (err) {
-    console.error(err)
-}
+  const user = await auth.getUser(decodedCookie.uid);
 
+  if (!user) {
+    return Astro.redirect("/");
+  }
+  userEmail = user.email;
+  userName = user.displayName;
+} catch (err) {
+  console.error(err);
+  return Astro.redirect("/");
+}
 ---
 
 <DashboardLayout>
-    <h1>Welcome {userEmail}</h1>
-    <section class="dashboard-result" style="display: none">
-        Result of application:
-    </section>
-    <section class="dashboard-app">
-        <h3>Application to SparkHacks</h3>
-        <button id="app-btn">Start application</button>
-    </section>
-    <script>
-        const appBtn = document.getElementById("app-btn")
-        appBtn?.addEventListener("click", () => {
-            window.location.assign("/application")
-        })
-    </script>
+  <h1>Welcome {userEmail}</h1>
+  <h2>{userName}</h2>
+  <section class="dashboard-result" style="display: none">
+    Result of application:
+  </section>
+  <section class="dashboard-app">
+    <h3>Application to SparkHacks</h3>
+    <button id="app-btn">Start application</button>
+  </section>
+  <script>
+    const appBtn = document.getElementById("app-btn");
+    appBtn?.addEventListener("click", () => {
+      window.location.assign("/application");
+    });
+  </script>
 </DashboardLayout>

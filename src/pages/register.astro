@@ -2,101 +2,107 @@
 import Layout from "../layouts/Layout.astro";
 import { app } from "../firebase/server";
 import { getAuth } from "firebase-admin/auth";
-import { getFirestore } from "firebase-admin/firestore"
+import { getFirestore } from "firebase-admin/firestore";
 
 try {
-    const auth = getAuth(app)
-    // if user has not sign in then direct them to sign in page
-    if (!Astro.cookies.has("__session")) {
-        return Astro.redirect("/")
-    }
+  const auth = getAuth(app);
+  // if user has not sign in then direct them to sign in page
+  const sessionCookieObj = Astro.cookies.get("__session");
+  if (!sessionCookieObj) {
+    return Astro.redirect("/");
+  }
 
-    const sessionCookie = Astro.cookies.get("__session").value;
-    const decodedCookie = await auth.verifySessionCookie(sessionCookie);
-    if (!decodedCookie) {
-        // if user session is invalid then direct them to sign in page
-        return Astro.redirect("/")
-    }
+  const sessionCookie = sessionCookieObj.value;
+  const decodedCookie = await auth.verifySessionCookie(sessionCookie);
+  if (!decodedCookie) {
+    // if user session is invalid then direct them to sign in page
+    return Astro.redirect("/");
+  }
 
-    // check if user has registered yet
-    // const user = await auth.getUser(decodedCookie.uid)
+  // check if user has registered yet
+  // const user = await auth.getUser(decodedCookie.uid)
 
-    const db = getFirestore(app)
-    const docRef = db.collection("Accounts").doc(decodedCookie.email as string)
-    const docSnap = await docRef.get()
+  const db = getFirestore(app);
+  const docRef = db.collection("Accounts").doc(decodedCookie.email as string);
+  const docSnap = await docRef.get();
 
-    // if user already registers, redirect to dashboard
-    if (docSnap.exists) {
-        return Astro.redirect("/dashboard")
-    }
-    // otherwise then stays on this register page
+  // if user already registers, redirect to dashboard
+  if (docSnap.exists) {
+    return Astro.redirect("/dashboard");
+  }
+  // otherwise then stays on this register page
+} catch (err) {
+  console.error(err);
+  return Astro.redirect("/");
 }
-catch (err) {
-    console.error(err)
-}
-
 ---
+
 <Layout>
-    <main>
-        <img src="/logo-sparkhacks-finalized.png" alt="sparkhacks logo" height="200"/>
-        <h2>What is your first name and last name?</h2>
-        <form id="register-form">
-            <label for="firstName">First Name:</label>
-            <input name="firstName" placeholder="Enter your first name" required/>
-            <label for="lastName">Last Name:</label>
-            <input name="lastName" placeholder="Enter your last name" required/>
-            <div id="error" style="margin-bottom: 10px; color: red; display: none"></div>
-            <button style="display: block" type="submit">Submit</button>
-        </form>
-    </main>
-    <script>
-        const formElem = document.getElementById("register-form") as HTMLFormElement
-        const errElem = document.getElementById("error") as HTMLElement
-        formElem.addEventListener("submit", async (e) => {
-            e.preventDefault()
-            errElem.textContent = ""
-            errElem.style.display = "none"
-            const formData = new FormData(formElem)
-            try {
-                const res = await fetch("/api/auth/register", {
-                    method: "POST",
-                    body: formData,
-                })
-                if (!res.ok) {
-                    alert("response not okay")
-                    return
-                }
-                return window.location.assign("/dashboard")
-            }
-            catch (err) {
-                console.log(err)
-                errElem.style.display = "unset"
-                errElem.textContent = "Failed to register"
-            }
-        })
-    </script>
+  <main>
+    <img
+      src="/logo-sparkhacks-finalized.png"
+      alt="sparkhacks logo"
+      height="200"
+    />
+    <h2>What is your first name and last name?</h2>
+    <form id="register-form">
+      <label for="firstName">First Name:</label>
+      <input name="firstName" placeholder="Enter your first name" required />
+      <label for="lastName">Last Name:</label>
+      <input name="lastName" placeholder="Enter your last name" required />
+      <div id="error" style="margin-bottom: 10px; color: red; display: none">
+      </div>
+      <button style="display: block" type="submit">Submit</button>
+    </form>
+  </main>
+  <script>
+    const formElem = document.getElementById(
+      "register-form"
+    ) as HTMLFormElement;
+    const errElem = document.getElementById("error") as HTMLElement;
+    formElem.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      errElem.textContent = "";
+      errElem.style.display = "none";
+      const formData = new FormData(formElem);
+      try {
+        const res = await fetch("/api/auth/register", {
+          method: "POST",
+          body: formData,
+        });
+        if (!res.ok) {
+          alert("response not okay");
+          return;
+        }
+        return window.location.assign("/dashboard");
+      } catch (err) {
+        console.log(err);
+        errElem.style.display = "unset";
+        errElem.textContent = "Failed to register";
+      }
+    });
+  </script>
 </Layout>
 
 <style>
-    main {
-        width: 100%;
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-    }
-    input {
-        display: block;
-        margin-top: 5px;
-        margin-bottom: 16px;
-        width: 200px;
-        padding: 4px 4px;
-    }
-    #register-form {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-    }
-    
+  main {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  input {
+    display: block;
+    margin-top: 5px;
+    margin-bottom: 16px;
+    width: 200px;
+    padding: 4px 4px;
+  }
+  #register-form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
 </style>

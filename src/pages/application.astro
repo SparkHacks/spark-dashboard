@@ -1,27 +1,35 @@
 ---
 import DashboardLayout from "../layouts/DashboardLayout.astro";
-import AppForm from "../components/AppForm.tsx"
+import AppForm from "../components/AppForm.tsx";
 import { app } from "../firebase/server";
 import { getAuth } from "firebase-admin/auth";
 
+let userEmail = "";
+
 try {
-    const auth = getAuth(app)
-    if (!Astro.cookies.has("__session")) {
-        return Astro.redirect("/")
-    }
-    const sessionCookie = Astro.cookies.get("__session").value
-    const decodedCookie = await auth.verifySessionCookie(sessionCookie)
-    const user = await auth.getUser(decodedCookie.uid)
+  const auth = getAuth(app);
+  const sessionCookieObj = Astro.cookies.get("__session");
+  if (!sessionCookieObj) {
+    return Astro.redirect("/");
+  }
+  const sessionCookie = sessionCookieObj.value;
+  const decodedCookie = await auth.verifySessionCookie(sessionCookie);
+  if (!decodedCookie) {
+    return Astro.redirect("/");
+  }
 
-    if (!user) {
-        return Astro.redirect("/")
-    }
-}
-catch (err) {
-    console.error(err)
-}
+  const user = await auth.getUser(decodedCookie.uid);
 
+  if (!user) {
+    return Astro.redirect("/");
+  }
+  userEmail = user.email as string;
+} catch (err) {
+  console.error(err);
+  return Astro.redirect("/");
+}
 ---
+
 <DashboardLayout>
-    <AppForm client:load/>
+  <AppForm email={userEmail} client:only="react" />
 </DashboardLayout>

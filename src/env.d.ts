@@ -23,3 +23,22 @@ interface ImportMetaEnv {
 interface ImportMeta {
     readonly env: ImportMetaEnv;
 }
+
+interface FormSubmissionData {
+    email: string,
+    firstName: string,
+    lastName: string,
+    uin: string,
+    gender: string,
+    year: string,
+    availability: string,
+    moreAvailability: string, // optional
+    dietaryRestriction: string,
+    shirtSize: string,
+    hackathonPlan: string,
+    preWorkshops: string[],
+    workshops: string[],
+    jobType: string, // optional
+    resumeLink: string, // optional
+    otherQuestion: string, // optional
+}

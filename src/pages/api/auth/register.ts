@@ -8,12 +8,13 @@ export const POST: APIRoute = async ({request, cookies, redirect}) => {
     const body = request.body
     const db = getFirestore(app)
     // check if token exists
-    if (!cookies.has("__session")) {
+    const cookieObj = cookies.get("__session")
+    if (!cookieObj) {
         return new Response (
-            "no token found", { status: 401 }
+            "No token found", { status: 401 }
         )
     }
-    const sessionCookie = cookies.get("__session").value
+    const sessionCookie = cookieObj.value
     
     try {
 
@@ -21,7 +22,7 @@ export const POST: APIRoute = async ({request, cookies, redirect}) => {
         const decodedCookie = await auth.verifySessionCookie(sessionCookie)
         if (!decodedCookie) {
             return new Response (
-                "invalid cookie session", { status: 403 }
+                "Invalid cookie session", { status: 401 }
             )
         }
 

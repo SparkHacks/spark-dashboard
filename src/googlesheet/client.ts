@@ -24,5 +24,4 @@ const sheets = google.sheets({
     version: "v4",
     auth: client
 })
-
 export default sheets
