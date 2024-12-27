@@ -1,10 +1,12 @@
 ---
 import DashboardLayout from "../layouts/DashboardLayout.astro";
-import { app } from "../firebase/server";
+import { app, db } from "../firebase/server";
 import { getAuth } from "firebase-admin/auth";
 
 let userEmail;
 let userName;
+let userPhoto;
+let registered = false
 
 try {
   const auth = getAuth(app);
@@ -25,6 +27,14 @@ try {
   }
   userEmail = user.email;
   userName = user.displayName;
+  userPhoto = user.photoURL
+
+  // check if the user already register the application:
+  const docSnap = await db.collection("Forms").doc(decodedCookie.email as string).get()
+  if (docSnap.exists) {
+    registered = true
+  }
+
 } catch (err) {
   console.error(err);
   return Astro.redirect("/");
@@ -32,14 +42,18 @@ try {
 ---
 
 <DashboardLayout>
-  <h1>Welcome {userEmail}</h1>
-  <h2>{userName}</h2>
+  <section class="user-info">
+    <h1>Welcome {userName}!</h1>
+  </section>
   <section class="dashboard-result" style="display: none">
     Result of application:
   </section>
+  <section>
+    
+  </section>
   <section class="dashboard-app">
     <h3>Application to SparkHacks</h3>
-    <button id="app-btn">Start application</button>
+    {(!registered) ? <button id="app-btn">Start application</button> : <div>Application submitted</div>}
   </section>
   <script>
     const appBtn = document.getElementById("app-btn");
@@ -48,3 +62,17 @@ try {
     });
   </script>
 </DashboardLayout>
+<style>
+  .user-info {
+    margin-top: 20px;
+    padding: 20px;
+    border: 1px solid;
+    border-radius: 8px;
+  }
+  .dashboard-app {
+    margin-top: 20px;
+    padding: 20px;
+    border-radius: 8px;
+    border: 1px solid;
+  }
+</style>
