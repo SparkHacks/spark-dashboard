@@ -29,12 +29,12 @@ try {
 		import { auth, provider } from '../firebase/client';
 		import { signInWithPopup } from "firebase/auth";
 
-		const btn = document.getElementById("google-sign-btn")
+		const btn = document.getElementById("google-sign-btn") as HTMLButtonElement
 		const errMsg = document.getElementById("errMsg") as HTMLElement
-		btn?.addEventListener("click", async () => {
+		btn.addEventListener("click", async () => {
 			errMsg.textContent = ""
 			errMsg.style.display = "none"
-			
+			btn.disabled = true
 			try {
 				const userCredential = await signInWithPopup(auth, provider)
 				const idToken = await userCredential.user.getIdToken()
@@ -48,14 +48,17 @@ try {
 					const msg = await res.text()
 					errMsg.textContent = "Failed to sign in with Google account: " + msg
 					errMsg.style.display = "unset"
+					btn.disabled = false
 					return
 				}
 
 				window.location.assign("/dashboard")
+				btn.disabled = false
 			} catch (err) {
 				console.log(err)
 				errMsg.textContent = "Failed to sign in with Google account"
 				errMsg.style.display = "unset"
+				btn.disabled = false
 			}
 		})
 
@@ -77,6 +80,9 @@ try {
 		padding: 15px 44px;
 		border: none;
 		border-radius: 8px;
+	}
+	#google-sign-btn:disabled {
+		cursor:not-allowed
 	}
 	#google-sign-btn:hover {
 		filter: brightness(80%)
