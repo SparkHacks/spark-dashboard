@@ -28,7 +28,7 @@ interface FormSubmissionData {
     email: string,
     firstName: string,
     lastName: string,
-    uin: string,
+    uin: number,
     gender: string,
     year: string,
     availability: string,
@@ -41,4 +41,5 @@ interface FormSubmissionData {
     jobType: string, // optional
     resumeLink: string, // optional
     otherQuestion: string, // optional
+    appResult: "waiting" | "declined" | "waitlist" | "accepted"
 }

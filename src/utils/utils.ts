@@ -49,8 +49,9 @@ export const validateFormData = (
   dietaryRestriction: string | undefined,
   shirtSize: string | undefined,
   hackathonPlan: string | undefined,
-  preWorkshops: string[] | undefined,
-  workshops: string[] | undefined,
+  preWorkshops: string[],
+  workshops: string[],
+  jobType: string | undefined
 ) => {
 
   // First Name validation
@@ -123,7 +124,7 @@ export const validateFormData = (
   }
 
   // Pre-Workshop validation
-  if (!preWorkshops) {
+  if (preWorkshops.length === 0) {
     return { success: false, msg: "Empty pre-workshops"}
   }
   for (const preW of preWorkshops) {
@@ -133,7 +134,7 @@ export const validateFormData = (
   }
 
   // Workshop validation
-  if (!workshops) {
+  if (workshops.length === 0) {
     return { success: false, msg: "Empty workshops"}
   }
   for (const workS of workshops) {
@@ -143,6 +144,11 @@ export const validateFormData = (
   }
 
   // Company (optional)
+  if (jobType) {
+    if (jobType !== "" && !questions.jobType.answer.includes(jobType)) {
+      return { success: false, msg: "Invalid job type"}
+    }
+  }
 
   // resume link (optional)
 
@@ -153,8 +159,7 @@ export const validateFormData = (
 
 // send form to google sheet
 export const sendFormToGoogleSheet = async (formSubmissionData: FormSubmissionData) => {
-  const { email, firstName, lastName, uin, gender, availability, moreAvailability, dietaryRestriction, shirtSize, hackathonPlan, preWorkshops, workshops, jobType, resumeLink, otherQuestion } = formSubmissionData
-
+  const { email, firstName, lastName, uin, gender, year, availability, moreAvailability, dietaryRestriction, shirtSize, hackathonPlan, preWorkshops, workshops, jobType, resumeLink, otherQuestion, appResult } = formSubmissionData
   await sheets.spreadsheets.values.append({
     spreadsheetId: SHEET_ID,
     range: "DATABASE!A2:E2",
@@ -167,6 +172,7 @@ export const sendFormToGoogleSheet = async (formSubmissionData: FormSubmissionDa
         lastName,
         uin,
         gender,
+        year,
         availability,
         moreAvailability,
         dietaryRestriction,
@@ -176,7 +182,8 @@ export const sendFormToGoogleSheet = async (formSubmissionData: FormSubmissionDa
         workshops,
         jobType,
         resumeLink,
-        otherQuestion
+        otherQuestion,
+        appResult
       ]]
     }
   })
@@ -184,23 +191,5 @@ export const sendFormToGoogleSheet = async (formSubmissionData: FormSubmissionDa
 
 // send form to firestore
 export const sendFormToFirestore = async (formSubmissionData: FormSubmissionData) => {
-  const { email, firstName, lastName, uin, gender, availability, moreAvailability, dietaryRestriction, shirtSize, hackathonPlan, preWorkshops, workshops, jobType, resumeLink, otherQuestion } = formSubmissionData
-
-  await db.collection("Forms").doc(email).set({
-    email,
-    firstName,
-    lastName,
-    uin,
-    gender,
-    availability,
-    moreAvailability,
-    dietaryRestriction,
-    shirtSize,
-    hackathonPlan,
-    preWorkshops,
-    workshops,
-    jobType,
-    resumeLink,
-    otherQuestion
-  })
+  await db.collection("Forms").doc(formSubmissionData.email).set(formSubmissionData)
 }

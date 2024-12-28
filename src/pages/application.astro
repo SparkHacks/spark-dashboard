@@ -1,13 +1,18 @@
 ---
 import DashboardLayout from "../layouts/DashboardLayout.astro";
 import AppForm from "../components/AppForm.tsx";
-import { app } from "../firebase/server";
+import { app, db } from "../firebase/server";
 import { getAuth } from "firebase-admin/auth";
+import type { DocumentData } from "firebase-admin/firestore";
 
 let userEmail = "";
+let registered = false
+let applicationData: FormSubmissionData | null = null
 
 try {
   const auth = getAuth(app);
+
+  // no session or invalid session will be redirected to sign in page
   const sessionCookieObj = Astro.cookies.get("__session");
   if (!sessionCookieObj) {
     return Astro.redirect("/");
@@ -18,12 +23,40 @@ try {
     return Astro.redirect("/");
   }
 
+  // invalid user will be redirected to sign in page
   const user = await auth.getUser(decodedCookie.uid);
-
   if (!user) {
     return Astro.redirect("/");
   }
+
   userEmail = user.email as string;
+
+  // if already registered then do not render submit button
+  const docSnap = await db.collection("Forms").doc(decodedCookie.email as string).get()
+  if (docSnap.exists) {
+    const data = docSnap.data() as DocumentData
+    registered = true
+    applicationData = {
+      email: data.email,
+      firstName: data.firstName,
+      lastName: data.lastName,
+      uin: data.uin,
+      gender: data.gender,
+      year: data.year,
+      availability: data.availability,
+      moreAvailability: data.moreAvailability, // optional
+      dietaryRestriction: data.dietaryRestriction,
+      shirtSize: data.shirtSize,
+      hackathonPlan: data.hackathonPlan,
+      preWorkshops: data.preWorkshops,
+      workshops: data.workshops,
+      jobType: data.jobType, // optional
+      resumeLink: data.resumeLink, // optional
+      otherQuestion: data.otherQuestion, // optional
+      appResult: data.appResult // result of application
+    }
+  }
+
 } catch (err) {
   console.error(err);
   return Astro.redirect("/");
@@ -31,5 +64,5 @@ try {
 ---
 
 <DashboardLayout>
-  <AppForm email={userEmail} client:only="react" />
+  <AppForm email={userEmail} registered={registered} applicationData={applicationData} client:only="react" />
 </DashboardLayout>

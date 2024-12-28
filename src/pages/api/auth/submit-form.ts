@@ -41,7 +41,7 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
   const gender = formData.get("gender")?.toString()
   const year = formData.get("year")?.toString()
   const availability = formData.get("availability")?.toString()
-  const moreAvailability = formData.get("moreAvailability")?.toString()
+  const moreAvailability = formData.get("moreAvailability")?.toString() 
   const dietaryRestriction = formData.get("dietaryRestriction")?.toString()
   const shirtSize = formData.get("shirtSize")?.toString()
   const hackathonPlan = formData.get("hackathonPlan")?.toString()
@@ -55,17 +55,18 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
 
 
   // validate the input
-  const validateFormResult = validateFormData(firstName, lastName, uin, gender, year, availability, dietaryRestriction, shirtSize, hackathonPlan, preWorkshops, workshops)
+  const validateFormResult = validateFormData(firstName, lastName, uin, gender, year, availability, dietaryRestriction, shirtSize, hackathonPlan, preWorkshops, workshops, jobType)
   if (!validateFormResult.success) {
     return new Response(`Incorrect form data: ${validateFormResult.msg}`, { status: 400 })
   }
 
+  
   try {
     const formSubmissionData = {
       email,
       firstName,
       lastName,
-      uin,
+      uin: parseInt(uin as string),
       gender,
       year,
       availability,
@@ -78,6 +79,7 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
       jobType: jobType || "",
       resumeLink: resumeLink || "",
       otherQuestion: otherQuestion || "",
+      appResult: "waiting"
     } as FormSubmissionData
 
     console.log("Submmitting form for:", email)

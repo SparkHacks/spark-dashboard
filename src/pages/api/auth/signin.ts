@@ -25,8 +25,9 @@ export const GET: APIRoute = async ({request, cookies}) => {
     const timeLimit = 30 * 60 * 1000 // 30 minutes in milliseconds
     const sessionCookie = await auth.createSessionCookie(idToken, {expiresIn: timeLimit})
     cookies.set("__session", sessionCookie, {
-        path: "/"
+        path: "/",
+        sameSite: "strict"
     })
 
-    return new Response("/register")
+    return new Response("/dashboard")
 }   

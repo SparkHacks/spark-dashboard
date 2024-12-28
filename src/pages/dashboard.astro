@@ -3,14 +3,17 @@ import DashboardLayout from "../layouts/DashboardLayout.astro";
 import { app, db } from "../firebase/server";
 import { getAuth } from "firebase-admin/auth";
 
+// information that will be displayed in dashboard page
 let userEmail;
 let userName;
 let userPhoto;
 let registered = false
-let result = false
+let result = ""
 
 try {
   const auth = getAuth(app);
+
+  // no session or invalid session will redirect to sign in page
   const sessionCookieObj = Astro.cookies.get("__session");
   if (!sessionCookieObj) {
     return Astro.redirect("/");
@@ -21,11 +24,13 @@ try {
     return Astro.redirect("/");
   }
 
+  // invalid user will redirect to sign in page
   const user = await auth.getUser(decodedCookie.uid);
-
   if (!user) {
     return Astro.redirect("/");
   }
+
+
   userEmail = user.email;
   userName = user.displayName;
   userPhoto = user.photoURL
@@ -34,6 +39,8 @@ try {
   const docSnap = await db.collection("Forms").doc(decodedCookie.email as string).get()
   if (docSnap.exists) {
     registered = true
+    const data = docSnap.data()
+    result = data?.appResult || ""
   }
 
 } catch (err) {
@@ -46,8 +53,8 @@ try {
   <section class="user-info">
     <h1>Welcome {userName}!</h1>
   </section>
-  <section class="dashboard-result" style={(result)? "" : "display: none"}>
-    <strong>Result of application:</strong>
+  <section class={`dashboard-result ${(result !== "")? result : ""}`} style={(result !== "")? "" : "display: none"}>
+    <strong>Result of application: </strong>{result}
   </section>
   <section>
   </section>
@@ -56,7 +63,7 @@ try {
       <h2>Application to SparkHacks</h2>
       <div><strong>Close at:</strong> 11:59:59 pm 01/18/2024</div>
     </div>
-    <div>Application Status: <strong>{(registered)? "Submitted" : "Not started"}</strong></div>
+    <div><strong>Application Status:</strong> {(registered)? "Submitted" : "Not started"}</div>
     <button id="app-btn">
       {(registered)? "View Application" : "Start Application"}
     </button>
@@ -80,10 +87,18 @@ try {
     max-width: 100%;
     margin-top: 20px;
     border-radius: 4px;
-    background-color: #f88378; /*#afd9ae; */
     padding: 20px;
-
   }
+  .dashboard-result.waiting, .dashboard-result.waitlist {
+    background-color: #f5e3bd
+  }
+  .dashboard-result.declined {
+    background-color: #f88378;
+  }
+  .dashboard-result.accepted {
+    background-color: #afd9ae;
+  }
+  
   .dashboard-app {
     box-sizing: border-box;
     width: 1000px;

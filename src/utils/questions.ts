@@ -88,6 +88,12 @@ export const questions = {
     },
     jobType: { // not required
         question: "If you’d like to be considered for an opportunity with our company partners, select the type of job you are looking for:",
+        answer: [
+            "Full-time New Grad Job",
+            "Summer 2024 Internship",
+            "Fall 2024 Internship",
+            "I am not currently looking for a job"
+        ]
     },
     resumeLink: { // not required
         question: "If you’d like to be considered for an opportunity with our company partners, submit a PDF of your resume here."
