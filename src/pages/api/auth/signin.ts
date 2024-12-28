@@ -14,7 +14,14 @@ export const GET: APIRoute = async ({request, cookies}) => {
 
     // check if token is valid
     try {
-        await auth.verifyIdToken(idToken)
+        const decodedIdToken = await auth.verifyIdToken(idToken)
+        const email = decodedIdToken.email || ""
+        const emailReg = /^[a-zA-Z0-9._%+-]+@uic\.edu$/
+        if (!emailReg.test(email)) {
+            return new Response (
+                "Please sign in with UIC email", {status: 401}
+            )
+        }
     } catch (err) {
         return new Response (
             "Invalid token", {status: 401}

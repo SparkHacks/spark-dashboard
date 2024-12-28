@@ -52,6 +52,7 @@ try {
 <DashboardLayout>
   <section class="user-info">
     <h1>Welcome {userName}!</h1>
+    <img src={userPhoto} alt="avatar" width="35" height="35" style="border-radius: 9999px;"/>
   </section>
   <section class={`dashboard-result ${(result !== "")? result : ""}`} style={(result !== "")? "" : "display: none"}>
     <strong>Result of application: </strong>{result}
@@ -80,6 +81,9 @@ try {
     width: 1000px;
     max-width: 100%;
     margin-top: 70px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
   }
   .dashboard-result {
     box-sizing: border-box;

@@ -45,7 +45,9 @@ try {
 				})
 
 				if (!res.ok) {
-					alert("response not okay")
+					const msg = await res.text()
+					errMsg.textContent = "Failed to sign in with Google account: " + msg
+					errMsg.style.display = "unset"
 					return
 				}
 
