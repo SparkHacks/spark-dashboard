@@ -7,6 +7,7 @@ let userEmail;
 let userName;
 let userPhoto;
 let registered = false
+let result = false
 
 try {
   const auth = getAuth(app);
@@ -45,15 +46,20 @@ try {
   <section class="user-info">
     <h1>Welcome {userName}!</h1>
   </section>
-  <section class="dashboard-result" style="display: none">
-    Result of application:
+  <section class="dashboard-result" style={(result)? "" : "display: none"}>
+    <strong>Result of application:</strong>
   </section>
   <section>
-    
   </section>
   <section class="dashboard-app">
-    <h3>Application to SparkHacks</h3>
-    {(!registered) ? <button id="app-btn">Start application</button> : <div>Application submitted</div>}
+    <div style="display: flex; justify-content: space-between; align-items: center">
+      <h2>Application to SparkHacks</h2>
+      <div><strong>Close at:</strong> 11:59:59 pm 01/18/2024</div>
+    </div>
+    <div>Application Status: <strong>{(registered)? "Submitted" : "Not started"}</strong></div>
+    <button id="app-btn">
+      {(registered)? "View Application" : "Start Application"}
+    </button>
   </section>
   <script>
     const appBtn = document.getElementById("app-btn");
@@ -64,15 +70,40 @@ try {
 </DashboardLayout>
 <style>
   .user-info {
+    width: 1000px;
+    max-width: 100%;
+    margin-top: 70px;
+  }
+  .dashboard-result {
+    box-sizing: border-box;
+    width: 1000px;
+    max-width: 100%;
     margin-top: 20px;
+    border-radius: 4px;
+    background-color: #f88378; /*#afd9ae; */
     padding: 20px;
-    border: 1px solid;
-    border-radius: 8px;
+
   }
   .dashboard-app {
+    box-sizing: border-box;
+    width: 1000px;
+    max-width: 100%;
     margin-top: 20px;
     padding: 20px;
-    border-radius: 8px;
+    border-radius: 4px;
     border: 1px solid;
+  }
+  #app-btn {
+    margin-top: 16px;
+    width: 100%;
+    padding: 16px 32px;
+    background-color: #43b3ae;
+    /* color: white; */
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  #app-btn:hover {
+    filter: brightness(80%);
   }
 </style>
