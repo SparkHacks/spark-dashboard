@@ -162,7 +162,7 @@ export const sendFormToGoogleSheet = async (formSubmissionData: FormSubmissionDa
   const { email, firstName, lastName, uin, gender, year, availability, moreAvailability, dietaryRestriction, shirtSize, hackathonPlan, preWorkshops, workshops, jobType, resumeLink, otherQuestion, appResult } = formSubmissionData
   await sheets.spreadsheets.values.append({
     spreadsheetId: SHEET_ID,
-    range: "DATABASE!A2:E2",
+    range: "DATABASE!A2:Q2",
     insertDataOption: "INSERT_ROWS",
     valueInputOption: "USER_ENTERED",
     requestBody: {

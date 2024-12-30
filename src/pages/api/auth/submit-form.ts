@@ -1,8 +1,8 @@
 import type { APIRoute } from "astro";
-import sheets, { SHEET_ID } from "../../../googlesheet/client.ts";
-import { getAuth } from "firebase-admin/auth"
-import { app } from "../../../firebase/server";
 import { displayFormData, sendFormToFirestore, validateFormData } from "../../../utils/utils.ts";
+import { FieldValue } from "firebase-admin/firestore";
+import { getAuth } from "firebase-admin/auth";
+import { app } from "../../../firebase/server.ts";
 
 export const POST: APIRoute = async ({ request, cookies, redirect }) => {
 
@@ -79,7 +79,8 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
       jobType: jobType || "",
       resumeLink: resumeLink || "",
       otherQuestion: otherQuestion || "",
-      appResult: "waiting"
+      appResult: "waiting",
+      createdAt: FieldValue.serverTimestamp()
     } as FormSubmissionData
 
     console.log("Submmitting form for:", email)
