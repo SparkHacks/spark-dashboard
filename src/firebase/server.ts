@@ -17,6 +17,7 @@ const serviceAccount = {
   "client_x509_cert_url": import.meta.env.SERVER_CLIENT_X509_CERT_URL,
   "universe_domain": import.meta.env.SERVER_UNIVERSE_DOMAIN
 }
+
 // console.log(serviceAccount)
 console.log("number of active apps:", activeApps.length)
 

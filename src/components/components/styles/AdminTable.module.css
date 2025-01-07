@@ -1,0 +1,89 @@
+.adminTable {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0 10px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.headerTable, .rowTable {
+  display: flex;
+  min-height: 40px;
+  align-items: center;
+  padding: 8px 16px;
+  /* border-radius: 4px; */
+}
+.headerTable {
+  background-color:burlywood;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+.headerTable > div {
+  font-weight: bold;
+}
+.rowTable {
+  background-color: white;
+  margin-top: 2px;
+}
+
+.contentTable {
+  max-height: 100%;
+  height: 700px;
+  overflow-y: scroll;
+  background-color: rgb(174, 199, 244);
+}
+.rowTable:hover {
+  background-color: rgb(203, 229, 255)
+}
+.cellId {
+  width: 30px
+}
+.cellEmail {
+  width: 100px;
+}
+.cellCreatedAt {
+  width: 180px
+}
+.cellName {
+  width: 150px
+}
+.cellUIN {
+  width: 100px
+}
+.cellAvailability {
+  width: 300px;
+}
+.cellStatus {
+  width: 70px;
+}
+.cellActions {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: end;
+  gap: 4px;
+}
+
+/* buttons */
+
+.declineBtn, .acceptBtn, .waitlistBtn, .waitBtn, .viewBtn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.declineBtn:disabled, .acceptBtn:disabled, .waitlistBtn:disabled, .waitBtn:disabled, .viewBtn:disabled {
+  cursor: not-allowed;
+}
+.declineBtn {
+  background-color: red;
+}
+.acceptBtn {
+  background-color: green;
+}
+.waitlistBtn {
+  background-color: yellow;
+}
+.waitBtn {
+  background-color: rgb(120, 120, 63);
+}

@@ -4,6 +4,7 @@ import AppForm from "../components/AppForm.tsx";
 import { app, db } from "../firebase/server";
 import { getAuth } from "firebase-admin/auth";
 import type { DocumentData } from "firebase-admin/firestore";
+import type { FormSubmissionData } from "../env";
 
 let userEmail = "";
 let registered = false
@@ -53,7 +54,8 @@ try {
       jobType: data.jobType, // optional
       resumeLink: data.resumeLink, // optional
       otherQuestion: data.otherQuestion, // optional
-      appResult: data.appResult // result of application
+      appResult: data.appResult, // result of application
+      createdAt: data.createdAt
     }
   }
 

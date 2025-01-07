@@ -3,9 +3,10 @@ import { displayFormData, sendFormToFirestore, validateFormData } from "../../..
 import { FieldValue } from "firebase-admin/firestore";
 import { getAuth } from "firebase-admin/auth";
 import { app } from "../../../firebase/server.ts";
+import type { FormSubmissionData } from "../../../env";
 
 export const POST: APIRoute = async ({ request, cookies, redirect }) => {
-
+/*
   const auth = getAuth(app)
 
   // check if session cookie exists
@@ -33,6 +34,8 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
     return new Response("Session expired. Please sign out and sign in again", { status: 500 })
   }
 
+  // check if user already submit it: TODO
+*/
   // process form data and destructure it
   const formData = await request.formData()
   const firstName = formData.get("firstName")?.toString()
@@ -50,7 +53,7 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
   const jobType = formData.get("jobType")?.toString()
   const resumeLink = formData.get("resumeLink")?.toString()
   const otherQuestion = formData.get("otherQuestion")?.toString()
-  
+  const email = formData.get("email")?.toString()
   displayFormData(email, firstName, lastName, uin, gender, year, availability, moreAvailability, dietaryRestriction, shirtSize, hackathonPlan, preWorkshops, workshops, jobType, resumeLink, otherQuestion)
 
 

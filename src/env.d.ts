@@ -1,3 +1,5 @@
+import type { FieldValue, Timestamp } from "firebase-admin/firestore";
+
 interface ImportMetaEnv {
     readonly PUBLIC_API_KEY: string;
     readonly PUBLIC_AUTH_DOMAIN: string;
@@ -41,5 +43,27 @@ interface FormSubmissionData {
     jobType: string, // optional
     resumeLink: string, // optional
     otherQuestion: string, // optional
-    appResult: "waiting" | "declined" | "waitlist" | "accepted"
+    appResult: "waiting" | "declined" | "waitlist" | "accepted",
+    createdAt: FieldValue
+}
+
+interface FormViewData {
+    email: string,
+    firstName: string,
+    lastName: string,
+    uin: number,
+    gender: string,
+    year: string,
+    availability: string,
+    moreAvailability: string, // optional
+    dietaryRestriction: string,
+    shirtSize: string,
+    hackathonPlan: string,
+    preWorkshops: string[],
+    workshops: string[],
+    jobType: string, // optional
+    resumeLink: string, // optional
+    otherQuestion: string, // optional
+    appResult: "waiting" | "declined" | "waitlist" | "accepted",
+    createdAt: string
 }

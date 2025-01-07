@@ -1,0 +1,30 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { app } from "../../firebase/server";
+import { getAuth } from "firebase-admin/auth";
+
+---
+
+<Layout>
+	<main>
+		<img src="/sparkhacks-logo.svg" alt="sparkhacks logo" height="200"/>
+		<h1>Admin Portal</h1>
+		<div id="errMsg" style="color: red; display: none"></div>
+		<input id="tokenInput" placeholder="Type token"/>
+	</main>
+</Layout>
+<style>
+  main {
+		width: 100%;
+		height: 100%;
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		align-items: center;
+	}
+  input {
+    padding: 8px;
+    width: 250px;
+  }
+</style>
+

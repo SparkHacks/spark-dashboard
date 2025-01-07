@@ -1,6 +1,7 @@
 import sheets, { SHEET_ID } from "../googlesheet/client"
 import { db } from "../firebase/server"
 import { questions } from "./questions"
+import type { FormSubmissionData, FormViewData } from "../env"
 
 export const displayFormData = (
   email: string | undefined,
@@ -192,4 +193,33 @@ export const sendFormToGoogleSheet = async (formSubmissionData: FormSubmissionDa
 // send form to firestore
 export const sendFormToFirestore = async (formSubmissionData: FormSubmissionData) => {
   await db.collection("Forms").doc(formSubmissionData.email).set(formSubmissionData)
+}
+
+// get all form data from firestore
+export const getAllForms = async () => {
+  const snapshot = await db.collection("Forms").orderBy("createdAt").limit(50).get()
+  return snapshot.docs.map(doc => {
+    const data = doc.data()
+
+    return {
+      createdAt: data.createdAt.toDate().toLocaleString(),
+      email: data.email,
+      firstName: data.firstName,
+      lastName: data.lastName,
+      uin: data.uin,
+      gender: data.gender,
+      year: data.year,
+      availability: data.availability,
+      moreAvailability: data.moreAvailability,
+      dietaryRestriction: data.dietaryRestriction,
+      shirtSize: data.shirtSize,
+      hackathonPlan: data.hackathonPlan,
+      preWorkshops: data.preWorkshops,
+      workshops: data.workshops,
+      jobType: data.jobType,
+      resumeLink: data.resumeLink,
+      otherQuestion: data.otherQuestion,
+      appResult: data.appResult
+    } as FormViewData
+  })
 }
