@@ -100,6 +100,7 @@ export default function AdminBoard() {
     try {
       searchInputRef.current.value = ""
       setSearchEmail("")
+      if (searchEmail === "") return
       const q = query(collection(db, "Forms"), orderBy("createdAt"), limit(PAGE_SIZE))
       const qSnap = await getDocs(q)
       const newDatas: FormViewData[] = []
