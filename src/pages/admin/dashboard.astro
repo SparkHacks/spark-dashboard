@@ -1,19 +1,9 @@
 ---
 import DashboardLayout from "../../layouts/DashboardLayout.astro"
 import AdminBoard from "../../components/AdminBoard"
-import { getAllForms } from "../../utils/utils"
-import type { FormViewData } from "../../env"
 
 // check token and session alive, check admin permission
 
-// get all the form data from firestore
-let datas: FormViewData[] = []
-try {
-  datas = await getAllForms()
-}
-catch (err) {
-  console.error(err)
-}
 ---
 
 <DashboardLayout>
@@ -21,9 +11,7 @@ catch (err) {
     <h1>Welcome Admin {}</h1>
   </section>
   <div style="flex: 1; width: 100%;">
-    <AdminBoard datas={datas} client:load/>
+    <AdminBoard client:load/>
   </div>
 </DashboardLayout>
-<style>
-
-</style>
+<!-- <style></style> -->
