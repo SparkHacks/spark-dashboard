@@ -1,12 +1,17 @@
 import type { DocumentData, Timestamp } from "firebase-admin/firestore"
 import styles from "./styles/AdminTable.module.css"
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import type { FormViewData } from "../../env"
+import { PAGE_SIZE } from "../AdminBoard"
 
-export default function AdminTable({datas, setView}: {
+export default function AdminTable({datas, setView, page, setDatas}: {
   datas: FormViewData[],
   setView: React.Dispatch<React.SetStateAction<FormViewData | null>>,
+  page: number,
 }) {
+
+  const pageDatas = useMemo(() => datas.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE), [page, datas])
+
   return (
     <section className={styles.adminTable}>
       <div className={styles.headerTable} >
@@ -18,28 +23,32 @@ export default function AdminTable({datas, setView}: {
         <div className={styles.cellStatus}>Status</div>
         <div className={styles.cellActions}></div>
       </div>
+
       <div className={styles.contentTable}>
-        {datas?.map((data, id) => <Row key={id} id={id} data={data} setView={setView}/>)}
+        {(datas.length === 0)
+          ? <div style={{marginTop: "20px", textAlign: "center"}}>No data</div>
+          : pageDatas.map((data, id) => <Row key={id} id={page * PAGE_SIZE + id} data={data} setView={setView} setDatas={setDatas} datas={datas}/>)
+        }
       </div>
+      
     </section>
   )
 }
 
-function Row({id, data, setView}: {
+function Row({id, data, setView, setDatas, datas}: {
   id: number,
   data: FormViewData,
   setView: React.Dispatch<React.SetStateAction<FormViewData | null>>,
 }) {
-  const [appResult, setAppResult] = useState(data.appResult)
+
   const [loading, setLoading] = useState(false)
-  const [modal, setModal] = useState(false)
   // const time_string = time.toLocaleString()
   // console.log(time_string)
 
 
-  const backgroundColor = (appResult === "waitlist")? "#f5e3bd"
-    : (appResult === "declined")? "#f88378"
-    : (appResult === "accepted")? "#afd9ae"
+  const backgroundColor = (data.appResult === "waitlist")? "#f5e3bd"
+    : (data.appResult === "declined")? "#f88378"
+    : (data.appResult === "accepted")? "#afd9ae"
     : ""
 
   const updateForm = async (updateAction: "waitlist" | "declined" | "accepted" | "waiting") => {
@@ -60,7 +69,15 @@ function Row({id, data, setView}: {
         return
       }
 
-      setAppResult(updateAction)
+      const newDatas = [...datas]
+      for (const item of newDatas) {
+        if (item.email === data.email) {
+          item.appResult = updateAction
+          break
+        }
+      }
+      setDatas(newDatas)
+
     }
     catch (err) {
       console.error(err)
@@ -72,19 +89,19 @@ function Row({id, data, setView}: {
   }
 
   const handleAccept = () => {
-    (appResult !== "accepted") && updateForm("accepted")
+    (data.appResult !== "accepted") && updateForm("accepted")
   }
 
   const handleDecline = () => {
-    (appResult !== "declined") && updateForm("declined")
+    (data.appResult !== "declined") && updateForm("declined")
   }
 
   const handleWait = () => {
-    (appResult !== "waiting") && updateForm("waiting")
+    (data.appResult !== "waiting") && updateForm("waiting")
   }
 
   const handleWaitlist = () => {
-    (appResult !== "waitlist") && updateForm("waitlist")
+    (data.appResult !== "waitlist") && updateForm("waitlist")
   }
 
   const handleView = () => {
@@ -99,13 +116,13 @@ function Row({id, data, setView}: {
       <div className={styles.cellCreatedAt}>{data.createdAt}</div>
       <div className={styles.cellAvailability}>{data.availability}</div>
       <div className={styles.cellStatus}>
-        {appResult}
+        {data.appResult}
       </div>
       <div className={styles.cellActions}>
-        <button className={styles.declineBtn} disabled={loading || appResult === "declined"} onClick={handleDecline}>Decline</button>
-        <button className={styles.acceptBtn} disabled={loading || appResult === "accepted"} onClick={handleAccept}>Accept</button>
-        <button className={styles.waitlistBtn} disabled={loading || appResult === "waitlist"} onClick={handleWaitlist}>Waitlist</button>
-        <button className={styles.waitBtn} disabled={loading || appResult === "waiting"} onClick={handleWait}>Wait</button>
+        <button className={styles.declineBtn} disabled={loading || data.appResult === "declined"} onClick={handleDecline}>Decline</button>
+        <button className={styles.acceptBtn} disabled={loading || data.appResult === "accepted"} onClick={handleAccept}>Accept</button>
+        <button className={styles.waitlistBtn} disabled={loading || data.appResult === "waitlist"} onClick={handleWaitlist}>Waitlist</button>
+        <button className={styles.waitBtn} disabled={loading || data.appResult === "waiting"} onClick={handleWait}>Wait</button>
         <button className={styles.viewBtn} onClick={handleView}>View</button>
       </div>
     </div>
