@@ -68,6 +68,7 @@ export default function AdminBoard() {
     } 
   }
   const handleSearch = async () => {
+    if (!searchInputRef.current) return
     try {
       let regex = /^[a-zA-Z0-9._%+-]+@uic\.edu$/
       if (!regex.test(searchInputRef.current.value)) {
@@ -97,6 +98,7 @@ export default function AdminBoard() {
   }
 
   const handleClearSearch = async () => {
+    if (!searchInputRef.current) return
     try {
       searchInputRef.current.value = ""
       setSearchEmail("")
@@ -193,6 +195,7 @@ const convertDocToFormViewData = (doc: DocumentData) => {
     jobType: docData.jobType,
     resumeLink: docData.resumeLink,
     otherQuestion: docData.otherQuestion,
+    appStatus: docData.appStatus,
     appResult: docData.appResult
   }
   return result

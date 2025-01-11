@@ -8,17 +8,17 @@ let userEmail;
 let userName;
 let userPhoto;
 let registered = false
-let result = ""
+let appStatus = ""
 let isAdmin = false
 
-const resultMessage = {
+const statusMessage = {
   waiting: "We have received your application and will review it shortly. Please check this website for updates.",
   declined: "Due to limited space, your application has been declined. Please come back next year to re-apply!",
   waitlist: "Due to limited space, your application has been waitlisted. We will reach out with status updates.",
   accepted: "You've been accepted! Please check your inbox for next steps in the coming days."
 };
 
-const getMessage = (result) => resultMessage[result] || "Unknown result. Please contact support.";
+const getMessage = (appStatus: "waiting" | "declined" | "waitlist" | "accepted") => statusMessage[appStatus] || "Unknown result. Please contact support.";
 
 try {
   const auth = getAuth(app);
@@ -54,7 +54,7 @@ try {
   if (docSnap.exists) {
     registered = true
     const data = docSnap.data()
-    result = data?.appResult || ""
+    appStatus = data?.appStatus || ""
   }
 
 } catch (err) {
@@ -68,8 +68,8 @@ try {
     <h1>Welcome {isAdmin && "Admin"}, {userName}!</h1>
     <img src={userPhoto} alt="avatar" width="35" height="35" style="border-radius: 9999px;"/>
   </section>
-  <section class={`dashboard-result ${(result !== "")? result : ""}`} style={(result !== "")? "" : "display: none"}>
-    <strong>Application Result: </strong>{getMessage(result)}
+  <section class={`dashboard-status ${(appStatus !== "")? appStatus : ""}`} style={(appStatus !== "")? "" : "display: none"}>
+    <strong>Application Status: </strong>{getMessage(appStatus)}
   </section>
   <section>
   </section>
@@ -78,7 +78,7 @@ try {
       <h2>Application to SparkHacks</h2>
       <div><strong>Close at:</strong> 11:59:59 pm 01/18/2024</div>
     </div>
-    <div><strong>Application Status:</strong> {(registered)? "Submitted" : "Not started"}</div>
+    <!-- <div><strong>Application Status:</strong> {(registered)? "Submitted" : "Not started"}</div> -->
     <button id="app-btn">
       {(registered)? "View Application" : "Start Application"}
     </button>
@@ -105,7 +105,7 @@ try {
     margin: 0;
     padding-left: 0;
   }
-  .dashboard-result {
+  .dashboard-status {
     box-sizing: border-box;
     width: 1000px;
     max-width: 100%;
@@ -113,13 +113,13 @@ try {
     border-radius: 4px;
     padding: 20px;
   }
-  .dashboard-result.waiting, .dashboard-result.waitlist {
+  .dashboard-status.waiting, .dashboard-status.waitlist {
     background-color: #f5e3bd
   }
-  .dashboard-result.declined {
+  .dashboard-status.declined {
     background-color: #f88378;
   }
-  .dashboard-result.accepted {
+  .dashboard-status.accepted {
     background-color: #afd9ae;
   }
   

@@ -43,7 +43,8 @@ interface FormSubmissionData {
     jobType: string, // optional
     resumeLink: string, // optional
     otherQuestion: string, // optional
-    appResult: "waiting" | "declined" | "waitlist" | "accepted",
+    appStatus: "waiting" | "declined" | "waitlist" | "accepted",
+    appResult: "accepted" | "declined" | "n/a",
     createdAt: FieldValue
 }
 
@@ -64,6 +65,7 @@ interface FormViewData {
     jobType: string, // optional
     resumeLink: string, // optional
     otherQuestion: string, // optional
-    appResult: "waiting" | "declined" | "waitlist" | "accepted",
+    appStatus: "waiting" | "declined" | "waitlist" | "accepted",
+    appResult: "accepted" | "declined" | "n/a",
     createdAt: string
 }

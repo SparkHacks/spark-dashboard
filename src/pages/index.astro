@@ -10,6 +10,13 @@ try {
 		const sessionCookie = sessionCookieObj.value;
 		const decodedCookie = await auth.verifySessionCookie(sessionCookie);
 		if (decodedCookie) {
+
+			// if user is admin then redirect to /admin, otherwise the user is regular and redirect to /dashboard
+			const user = await auth.getUser(decodedCookie.uid)
+			if (user.customClaims && user.customClaims.admin == true) {
+				return Astro.redirect("/admin")
+			}
+
 			return Astro.redirect("/dashboard")
 		}
 	}

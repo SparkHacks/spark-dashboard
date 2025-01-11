@@ -159,9 +159,9 @@ export const validateFormData = (
   return { success: true, msg: "Valid form data" }
 }
 
-// send form to google sheet
+// send form to google sheet: THIS FUNCTION IS INCOMPLETE
 export const sendFormToGoogleSheet = async (formSubmissionData: FormSubmissionData) => {
-  const { email, firstName, lastName, uin, gender, year, availability, moreAvailability, dietaryRestriction, shirtSize, hackathonPlan, preWorkshops, workshops, jobType, resumeLink, otherQuestion, appResult } = formSubmissionData
+  const { email, firstName, lastName, uin, gender, year, availability, moreAvailability, dietaryRestriction, shirtSize, hackathonPlan, preWorkshops, workshops, jobType, resumeLink, otherQuestion, appStatus, appResult } = formSubmissionData
   await sheets.spreadsheets.values.append({
     spreadsheetId: SHEET_ID,
     range: "DATABASE!A2:Q2",
@@ -185,6 +185,7 @@ export const sendFormToGoogleSheet = async (formSubmissionData: FormSubmissionDa
         jobType,
         resumeLink,
         otherQuestion,
+        appStatus,
         appResult
       ]]
     }
@@ -194,33 +195,4 @@ export const sendFormToGoogleSheet = async (formSubmissionData: FormSubmissionDa
 // send form to firestore
 export const sendFormToFirestore = async (formSubmissionData: FormSubmissionData) => {
   await db.collection("Forms").doc(formSubmissionData.email).set(formSubmissionData)
-}
-
-// get all form data from firestore
-export const getAllForms = async () => {
-  const snapshot = await db.collection("Forms").orderBy("createdAt").limit(50).get()
-  return snapshot.docs.map(doc => {
-    const data = doc.data()
-
-    return {
-      createdAt: data.createdAt.toDate().toLocaleString(),
-      email: data.email,
-      firstName: data.firstName,
-      lastName: data.lastName,
-      uin: data.uin,
-      gender: data.gender,
-      year: data.year,
-      availability: data.availability,
-      moreAvailability: data.moreAvailability,
-      dietaryRestriction: data.dietaryRestriction,
-      shirtSize: data.shirtSize,
-      hackathonPlan: data.hackathonPlan,
-      preWorkshops: data.preWorkshops,
-      workshops: data.workshops,
-      jobType: data.jobType,
-      resumeLink: data.resumeLink,
-      otherQuestion: data.otherQuestion,
-      appResult: data.appResult
-    } as FormViewData
-  })
 }

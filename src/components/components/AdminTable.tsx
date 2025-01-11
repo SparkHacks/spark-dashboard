@@ -4,10 +4,11 @@ import { useMemo, useState } from "react"
 import type { FormViewData } from "../../env"
 import { PAGE_SIZE } from "../AdminBoard"
 
-export default function AdminTable({datas, setView, page, setDatas}: {
+export default function AdminTable({datas, setDatas, setView, page}: {
   datas: FormViewData[],
+  setDatas: React.Dispatch<React.SetStateAction<FormViewData[]>>,
   setView: React.Dispatch<React.SetStateAction<FormViewData | null>>,
-  page: number,
+  page: number
 }) {
 
   const pageDatas = useMemo(() => datas.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE), [page, datas])
@@ -21,6 +22,7 @@ export default function AdminTable({datas, setView, page, setDatas}: {
         <div className={styles.cellCreatedAt}>Created At</div>
         <div className={styles.cellAvailability}>Availability</div>
         <div className={styles.cellStatus}>Status</div>
+        <div className={styles.cellResult}>Result</div>
         <div className={styles.cellActions}></div>
       </div>
 
@@ -39,6 +41,8 @@ function Row({id, data, setView, setDatas, datas}: {
   id: number,
   data: FormViewData,
   setView: React.Dispatch<React.SetStateAction<FormViewData | null>>,
+  datas: FormViewData[]
+  setDatas: React.Dispatch<React.SetStateAction<FormViewData[]>>,
 }) {
 
   const [loading, setLoading] = useState(false)
@@ -46,9 +50,9 @@ function Row({id, data, setView, setDatas, datas}: {
   // console.log(time_string)
 
 
-  const backgroundColor = (data.appResult === "waitlist")? "#f5e3bd"
-    : (data.appResult === "declined")? "#f88378"
-    : (data.appResult === "accepted")? "#afd9ae"
+  const backgroundColor = (data.appStatus === "waitlist")? "#f5e3bd"
+    : (data.appStatus === "declined")? "#f88378"
+    : (data.appStatus === "accepted")? "#afd9ae"
     : ""
 
   const updateForm = async (updateAction: "waitlist" | "declined" | "accepted" | "waiting") => {
@@ -72,7 +76,7 @@ function Row({id, data, setView, setDatas, datas}: {
       const newDatas = [...datas]
       for (const item of newDatas) {
         if (item.email === data.email) {
-          item.appResult = updateAction
+          item.appStatus = updateAction
           break
         }
       }
@@ -89,19 +93,19 @@ function Row({id, data, setView, setDatas, datas}: {
   }
 
   const handleAccept = () => {
-    (data.appResult !== "accepted") && updateForm("accepted")
+    (data.appStatus !== "accepted") && updateForm("accepted")
   }
 
   const handleDecline = () => {
-    (data.appResult !== "declined") && updateForm("declined")
+    (data.appStatus !== "declined") && updateForm("declined")
   }
 
   const handleWait = () => {
-    (data.appResult !== "waiting") && updateForm("waiting")
+    (data.appStatus !== "waiting") && updateForm("waiting")
   }
 
   const handleWaitlist = () => {
-    (data.appResult !== "waitlist") && updateForm("waitlist")
+    (data.appStatus !== "waitlist") && updateForm("waitlist")
   }
 
   const handleView = () => {
@@ -116,13 +120,16 @@ function Row({id, data, setView, setDatas, datas}: {
       <div className={styles.cellCreatedAt}>{data.createdAt}</div>
       <div className={styles.cellAvailability}>{data.availability}</div>
       <div className={styles.cellStatus}>
+        {data.appStatus}
+      </div>
+      <div className={styles.cellResult}>
         {data.appResult}
       </div>
       <div className={styles.cellActions}>
-        <button className={styles.declineBtn} disabled={loading || data.appResult === "declined"} onClick={handleDecline}>Decline</button>
-        <button className={styles.acceptBtn} disabled={loading || data.appResult === "accepted"} onClick={handleAccept}>Accept</button>
-        <button className={styles.waitlistBtn} disabled={loading || data.appResult === "waitlist"} onClick={handleWaitlist}>Waitlist</button>
-        <button className={styles.waitBtn} disabled={loading || data.appResult === "waiting"} onClick={handleWait}>Wait</button>
+        <button className={styles.declineBtn} disabled={loading || data.appStatus === "declined"} onClick={handleDecline}>Decline</button>
+        <button className={styles.acceptBtn} disabled={loading || data.appStatus === "accepted"} onClick={handleAccept}>Accept</button>
+        <button className={styles.waitlistBtn} disabled={loading || data.appStatus === "waitlist"} onClick={handleWaitlist}>Waitlist</button>
+        <button className={styles.waitBtn} disabled={loading || data.appStatus === "waiting"} onClick={handleWait}>Wait</button>
         <button className={styles.viewBtn} onClick={handleView}>View</button>
       </div>
     </div>

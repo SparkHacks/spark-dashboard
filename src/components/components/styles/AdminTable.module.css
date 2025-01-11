@@ -39,7 +39,7 @@
   width: 30px
 }
 .cellEmail {
-  width: 100px;
+  width: 150px;
 }
 .cellCreatedAt {
   width: 180px
@@ -47,13 +47,13 @@
 .cellName {
   width: 150px
 }
-.cellUIN {
-  width: 100px
-}
 .cellAvailability {
   width: 300px;
 }
 .cellStatus {
+  width: 70px;
+}
+.cellResult {
   width: 70px;
 }
 .cellActions {

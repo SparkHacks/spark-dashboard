@@ -36,6 +36,7 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
     return new Response("Session expired. Please sign out and sign in again", { status: 500 })
   }
   
+  // update appStatus
   try {
     // extract email and update action
     const formData = await request.formData()
@@ -52,7 +53,7 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
 
     // try to update
     const res = await db.collection("Forms").doc(email).update({
-      appResult: updateAction
+      appStatus: updateAction
     })
     console.log(res)
     return new Response("Successful update")
