@@ -10,6 +10,15 @@ let userPhoto;
 let registered = false
 let result = ""
 
+const resultMessage = {
+  waiting: "We have received your application and will review it shortly. Please check this website for updates.",
+  declined: "Due to limited space, your application has been declined. Please come back next year to re-apply!",
+  waitlist: "Due to limited space, your application has been waitlisted. We will reach out with status updates.",
+  accepted: "You've been accepted! Please check your inbox for next steps in the coming days."
+};
+
+const getMessage = (result) => resultMessage[result] || "Unknown result. Please contact support.";
+
 try {
   const auth = getAuth(app);
 
@@ -51,11 +60,11 @@ try {
 
 <DashboardLayout>
   <section class="user-info">
-    <h1>Welcome {userName}!</h1>
+    <h1>Welcome, {userName}!</h1>
     <img src={userPhoto} alt="avatar" width="35" height="35" style="border-radius: 9999px;"/>
   </section>
   <section class={`dashboard-result ${(result !== "")? result : ""}`} style={(result !== "")? "" : "display: none"}>
-    <strong>Application Result: </strong>{result}
+    <strong>Application Result: </strong>{getMessage(result)}
   </section>
   <section>
   </section>
