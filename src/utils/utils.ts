@@ -161,7 +161,7 @@ export const validateFormData = (
 
 // send form to google sheet: THIS FUNCTION IS INCOMPLETE
 export const sendFormToGoogleSheet = async (formSubmissionData: FormSubmissionData) => {
-  const { email, firstName, lastName, uin, gender, year, availability, moreAvailability, dietaryRestriction, shirtSize, hackathonPlan, preWorkshops, workshops, jobType, resumeLink, otherQuestion, appStatus, appResult } = formSubmissionData
+  const { email, firstName, lastName, uin, gender, year, availability, moreAvailability, dietaryRestriction, shirtSize, hackathonPlan, preWorkshops, workshops, jobType, resumeLink, otherQuestion, appStatus } = formSubmissionData
   await sheets.spreadsheets.values.append({
     spreadsheetId: SHEET_ID,
     range: "DATABASE!A2:Q2",
@@ -185,8 +185,7 @@ export const sendFormToGoogleSheet = async (formSubmissionData: FormSubmissionDa
         jobType,
         resumeLink,
         otherQuestion,
-        appStatus,
-        appResult
+        appStatus
       ]]
     }
   })

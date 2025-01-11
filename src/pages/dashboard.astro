@@ -10,15 +10,18 @@ let userPhoto;
 let registered = false
 let appStatus = ""
 let isAdmin = false
+let submittedDate = ""
 
 const statusMessage = {
   waiting: "We have received your application and will review it shortly. Please check this website for updates.",
   declined: "Due to limited space, your application has been declined. Please come back next year to re-apply!",
   waitlist: "Due to limited space, your application has been waitlisted. We will reach out with status updates.",
-  accepted: "You've been accepted! Please check your inbox for next steps in the coming days."
+  accepted: "You've been accepted! Please check your inbox for next steps in the coming days.",
+  userAccepted: "You accept to participate SparkHacks. Wait for team to accept you.",
+  fullyAccepted: "Congratulation! Check inbox for details about schedules"
 };
 
-const getMessage = (appStatus: "waiting" | "declined" | "waitlist" | "accepted") => statusMessage[appStatus] || "Unknown result. Please contact support.";
+const getMessage = (appStatus: "waiting" | "declined" | "waitlist" | "accepted" | "userAccepted" | "fullyAccepted") => statusMessage[appStatus] || "Unknown result. Please contact support.";
 
 try {
   const auth = getAuth(app);
@@ -55,6 +58,8 @@ try {
     registered = true
     const data = docSnap.data()
     appStatus = data?.appStatus || ""
+    submittedDate = data?.createdAt.toDate().toLocaleString() || ""
+
   }
 
 } catch (err) {
@@ -70,6 +75,16 @@ try {
   </section>
   <section class={`dashboard-status ${(appStatus !== "")? appStatus : ""}`} style={(appStatus !== "")? "" : "display: none"}>
     <strong>Application Status: </strong>{getMessage(appStatus)}
+    {(appStatus === "accepted") && 
+      <>
+        <div>Do you still accept to participate SparkHacks? You have 3 days to decide.</div>
+        <div class="decideBtns">
+          <button id="accept-btn">Accept</button>
+          <button id="withdraw-btn">Withdraw</button>
+        </div>
+      </>
+    }
+
   </section>
   <section>
   </section>
@@ -78,16 +93,45 @@ try {
       <h2>Application to SparkHacks</h2>
       <div><strong>Close at:</strong> 11:59:59 pm 01/18/2024</div>
     </div>
-    <!-- <div><strong>Application Status:</strong> {(registered)? "Submitted" : "Not started"}</div> -->
+    {(submittedDate !== "") &&
+      <div><strong>Submitted at:</strong> {submittedDate}</div>
+    }
     <button id="app-btn">
       {(registered)? "View Application" : "Start Application"}
     </button>
   </section>
   <script>
+    const acceptBtn = document.getElementById("accept-btn") as HTMLButtonElement
+    const withdrawBtn = document.getElementById("withdraw-btn") as HTMLButtonElement
     const appBtn = document.getElementById("app-btn");
     appBtn?.addEventListener("click", () => {
       window.location.assign("/application");
     });
+
+    const decideSparkhacksCallback = async (action: "userAccepted" | "declined") => {
+      try {
+        const formData = new FormData()
+        formData.set("action", action)
+        const res = await fetch("/api/auth/decide-sparkhacks", {
+          method: "POST",
+          body: formData
+        })
+
+        if (!res.ok) {
+          alert("Something is wrong")
+          return
+        }
+
+        window.location.reload()
+      }
+      catch (err) {
+        console.error(err)
+        alert("Something is wrong")
+      }
+    }
+
+    acceptBtn.addEventListener("click", () => decideSparkhacksCallback("userAccepted"))
+    withdrawBtn.addEventListener("click", () => decideSparkhacksCallback("declined"))
   </script>
 </DashboardLayout>
 <style>
@@ -122,6 +166,12 @@ try {
   .dashboard-status.accepted {
     background-color: #afd9ae;
   }
+  .dashboard-status.userAccepted {
+    background-color: #7cba7b;
+  }
+  .dashboard-status.fullyAccepted {
+    background-color: #57ff55;
+  }
   
   .dashboard-app {
     box-sizing: border-box;
@@ -145,6 +195,13 @@ try {
   }
   #app-btn:hover {
     filter: brightness(80%);
+  }
+
+  .decideBtns {
+
+  }
+  #accept-btn {
+
   }
 
 </style>

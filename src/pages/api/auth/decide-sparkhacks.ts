@@ -3,8 +3,10 @@ import { getAuth } from "firebase-admin/auth";
 import { app, db } from "../../../firebase/server";
 
 export const POST: APIRoute = async ({ request, cookies, redirect }) => {
-  
-  // check token and session alive, check admin permission
+
+  let email = ""
+
+  // check token and session alive
   try {
     const auth = getAuth(app);
 
@@ -23,40 +25,30 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
       )
     }
 
-    // check admin permission
-    const user = await auth.getUser(decodedCookie.uid)
-    if (!(user.customClaims && user.customClaims.admin === true)) {
-      console.error("Not admin")
-      return new Response("Not accessible", {status: 401})
-    }
-
+    email = decodedCookie.email || ""
   }
   catch (err) {
-    console.log("Something is wrong with verifying cookie", err)
+    console.error("Something is wrong with verifying cookie", err)
     return new Response("Session expired. Please sign out and sign in again", { status: 500 })
   }
-  
-  // update appStatus
+
+  // TODO: check if user already accept or withdraw
+
+  // update appResult
   try {
-    // extract email and update action
     const formData = await request.formData()
-    const email = formData.get("email")?.toString() || ""
-    const updateAction = formData.get("updateAction")?.toString() || ""
+    const action = formData.get("action")?.toString() || "" // should be either accept or withdraw
 
-    if (email === "") {
-      return new Response ("Empty email", { status: 400 })
+    // invalid action
+    if (action !== "userAccepted" && action !== "declined") {
+      return new Response("Invalid action", { status: 400 })
     }
-
-    if (updateAction !== "declined" && updateAction !== "accepted" && updateAction !== "waitlist" && updateAction !== "waiting" && updateAction !== "fullyAccepted") {
-      return new Response ("Update action is not valid", { status: 400 })
-    }
-
-    // try to update
+    
     const res = await db.collection("Forms").doc(email).update({
-      appStatus: updateAction
+      appStatus: action
     })
-    console.log(res)
-    return new Response("Successful update")
+    
+    return new Response(`Successfully ${action} the hackathon`)
   }
   catch (err) {
     console.error(err)

@@ -10,7 +10,6 @@ export default function ViewCard({view, setView} : {
     <section style={(view) ? {display: "block"} : {display: "none"}} className={styles.viewCard}>
       <button onClick={() => setView(null)}>X</button>
       <h1>{view?.firstName} {view?.lastName}</h1>
-      <div><strong>Application Result:</strong> {view?.appResult}</div>
       <div><strong>Application Status:</strong> {view?.appStatus}</div>
       <div><strong>Submited at:</strong> {view?.createdAt}</div>
       <div><strong>Email:</strong> {view?.email}</div>

@@ -1,4 +1,3 @@
-import type { DocumentData, Timestamp } from "firebase-admin/firestore"
 import styles from "./styles/AdminTable.module.css"
 import { useMemo, useState } from "react"
 import type { FormViewData } from "../../env"
@@ -22,7 +21,6 @@ export default function AdminTable({datas, setDatas, setView, page}: {
         <div className={styles.cellCreatedAt}>Created At</div>
         <div className={styles.cellAvailability}>Availability</div>
         <div className={styles.cellStatus}>Status</div>
-        <div className={styles.cellResult}>Result</div>
         <div className={styles.cellActions}></div>
       </div>
 
@@ -53,9 +51,11 @@ function Row({id, data, setView, setDatas, datas}: {
   const backgroundColor = (data.appStatus === "waitlist")? "#f5e3bd"
     : (data.appStatus === "declined")? "#f88378"
     : (data.appStatus === "accepted")? "#afd9ae"
+    : (data.appStatus === "userAccepted")? "blue" // TODO: choose better color
+    : (data.appStatus === "fullyAccepted")? "green" // TODO: choose better color
     : ""
 
-  const updateForm = async (updateAction: "waitlist" | "declined" | "accepted" | "waiting") => {
+  const updateForm = async (updateAction: "waitlist" | "declined" | "accepted" | "waiting" | "fullyAccepted") => {
     const formData = new FormData()
     formData.set("email", data.email)
     formData.set("updateAction", updateAction)
@@ -92,8 +92,12 @@ function Row({id, data, setView, setDatas, datas}: {
     }
   }
 
+  const handleFullyAccept = () => {
+    (data.appStatus !== "fullyAccepted") && updateForm("fullyAccepted")
+  }
+
   const handleAccept = () => {
-    (data.appStatus !== "accepted") && updateForm("accepted")
+    (data.appStatus !== "accepted" && data.appStatus !== "fullyAccepted") && updateForm("accepted")
   }
 
   const handleDecline = () => {
@@ -122,14 +126,12 @@ function Row({id, data, setView, setDatas, datas}: {
       <div className={styles.cellStatus}>
         {data.appStatus}
       </div>
-      <div className={styles.cellResult}>
-        {data.appResult}
-      </div>
       <div className={styles.cellActions}>
         <button className={styles.declineBtn} disabled={loading || data.appStatus === "declined"} onClick={handleDecline}>Decline</button>
-        <button className={styles.acceptBtn} disabled={loading || data.appStatus === "accepted"} onClick={handleAccept}>Accept</button>
+        <button className={styles.acceptBtn} disabled={loading || data.appStatus === "accepted" || data.appStatus === "fullyAccepted" || data.appStatus === "userAccepted"} onClick={handleAccept}>Accept</button>
         <button className={styles.waitlistBtn} disabled={loading || data.appStatus === "waitlist"} onClick={handleWaitlist}>Waitlist</button>
         <button className={styles.waitBtn} disabled={loading || data.appStatus === "waiting"} onClick={handleWait}>Wait</button>
+        <button className={styles.fullyAcceptBtn} disabled={loading || data.appStatus === "fullyAccepted"} onClick={handleFullyAccept}>Fully Accept</button>
         <button className={styles.viewBtn} onClick={handleView}>View</button>
       </div>
     </div>

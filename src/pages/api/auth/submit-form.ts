@@ -82,7 +82,6 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
       resumeLink: resumeLink || "",
       otherQuestion: otherQuestion || "",
       appStatus: "waiting",
-      appResult: "n/a",
       createdAt: FieldValue.serverTimestamp()
     } as FormSubmissionData
 

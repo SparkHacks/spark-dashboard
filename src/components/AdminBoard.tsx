@@ -196,7 +196,6 @@ const convertDocToFormViewData = (doc: DocumentData) => {
     resumeLink: docData.resumeLink,
     otherQuestion: docData.otherQuestion,
     appStatus: docData.appStatus,
-    appResult: docData.appResult
   }
   return result
 }

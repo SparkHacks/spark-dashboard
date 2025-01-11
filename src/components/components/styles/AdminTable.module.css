@@ -53,9 +53,6 @@
 .cellStatus {
   width: 70px;
 }
-.cellResult {
-  width: 70px;
-}
 .cellActions {
   flex: 1;
   display: flex;
@@ -66,13 +63,13 @@
 
 /* buttons */
 
-.declineBtn, .acceptBtn, .waitlistBtn, .waitBtn, .viewBtn {
+.declineBtn, .acceptBtn, .waitlistBtn, .waitBtn, .viewBtn, .fullyAcceptBtn {
   padding: 8px 16px;
   border: none;
   border-radius: 8px;
   cursor: pointer;
 }
-.declineBtn:disabled, .acceptBtn:disabled, .waitlistBtn:disabled, .waitBtn:disabled, .viewBtn:disabled {
+.declineBtn:disabled, .acceptBtn:disabled, .waitlistBtn:disabled, .waitBtn:disabled, .viewBtn:disabled, .fullyAcceptBtn:disabled {
   cursor: not-allowed;
 }
 .declineBtn {
@@ -86,4 +83,7 @@
 }
 .waitBtn {
   background-color: rgb(120, 120, 63);
+}
+.fullyAcceptBtn {
+  background-color: chartreuse;
 }
