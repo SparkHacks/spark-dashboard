@@ -4,6 +4,7 @@ import { app } from "../../../firebase/server";
 
 export const GET: APIRoute = async ({request, cookies}) => {
     const auth = getAuth(app)
+    let isAdmin = false
     const idToken = request.headers.get("Authorization")?.split("Bearer ")[1]
     // check if token exists
     if (!idToken) {
@@ -16,11 +17,18 @@ export const GET: APIRoute = async ({request, cookies}) => {
     try {
         const decodedIdToken = await auth.verifyIdToken(idToken)
         const email = decodedIdToken.email || ""
-        const emailReg = /^[a-zA-Z0-9._%+-]+@uic\.edu$/
-        if (!emailReg.test(email)) {
-            return new Response (
-                "Please sign in with UIC email", {status: 401}
-            )
+        const user = await auth.getUserByEmail(email) // TODO: need to have error response that user does not exists
+        if (user.customClaims && (user.customClaims as any).admin === true) { // if the email is admin then does not need to go through email check
+          console.log(email, "admin user!")
+          isAdmin = true
+        }
+        else {
+          const emailReg = /^[a-zA-Z0-9._%+-]+@uic\.edu$/
+          if (!emailReg.test(email)) {
+              return new Response (
+                  "Please sign in with UIC email", {status: 401}
+              )
+          }
         }
     } catch (err) {
         return new Response (
@@ -36,5 +44,8 @@ export const GET: APIRoute = async ({request, cookies}) => {
         sameSite: "strict"
     })
 
+    if (isAdmin) {
+      return new Response("/admin")
+    }
     return new Response("/dashboard")
 }   

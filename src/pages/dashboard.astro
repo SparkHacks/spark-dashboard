@@ -9,6 +9,7 @@ let userName;
 let userPhoto;
 let registered = false
 let result = ""
+let isAdmin = false
 
 const resultMessage = {
   waiting: "We have received your application and will review it shortly. Please check this website for updates.",
@@ -39,10 +40,14 @@ try {
     return Astro.redirect("/");
   }
 
-
   userEmail = user.email;
   userName = user.displayName;
   userPhoto = user.photoURL
+
+  // check if user is an admin
+  if (user.customClaims && (user.customClaims as any).admin === true) {
+    isAdmin = true
+  }
 
   // check if the user already register the application:
   const docSnap = await db.collection("Forms").doc(decodedCookie.email as string).get()
@@ -60,7 +65,7 @@ try {
 
 <DashboardLayout>
   <section class="user-info">
-    <h1>Welcome, {userName}!</h1>
+    <h1>Welcome {isAdmin && "Admin"}, {userName}!</h1>
     <img src={userPhoto} alt="avatar" width="35" height="35" style="border-radius: 9999px;"/>
   </section>
   <section class={`dashboard-result ${(result !== "")? result : ""}`} style={(result !== "")? "" : "display: none"}>

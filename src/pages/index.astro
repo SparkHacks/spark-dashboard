@@ -51,8 +51,8 @@ try {
 					btn.disabled = false
 					return
 				}
-
-				window.location.assign("/dashboard")
+				const newRoute = await res.text()
+				window.location.assign(newRoute)
 				btn.disabled = false
 			} catch (err) {
 				console.log(err)
