@@ -34,7 +34,7 @@ export default function ViewCard({view, setView} : {
         </ul>
       </div>
       <div><strong>Job type:</strong> {view?.jobType}</div>
-      <div><strong>Resume link:</strong> {view?.resumeLink}</div>
+      <div><strong>Resume link:</strong> <a href={view?.resumeLink} target="_blank">{view?.resumeLink}</a></div>
       <div><strong>Other Questions:</strong> {view?.otherQuestion}</div>
     </section>
   )
