@@ -3,6 +3,7 @@ import { useRef, useState, type FormEvent } from "react"
 import Radios from "./components/Radios";
 import { questions } from "../utils/questions";
 import Checkboxes from "./components/Checkboxes";
+import type { FormSubmissionData } from "../env";
 
 
 const style = {
