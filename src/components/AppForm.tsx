@@ -11,6 +11,7 @@ const style = {
   left: '50%',
   transform: 'translate(-50%, -50%)',
   width: 400,
+  maxWidth: "100%",
   height: 300,
   padding: "20px",
   backgroundColor: "white",
@@ -70,7 +71,9 @@ export default function AppForm({ email, registered, applicationData }: {
         onClose={() => window.location.assign("/dashboard")}
       >
         <Box sx={style}>
+          <img src="/sparkhacks-logo.svg" width="100" height="100"/>
           <h2>Form submitted successfully</h2>
+          <div style={{marginBottom: "30px"}}>A confirmation email should sent to you shortly</div>
           <Button 
             variant="contained"
             onClick={() => window.location.assign("/dashboard")}

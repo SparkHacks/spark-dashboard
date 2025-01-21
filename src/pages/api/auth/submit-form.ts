@@ -4,6 +4,8 @@ import { FieldValue } from "firebase-admin/firestore";
 import { getAuth } from "firebase-admin/auth";
 import { app, db } from "../../../firebase/server.ts";
 import type { FormSubmissionData } from "../../../env";
+import nodemailer from "nodemailer"
+import { sendEmailConfirmation } from "../../../nodemailer/nodemailer.ts";
 
 export const POST: APIRoute = async ({ request, cookies, redirect }) => {
 
@@ -100,6 +102,9 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
 
     // submit form data to database
     await sendFormToFirestore(formSubmissionData)
+
+    // send email to user to confirm
+    sendEmailConfirmation("gunnysolike@gmail.com", email)
 
     // wait for success, if not success then decline
     return new Response(`Successful: ${email}`)

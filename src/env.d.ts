@@ -20,6 +20,8 @@ interface ImportMetaEnv {
     readonly SERVER_CLIENT_X509_CERT_URL: string;
     readonly SERVER_UNIVERSE_DOMAIN: string;
 
+    readonly NODEMAILER_EMAIL: string;
+    readonly NODEMAILER_PASS: string;
 }
 
 interface ImportMeta {

@@ -71,8 +71,13 @@ try {
 <DashboardLayout>
   <section class="user-info">
     <h1>Welcome {isAdmin && "Admin"}, {userName}!</h1>
-    <img src={userPhoto} alt="avatar" width="35" height="35" style="border-radius: 9999px;"/>
+    <img src={(isAdmin)? "/adminUser.svg" : "/regularUser.svg"} alt="avatar" width="35" height="35" style="border-radius: 9999px;"/>
   </section>
+  {isAdmin && 
+    <section style="margin-top: 15px">
+      <button class="admin-btn" onclick="window.location.assign('/admin')">Go to admin</button>
+    </section>
+  }
   <section class={`dashboard-status ${(appStatus !== "")? appStatus : ""}`} style={(appStatus !== "")? "" : "display: none"}>
     <strong>Application Status: </strong>{getMessage(appStatus)}
     {(appStatus === "accepted") && 
@@ -202,6 +207,14 @@ try {
   }
   #accept-btn {
 
+  }
+
+  .admin-btn {
+    padding: 8px 16px;
+    background-color: aqua;
+    cursor: pointer;
+    border: none;
+    border-radius: 8px;
   }
 
 </style>
