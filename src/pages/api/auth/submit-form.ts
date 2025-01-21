@@ -104,7 +104,7 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
     await sendFormToFirestore(formSubmissionData)
 
     // send email to user to confirm
-    sendEmailConfirmation("gunnysolike@gmail.com", email)
+    sendEmailConfirmation(email)
 
     // wait for success, if not success then decline
     return new Response(`Successful: ${email}`)
