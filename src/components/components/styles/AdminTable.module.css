@@ -14,7 +14,7 @@
   /* border-radius: 4px; */
 }
 .headerTable {
-  background-color:burlywood;
+  background-color:#c0edff;
   border-bottom-left-radius: 0;
   border-bottom-right-radius: 0;
 }
@@ -73,17 +73,17 @@
   cursor: not-allowed;
 }
 .declineBtn {
-  background-color: red;
+  background-color: #ff8a8a;
 }
 .acceptBtn {
-  background-color: green;
+  background-color: #cbffb3;
 }
 .waitlistBtn {
-  background-color: yellow;
+  background-color: #fbd583;
 }
 .waitBtn {
-  background-color: rgb(120, 120, 63);
+  background-color: #c1c1c1;
 }
 .fullyAcceptBtn {
-  background-color: chartreuse;
+  background-color: #4eff66;
 }
