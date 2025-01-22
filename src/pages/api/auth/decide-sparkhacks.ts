@@ -32,8 +32,6 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
     return new Response("Session expired. Please sign out and sign in again", { status: 500 })
   }
 
-  // TODO: check if user already accept or withdraw
-
   // update appResult
   try {
     const formData = await request.formData()
@@ -44,6 +42,16 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
       return new Response("Invalid action", { status: 400 })
     }
     
+    // disallow action when current appStatus is not "accepted" or there is no form
+    const docSnap = await db.collection("Forms").doc(email).get()
+    if (!docSnap.exists) {
+      return new Response("Invalid action", {status: 400})
+    }
+    if (docSnap.data()?.appStatus !== "accepted") {
+      return new Response("Invalid action: user not accepted")
+    }
+
+    // action
     const res = await db.collection("Forms").doc(email).update({
       appStatus: action
     })

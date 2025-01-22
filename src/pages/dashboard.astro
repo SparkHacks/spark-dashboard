@@ -14,14 +14,14 @@ let submittedDate = ""
 
 const statusMessage = {
   waiting: "We have received your application and will review it shortly. Please check this website for updates.",
-  declined: "Due to limited space, your application has been declined. Please come back next year to re-apply!",
+  declined: "Your application has been declined due to your decision or space limit. Please come back next year to re-apply!",
   waitlist: "Due to limited space, your application has been waitlisted. We will reach out with status updates.",
   accepted: "You've been accepted! Please check your inbox for next steps in the coming days.",
-  userAccepted: "You accept to participate SparkHacks. Wait for team to accept you.",
-  fullyAccepted: "Congratulation! Check inbox for details about schedules"
+  userAccepted: "You accept to participate SparkHacks. Wait for SparkHacks team to officially accept you.",
+  fullyAccepted: "Congratulation! Check inbox for details about schedules."
 };
 
-const getMessage = (appStatus: "waiting" | "declined" | "waitlist" | "accepted" | "userAccepted" | "fullyAccepted") => statusMessage[appStatus] || "Unknown result. Please contact support.";
+const getMessage = (appStatus: "waiting" | "declined" | "waitlist" | "accepted" | "userAccepted" | "fullyAccepted") => statusMessage[appStatus] || "Unknown result. Please email sparkhacks@uic.edu to reach out our team for support.";
 
 try {
   const auth = getAuth(app);

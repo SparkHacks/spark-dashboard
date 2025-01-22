@@ -37,7 +37,7 @@ export const GET: APIRoute = async ({request, cookies}) => {
     }
 
     // create and set session cookie
-    const timeLimit = 30 * 60 * 1000 // 30 minutes in milliseconds
+    const timeLimit = 5 * 24 * 60 * 60 * 1000 // 5 days in milliseconds
     const sessionCookie = await auth.createSessionCookie(idToken, {expiresIn: timeLimit})
     cookies.set("__session", sessionCookie, {
         path: "/",

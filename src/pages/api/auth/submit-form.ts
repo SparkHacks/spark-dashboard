@@ -4,7 +4,6 @@ import { FieldValue } from "firebase-admin/firestore";
 import { getAuth } from "firebase-admin/auth";
 import { app, db } from "../../../firebase/server.ts";
 import type { FormSubmissionData } from "../../../env";
-import nodemailer from "nodemailer"
 import { sendEmailConfirmation } from "../../../nodemailer/nodemailer.ts";
 
 export const POST: APIRoute = async ({ request, cookies, redirect }) => {

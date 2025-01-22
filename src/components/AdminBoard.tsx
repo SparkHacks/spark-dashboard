@@ -2,10 +2,21 @@ import { useEffect, useRef, useState } from "react"
 import AdminTable from "./components/AdminTable"
 import ViewCard from "./components/ViewCard"
 import type { FormViewData } from "../env"
-import { collection, doc, getDoc, getDocs, limit, orderBy, query, startAfter, type DocumentData } from "firebase/firestore"
+import { collection, count, doc, getCountFromServer, getDoc, getDocs, limit, orderBy, query, startAfter, where, type DocumentData } from "firebase/firestore"
 import { db } from "../firebase/client"
 
-export const PAGE_SIZE = 25
+export const PAGE_SIZE = 50
+
+interface Summary {
+  total: number,
+  fullyAccepted: number,
+  userAccepted: number,
+  accepted: number,
+  waitlist: number,
+  declined: number,
+  waiting: number,
+}
+
 
 export default function AdminBoard() {
 
@@ -16,6 +27,7 @@ export default function AdminBoard() {
   const [view, setView] = useState<FormViewData | null>(null)
   const [searchEmail, setSearchEmail] = useState("")
   const searchInputRef = useRef(null)
+  const [summary, setSummary] = useState<Summary | null>(null)
 
   const handleNext = async () => {
     const newPage = page + 1
@@ -128,6 +140,26 @@ export default function AdminBoard() {
 
   useEffect(() => {
     const fetchData = async () => {
+
+      // fetch summary
+      const totalCount = (await getCountFromServer(collection(db, "Forms"))).data().count
+      const fullyAcceptedCount = (await getCountFromServer(query(collection(db, "Forms"), where("appStatus", "==", "fullyAccepted")))).data().count
+      const userAcceptedCount = (await getCountFromServer(query(collection(db, "Forms"), where("appStatus", "==", "userAccepted")))).data().count
+      const acceptedCount = (await getCountFromServer(query(collection(db, "Forms"), where("appStatus", "==", "accepted")))).data().count
+      const waitlistCount = (await getCountFromServer(query(collection(db, "Forms"), where("appStatus", "==", "waitlist")))).data().count
+      const waitingCount = (await getCountFromServer(query(collection(db, "Forms"), where("appStatus", "==", "waiting")))).data().count
+      const declinedCount = (await getCountFromServer(query(collection(db, "Forms"), where("appStatus", "==", "declined")))).data().count
+      setSummary({
+        total: totalCount,
+        fullyAccepted: fullyAcceptedCount,
+        userAccepted: userAcceptedCount,
+        accepted: acceptedCount,
+        waitlist: waitlistCount,
+        waiting: waitingCount,
+        declined: declinedCount,
+      })
+
+      // fetch first PAGE_SIZE documents
       const q = query(collection(db, "Forms"), orderBy("createdAt"), limit(PAGE_SIZE))
       const qSnap = await getDocs(q)
       const newDatas: FormViewData[] = []
@@ -166,6 +198,20 @@ export default function AdminBoard() {
           onClick={handleNext}
         >Next</button>
       </div>
+      {summary &&
+        <section style={{margin: "8px", padding: "8px", border: "1px solid black", borderRadius: "8px", boxSizing: "border-box"}}>
+          <h2>Summary</h2>
+          <div style={{ width: "100%", display: "flex", flexWrap: "wrap", gap: "8px",}}>
+            <div><strong>Total:</strong> {summary.total}</div>
+            <div><strong>fullyAccepted:</strong> {summary.fullyAccepted}</div>
+            <div><strong>userAccepted:</strong> {summary.userAccepted}</div>
+            <div><strong>accepted:</strong> {summary.accepted}</div>
+            <div><strong>waitlist:</strong> {summary.waitlist}</div>
+            <div><strong>declined:</strong> {summary.declined}</div>
+            <div><strong>waiting:</strong> {summary.waiting}</div>
+          </div>
+        </section>
+      }
       <div style={{width: "100%", display: "flex"}}>
         <ViewCard view={view} setView={setView}/>
         <AdminTable datas={datas} setView={setView} page={page} setDatas={setDatas}/> 
