@@ -12,7 +12,30 @@
 	</body>
 </html>
 
-<style>
+<style is:global>
+	@font-face {
+    font-family: 'nunito';
+    src: url('/fonts/Nunito-VariableFont_wght.ttf') format('opentype');
+    font-weight: 0 900;
+  }
+
+	html {
+    font-family: 'nunito', system-ui, sans-serif;
+    scroll-behavior: smooth;
+  }
+  
+	code {
+    font-family:
+      Menlo,
+      Monaco,
+      Lucida Console,
+      Liberation Mono,
+      DejaVu Sans Mono,
+      Bitstream Vera Sans Mono,
+      Courier New,
+      monospace;
+  }
+
 	html,
 	body {
 		margin: 0;
