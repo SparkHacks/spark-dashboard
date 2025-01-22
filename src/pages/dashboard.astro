@@ -70,7 +70,7 @@ try {
 
 <DashboardLayout>
   <section class="user-info">
-    <h1>Welcome {isAdmin && "Admin"}, {userName}!</h1>
+    <h1>Welcome{isAdmin && " Admin"}, {userName}!</h1>
     <img src={(isAdmin)? "/adminUser.svg" : "/regularUser.svg"} alt="avatar" width="35" height="35" style="border-radius: 9999px;"/>
   </section>
   {isAdmin && 
