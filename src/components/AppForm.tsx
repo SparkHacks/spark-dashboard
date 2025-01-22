@@ -174,7 +174,7 @@ export default function AppForm({ email, registered, applicationData }: {
           <Checkboxes 
             required
             disabled={registered}
-            label={<>Which of the following Pre-Hack Workshops would you find useful/interesting to attend PRIOR to SparkHacks? These will be held from February 4th-6th, 2025.<br/>For more information on these workshops, view <a href="https://www.sparkhacks.org/">https://www.sparkhacks.org/</a>. (Select all that apply)</>}
+            label={<>Which of the following Pre-Hack Workshops would you find useful/interesting to attend PRIOR to SparkHacks? These will be held from February 4th-6th, 2025. (Select all that apply)<br/>For more information on these workshops, view <a href="https://www.sparkhacks.org/">https://www.sparkhacks.org/</a>.</>}
             name="preWorkshops"
             defaultValue={applicationData?.preWorkshops || []}
             groupCheckboxes={questions.preWorkshops.answer}
@@ -190,7 +190,7 @@ export default function AppForm({ email, registered, applicationData }: {
           <Radios 
             required={false}
             disabled={registered}
-            label="If you'd like to be considered for an opportunity with our company partners, select the type of job you are looking for:"
+            label="If you would like to be considered for an opportunity with our company partners, select the type of job you are looking for:"
             name="jobType"
             defaultValue={applicationData?.jobType || ""}
             groupRadios={questions.jobType.answer}

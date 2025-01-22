@@ -32,8 +32,8 @@ export const questions = {
         question: "Which day(s) are you available to attent the hackathon? Priority will be given to those who can attend both days.",
         answer: [
             "Both Days",
-            "Only Friday February 7th @ 2:30pm - 9pm",
-            "Only Saturday February 8th @ 9am - 8pm"
+            "Only Friday February 7th @ 6pm-9pm",
+            "Only Saturday February 8th @ 9am-9pm"
         ],
     },
     moreAvailability: { // not required
@@ -87,7 +87,7 @@ export const questions = {
         ]
     },
     jobType: { // not required
-        question: "If you’d like to be considered for an opportunity with our company partners, select the type of job you are looking for:",
+        question: "If you would like to be considered for an opportunity with our company partners, select the type of job you are looking for:",
         answer: [
             "Summer 2025 Internship",
             "Fall 2025 Internship",
