@@ -108,7 +108,7 @@ try {
   <script>
     const acceptBtn = document.getElementById("accept-btn") as HTMLButtonElement
     const withdrawBtn = document.getElementById("withdraw-btn") as HTMLButtonElement
-    const appBtn = document.getElementById("app-btn");
+    const appBtn = document.getElementById("app-btn") as HTMLButtonElement
     appBtn?.addEventListener("click", () => {
       window.location.assign("/application");
     });
@@ -135,8 +135,8 @@ try {
       }
     }
 
-    acceptBtn.addEventListener("click", () => decideSparkhacksCallback("userAccepted"))
-    withdrawBtn.addEventListener("click", () => decideSparkhacksCallback("declined"))
+    acceptBtn?.addEventListener("click", () => decideSparkhacksCallback("userAccepted"))
+    withdrawBtn?.addEventListener("click", () => decideSparkhacksCallback("declined"))
   </script>
 </DashboardLayout>
 <style>

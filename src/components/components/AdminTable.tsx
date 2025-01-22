@@ -3,9 +3,10 @@ import { useMemo, useState } from "react"
 import type { FormViewData } from "../../env"
 import { PAGE_SIZE } from "../AdminBoard"
 
-export default function AdminTable({datas, setDatas, setView, page}: {
+export default function AdminTable({datas, setDatas, view, setView, page}: {
   datas: FormViewData[],
   setDatas: React.Dispatch<React.SetStateAction<FormViewData[]>>,
+  view: FormViewData | null,
   setView: React.Dispatch<React.SetStateAction<FormViewData | null>>,
   page: number
 }) {
@@ -27,7 +28,7 @@ export default function AdminTable({datas, setDatas, setView, page}: {
       <div className={styles.contentTable}>
         {(datas.length === 0)
           ? <div style={{marginTop: "20px", textAlign: "center"}}>No data</div>
-          : pageDatas.map((data, id) => <Row key={id} id={page * PAGE_SIZE + id} data={data} setView={setView} setDatas={setDatas} datas={datas}/>)
+          : pageDatas.map((data, id) => <Row key={id} id={page * PAGE_SIZE + id} data={data} view={view} setView={setView} setDatas={setDatas} datas={datas}/>)
         }
       </div>
       
@@ -35,9 +36,10 @@ export default function AdminTable({datas, setDatas, setView, page}: {
   )
 }
 
-function Row({id, data, setView, setDatas, datas}: {
+function Row({id, data, view, setView, setDatas, datas}: {
   id: number,
   data: FormViewData,
+  view: FormViewData | null,
   setView: React.Dispatch<React.SetStateAction<FormViewData | null>>,
   datas: FormViewData[]
   setDatas: React.Dispatch<React.SetStateAction<FormViewData[]>>,
@@ -113,11 +115,16 @@ function Row({id, data, setView, setDatas, datas}: {
   }
 
   const handleView = () => {
-    setView(data)
+    if (!view || view.email !== data.email) {
+      setView(data)
+    }
+    else {
+      setView(null)
+    }
   }
 
   return (
-    <div className={styles.rowTable} style={{backgroundColor: backgroundColor}}>
+    <div className={styles.rowTable} style={{backgroundColor: backgroundColor, border: (view?.email === data.email) ? "3px solid black" : "", borderRadius: "8px"}}>
       <div className={styles.cellId}><strong>{id}</strong></div>
       <div className={styles.cellEmail}>{data.email}</div>
       <div className={styles.cellName}>{data.firstName} {data.lastName}</div>

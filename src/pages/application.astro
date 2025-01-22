@@ -4,11 +4,11 @@ import AppForm from "../components/AppForm.tsx";
 import { app, db } from "../firebase/server";
 import { getAuth } from "firebase-admin/auth";
 import type { DocumentData } from "firebase-admin/firestore";
-import type { FormSubmissionData } from "../env";
+import type { FormSubmissionData, FormViewData } from "../env";
 
 let userEmail = "";
 let registered = false
-let applicationData: FormSubmissionData | null = null
+let applicationData: FormViewData | null = null
 
 try {
   const auth = getAuth(app);
@@ -47,15 +47,15 @@ try {
       availability: data.availability,
       moreAvailability: data.moreAvailability, // optional
       dietaryRestriction: data.dietaryRestriction,
+      otherDietaryRestriction: data.otherDietaryRestriction, // optional
       shirtSize: data.shirtSize,
-      hackathonPlan: data.hackathonPlan,
+      teamPlan: data.teamPlan,
       preWorkshops: data.preWorkshops,
-      workshops: data.workshops,
-      jobType: data.jobType, // optional
+      jobType: data.jobType, 
+      otherJobType: data.otherJobType,// optional
       resumeLink: data.resumeLink, // optional
-      otherQuestion: data.otherQuestion, // optional
       appStatus: data.appStatus, // status of application
-      createdAt: data.createdAt
+      createdAt: data.createdAt.toDate().toLocaleString() || ""
     }
   }
 

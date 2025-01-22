@@ -57,23 +57,22 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
   const year = formData.get("year")?.toString()
   const availability = formData.get("availability")?.toString()
   const moreAvailability = formData.get("moreAvailability")?.toString() 
-  const dietaryRestriction = formData.get("dietaryRestriction")?.toString()
+  const dietaryRestriction = formData.getAll("dietaryRestriction").map(item => item.toString())
+  const otherDietaryRestriction = formData.get("otherDietaryRestriction")?.toString()
   const shirtSize = formData.get("shirtSize")?.toString()
-  const hackathonPlan = formData.get("hackathonPlan")?.toString()
+  const teamPlan = formData.get("teamPlan")?.toString()
   const preWorkshops = formData.getAll("preWorkshops").map(item => item.toString())
-  const workshops = formData.getAll("workshops").map(item => item.toString())
   const jobType = formData.get("jobType")?.toString()
+  const otherJobType = formData.get("otherJobType")?.toString()
   const resumeLink = formData.get("resumeLink")?.toString()
-  const otherQuestion = formData.get("otherQuestion")?.toString()
-  displayFormData(email, firstName, lastName, uin, gender, year, availability, moreAvailability, dietaryRestriction, shirtSize, hackathonPlan, preWorkshops, workshops, jobType, resumeLink, otherQuestion)
+  displayFormData(email, firstName, lastName, uin, gender, year, availability, moreAvailability, dietaryRestriction, otherDietaryRestriction, shirtSize, teamPlan, preWorkshops, jobType, otherJobType, resumeLink)
 
 
   // validate the input
-  const validateFormResult = validateFormData(firstName, lastName, uin, gender, year, availability, dietaryRestriction, shirtSize, hackathonPlan, preWorkshops, workshops, jobType)
+  const validateFormResult = validateFormData(firstName, lastName, uin, gender, year, availability, dietaryRestriction, otherDietaryRestriction, shirtSize, teamPlan, preWorkshops, jobType, otherJobType)
   if (!validateFormResult.success) {
     return new Response(`Incorrect form data: ${validateFormResult.msg}`, { status: 400 })
   }
-
   
   try {
     const formSubmissionData = {
@@ -86,13 +85,13 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
       availability,
       moreAvailability: moreAvailability || "",
       dietaryRestriction,
+      otherDietaryRestriction: (dietaryRestriction.includes("Other"))? otherDietaryRestriction : "",
       shirtSize,
-      hackathonPlan,
+      teamPlan,
       preWorkshops,
-      workshops,
       jobType: jobType || "",
+      otherJobType: (jobType === "Other") ? otherJobType : "",
       resumeLink: resumeLink || "",
-      otherQuestion: otherQuestion || "",
       appStatus: "waiting",
       createdAt: FieldValue.serverTimestamp()
     } as FormSubmissionData

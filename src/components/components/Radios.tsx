@@ -1,13 +1,17 @@
-import { FormControl, FormControlLabel, FormLabel, Radio, RadioGroup } from "@mui/material"
+import { FormControl, FormControlLabel, FormLabel, Radio, RadioGroup, TextField } from "@mui/material"
 
-export default function Radios({required, disabled, label, name, defaultValue, groupRadios}: {
+export default function Radios({required, disabled, label, name, defaultValue, groupRadios, other = false, otherName = "", otherValue = ""}: {
     required: boolean,
     disabled: boolean,
     label: any,
     name: string,
     defaultValue: string,
-    groupRadios: string[]
+    groupRadios: string[],
+    other?: boolean,
+    otherName?: string,
+    otherValue?: string
 }) {
+
     return (
         <FormControl required={required}>
             <FormLabel>{label}</FormLabel>
@@ -20,6 +24,13 @@ export default function Radios({required, disabled, label, name, defaultValue, g
                     label={radioValue}
                     disabled={disabled}
                 />)}
+              {other && 
+                <TextField 
+                  name={otherName}
+                  defaultValue={otherValue}
+                  disabled={disabled}
+                />
+              }
             </RadioGroup>
         </FormControl>
     )

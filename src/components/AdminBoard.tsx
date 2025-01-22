@@ -214,7 +214,7 @@ export default function AdminBoard() {
       }
       <div style={{width: "100%", display: "flex"}}>
         <ViewCard view={view} setView={setView}/>
-        <AdminTable datas={datas} setView={setView} page={page} setDatas={setDatas}/> 
+        <AdminTable datas={datas} view={view} setView={setView} page={page} setDatas={setDatas}/> 
       </div>
     </>
   )
@@ -234,13 +234,13 @@ const convertDocToFormViewData = (doc: DocumentData) => {
     availability: docData.availability,
     moreAvailability: docData.moreAvailability,
     dietaryRestriction: docData.dietaryRestriction,
+    otherDietaryRestriction: docData.otherDietaryRestriction,
     shirtSize: docData.shirtSize,
-    hackathonPlan: docData.hackathonPlan,
+    teamPlan: docData.hackathonPlan,
     preWorkshops: docData.preWorkshops,
-    workshops: docData.workshops,
     jobType: docData.jobType,
+    otherJobType: docData.otherJobType,
     resumeLink: docData.resumeLink,
-    otherQuestion: docData.otherQuestion,
     appStatus: docData.appStatus,
   }
   return result
