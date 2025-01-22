@@ -3,6 +3,7 @@ import { useRef, useState, type FormEvent } from "react"
 import Radios from "./components/Radios";
 import { questions } from "../utils/questions";
 import Checkboxes from "./components/Checkboxes";
+import ShareImg from "../../public/images/share_perms.png"
 import type { FormSubmissionData } from "../env";
 
 
@@ -96,15 +97,15 @@ export default function AppForm({ email, registered, applicationData }: {
           </div>
           <FormControl required>
             <FormLabel>First Name</FormLabel>
-            <TextField name="firstName" placeholder="Enter your answer" defaultValue={applicationData && applicationData.firstName} disabled={registered} required fullWidth />
+            <TextField name="firstName" placeholder="Enter your first name" defaultValue={applicationData && applicationData.firstName} disabled={registered} required fullWidth />
           </FormControl>
           <FormControl required>
             <FormLabel>Last Name</FormLabel>
-            <TextField name="lastName" placeholder="Enter your answer" defaultValue={applicationData && applicationData.lastName} disabled={registered}  required fullWidth />
+            <TextField name="lastName" placeholder="Enter your last name" defaultValue={applicationData && applicationData.lastName} disabled={registered}  required fullWidth />
           </FormControl>
           <FormControl required>
             <FormLabel>UIN</FormLabel>
-            <TextField name="uin" placeholder="Enter your answer" defaultValue={applicationData && applicationData.uin} disabled={registered}  type="number" required fullWidth />
+            <TextField name="uin" placeholder="Enter your 9-Digit UIN" defaultValue={applicationData && applicationData.uin} disabled={registered}  type="number" required fullWidth />
           </FormControl>
           <Radios 
             required={true}
@@ -125,14 +126,14 @@ export default function AppForm({ email, registered, applicationData }: {
           <Radios
             required={true}
             disabled={registered}
-            label="Which day(s) are you available to attent the hackathon? Priority will be given to those who can attend both days. (Merch will be given day 2)"
+            label={questions.availability.question}
             name="availability"
             defaultValue={applicationData?.availability || ""}
             groupRadios={questions.availability.answer}
           />
           <FormControl>
             <FormLabel>If you want to add more detailed availability please add it here!</FormLabel>
-            <TextField name="moreAvailability" defaultValue={applicationData && applicationData.moreAvailability} placeholder="Enter your answer" fullWidth multiline disabled={registered} />
+            <TextField name="moreAvailability" defaultValue={applicationData && applicationData.moreAvailability} placeholder="Enter your additional availability (Optional)" fullWidth multiline disabled={registered} />
           </FormControl>
 
           <label>Do you have any dietary restrictions?</label>
@@ -165,7 +166,7 @@ export default function AppForm({ email, registered, applicationData }: {
           <Radios 
             required
             disabled={registered}
-            label={<>How do you plan to participate at SparkHacks? Everyone will be able to attend company sessions and/or workshops. <strong>Note: Maximum team size is 5</strong></>}
+            label={<>Do you have a team? If you do not already, no worries, we have you covered! <strong>Note: team size is restricted to 4-5 people.</strong></>}
             name="hackathonPlan"
             defaultValue={applicationData?.hackathonPlan || ""}
             groupRadios={questions.hackathonPlan.answer}
@@ -173,39 +174,53 @@ export default function AppForm({ email, registered, applicationData }: {
           <Checkboxes 
             required
             disabled={registered}
-            label="Which of the following Workshop topics would you find useful/interesting to attend PRIOR to SparkHacks? These will be held from 5th - 8th Feb 2024 from 5 - 6:30pm (Select all that apply)"
+            label={<>Which of the following Pre-Hack Workshops would you find useful/interesting to attend PRIOR to SparkHacks? These will be held from February 4th-6th, 2025. (Select all that apply)<br/>For more information on these workshops, view <a href="https://www.sparkhacks.org/">https://www.sparkhacks.org/</a>.</>}
             name="preWorkshops"
             defaultValue={applicationData?.preWorkshops || []}
             groupCheckboxes={questions.preWorkshops.answer}
           />
-          <Checkboxes 
+          {/* <Checkboxes 
             required
             disabled={registered}
             label="Which of the following workshop topics would you find useful/interesting to attend DURING SparkHacks? (Select all that apply)"
             name="workshops"
             defaultValue={applicationData?.workshops || []}
             groupCheckboxes={questions.workshops.answer}
-          />
+          /> */}
           <Radios 
             required={false}
             disabled={registered}
-            label="If you'd like to be considered for an opportunity with our company partners, select the type of job you are looking for:"
+            label="If you would like to be considered for an opportunity with our company partners, select the type of job you are looking for:"
             name="jobType"
             defaultValue={applicationData?.jobType || ""}
             groupRadios={questions.jobType.answer}
           />
           <FormControl>
             <FormLabel>
-              If you’d like to be considered for an opportunity with our company partners, submit a PDF link (e.g. Google Drive) of your resume here.
+              If you would like to be considered for an opportunity with our company sponsors, add in a shareable link to your resume here. If your resume is on Google Docs, make sure you see "Anyone with the link" after clicking the "Share" button in the top right corner. 
+              <br/>
+              <img src={ShareImg.src} alt="Share permissions" style={{maxWidth: "100%"}}/>
             </FormLabel>
-            <TextField placeholder="Enter your answer" defaultValue={applicationData && applicationData.resumeLink} name="resumeLink" disabled={registered} />
+            <TextField placeholder="Enter your shareable link (Optional)" defaultValue={applicationData && applicationData.resumeLink} name="resumeLink" disabled={registered} />
           </FormControl>
           <FormControl>
             <FormLabel>
+              If you have any other questions or comments, please email sparkhacks@uic.edu.
+            </FormLabel>
+            {/* <FormLabel>
               If you have any other questions / comments please drop them here!
             </FormLabel>
-            <TextField placeholder="Enter your answer" defaultValue={applicationData && applicationData.otherQuestion} name="otherQuestion" fullWidth disabled={registered} />
+            <TextField placeholder="Enter your answer" defaultValue={applicationData && applicationData.otherQuestion} name="otherQuestion" fullWidth disabled={registered} /> */}
           </FormControl>
+          {/* Leaving this in in case something else expects this field to exist in the form. */}
+          <Checkboxes
+            required={false}
+            disabled={true}
+            label=""
+            name="workshops"
+            defaultValue={[]}
+            groupCheckboxes={[]}
+          />
           {!registered && <Button
             variant="contained"
             disabled={loading}
