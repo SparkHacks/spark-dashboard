@@ -49,10 +49,10 @@ function Row({id, data, setView, setDatas, datas}: {
 
 
   const backgroundColor = (data.appStatus === "waitlist")? "#f5e3bd"
-    : (data.appStatus === "declined")? "#f88378"
-    : (data.appStatus === "accepted")? "#afd9ae"
-    : (data.appStatus === "userAccepted")? "blue" // TODO: choose better color
-    : (data.appStatus === "fullyAccepted")? "green" // TODO: choose better color
+    : (data.appStatus === "declined")? "#f5bdbd"
+    : (data.appStatus === "accepted")? "#cff5bd"
+    : (data.appStatus === "userAccepted")? "#bdc3f5" // TODO: choose better color
+    : (data.appStatus === "fullyAccepted")? "#72f784" // TODO: choose better color
     : ""
 
   const updateForm = async (updateAction: "waitlist" | "declined" | "accepted" | "waiting" | "fullyAccepted") => {
