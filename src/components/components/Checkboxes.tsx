@@ -1,4 +1,5 @@
 import { Checkbox, FormControl, FormControlLabel, FormGroup, FormLabel, TextField } from "@mui/material"
+import { useState } from "react"
 
 export default function Checkboxes({required, disabled, label, name, defaultValue, groupCheckboxes, other = false, otherName = "", otherValue = ""}: {
     required: boolean,
@@ -11,12 +12,15 @@ export default function Checkboxes({required, disabled, label, name, defaultValu
     otherName?: string,
     otherValue?: string,
 }) {
+    const [otherChecked, setOtherChecked] = useState(false)
+
     return (
         <FormControl required={required} variant="filled">
             <FormLabel>{label}</FormLabel>
             <FormGroup style={{ marginLeft: "20px" }}>
                 {groupCheckboxes.map((checkboxValue, id) => {
-                    return (<FormControlLabel 
+                    return checkboxValue !== "Other" && 
+                    (<FormControlLabel 
                         key={id}
                         control={<Checkbox defaultChecked={defaultValue.includes(checkboxValue)}/>}
                         label={checkboxValue}
@@ -26,11 +30,20 @@ export default function Checkboxes({required, disabled, label, name, defaultValu
                     />)
                 })}
                 {other && 
-                    <TextField 
-                        name={otherName}
-                        defaultValue={otherValue}
-                        disabled={disabled}
-                    />
+                    <>
+                        <FormControlLabel 
+                            control={<Checkbox defaultChecked={defaultValue.includes("Other")} onChange={() => setOtherChecked(!otherChecked)}/>}
+                            label={"Other"}
+                            name={name}
+                            value={"Other"}
+                            disabled={disabled}
+                        />
+                        <TextField 
+                            name={otherName}
+                            defaultValue={otherValue}
+                            disabled={disabled || !otherChecked}
+                        />
+                    </>
                 }
             </FormGroup>
         </FormControl>
