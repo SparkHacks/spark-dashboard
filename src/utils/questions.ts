@@ -24,15 +24,15 @@ export const questions = {
             "Junior",
             "Senior",
             "Masters",
-            "PHD"
+            "PhD",
         ]
     },
     availability: {
         question: "Which day(s) are you available to attent the hackathon? Priority will be given to those who can attend both days.",
         answer: [
             "Both Days",
-            "Only Friday February 7th @ 6:00pm - 9pm",
-            "Only Saturday February 8th @ 9am - 9pm"
+            "Only Friday February 7th @ 6pm-9pm",
+            "Only Saturday February 8th @ 9am-9pm"
         ],
     },
     moreAvailability: { // not required

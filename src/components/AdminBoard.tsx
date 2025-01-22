@@ -18,6 +18,15 @@ interface Summary {
 }
 
 
+const buttonStyle = {
+  padding: "10px 20px",
+  fontSize: "16px",
+  borderRadius: "5px",
+  cursor: "pointer",
+  backgroundColor: "white",
+  border: "1px solid black",
+}
+
 export default function AdminBoard() {
 
   const [datas, setDatas] = useState<FormViewData[]>([])
@@ -183,20 +192,22 @@ export default function AdminBoard() {
   return (
     <>
       <div style={{textAlign: "center", padding: "10px 10px"}}>
-        <div>
+        <div style={{display: "flex", justifyContent: "center", gap: "10px", paddingBottom: "10px"}}>
           <label>Search Form based on email</label>
           <input placeholder="Type a user's email" ref={searchInputRef}/>
           <button onClick={handleSearch}>Search</button>
           <button onClick={handleClearSearch}>Clear</button>
         </div>
-        <button 
-          disabled={page === 0 || searchEmail !== ""}
-          onClick={handlePrevious}
-        >Previous</button>
-        <button
-          disabled={(numMax && ((page + 1) * PAGE_SIZE > datas.length)) || (searchEmail !== "")}
-          onClick={handleNext}
-        >Next</button>
+        <div style={{display: "flex", justifyContent: "center", gap: "10px"}}>
+          <button 
+            disabled={page === 0 || searchEmail !== ""}
+            onClick={handlePrevious}
+          >Previous</button>
+          <button
+            disabled={(numMax && ((page + 1) * PAGE_SIZE > datas.length)) || (searchEmail !== "")}
+            onClick={handleNext}
+          >Next</button>
+        </div>
       </div>
       {summary &&
         <section style={{margin: "8px", padding: "8px", border: "1px solid black", borderRadius: "8px", boxSizing: "border-box"}}>

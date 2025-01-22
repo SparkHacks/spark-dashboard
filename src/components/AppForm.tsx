@@ -3,8 +3,7 @@ import { useRef, useState, type FormEvent } from "react"
 import Radios from "./components/Radios";
 import { questions } from "../utils/questions";
 import Checkboxes from "./components/Checkboxes";
-import type { FormSubmissionData, FormViewData } from "../env";
-
+import type { FormViewData } from "../env";
 
 const style = {
   position: 'absolute',
@@ -101,15 +100,15 @@ export default function AppForm({ email, registered, applicationData }: {
           </div>
           <FormControl required>
             <FormLabel>First Name</FormLabel>
-            <TextField name="firstName" placeholder="Enter your answer" defaultValue={applicationData && applicationData.firstName} disabled={registered} required fullWidth />
+            <TextField name="firstName" placeholder="Enter your first name" defaultValue={applicationData && applicationData.firstName} disabled={registered} required fullWidth />
           </FormControl>
           <FormControl required>
             <FormLabel>Last Name</FormLabel>
-            <TextField name="lastName" placeholder="Enter your answer" defaultValue={applicationData && applicationData.lastName} disabled={registered}  required fullWidth />
+            <TextField name="lastName" placeholder="Enter your last name" defaultValue={applicationData && applicationData.lastName} disabled={registered}  required fullWidth />
           </FormControl>
           <FormControl required>
             <FormLabel>UIN</FormLabel>
-            <TextField name="uin" placeholder="Enter your answer" defaultValue={applicationData && applicationData.uin} disabled={registered}  type="number" required fullWidth />
+            <TextField name="uin" placeholder="Enter your 9-Digit UIN" defaultValue={applicationData && applicationData.uin} disabled={registered}  type="number" required fullWidth />
           </FormControl>
           <Radios 
             required={true}
@@ -137,7 +136,7 @@ export default function AppForm({ email, registered, applicationData }: {
           />
           <FormControl>
             <FormLabel>If you want to add more detailed availability please add it here!</FormLabel>
-            <TextField name="moreAvailability" defaultValue={applicationData && applicationData.moreAvailability} placeholder="Enter your answer" fullWidth multiline disabled={registered} />
+            <TextField name="moreAvailability" defaultValue={applicationData && applicationData.moreAvailability} placeholder="Enter your additional availability (Optional)" fullWidth multiline disabled={registered} />
           </FormControl>
 
           <Checkboxes 
@@ -173,7 +172,7 @@ export default function AppForm({ email, registered, applicationData }: {
           <Checkboxes 
             required
             disabled={registered}
-            label="Which of the following Pre-Hack Workshops would you find useful/interesting to attend PRIOR to SparkHacks? These will be held from February 4th-6th, 2025. For more information on these workshops, view https://www.sparkhacks.org/."
+            label={<>Which of the following Pre-Hack Workshops would you find useful/interesting to attend PRIOR to SparkHacks? These will be held from February 4th-6th, 2025. (Select all that apply)<br/>For more information on these workshops, view <a href="https://www.sparkhacks.org/">https://www.sparkhacks.org/</a>.</>}
             name="preWorkshops"
             defaultValue={applicationData?.preWorkshops || []}
             groupCheckboxes={questions.preWorkshops.answer}
@@ -181,7 +180,7 @@ export default function AppForm({ email, registered, applicationData }: {
           <Radios 
             required={true}
             disabled={registered}
-            label="If you'd like to be considered for an opportunity with our company partners, select the type of job you are looking for:"
+            label="If you would like to be considered for an opportunity with our company partners, select the type of job you are looking for:"
             name="jobType"
             defaultValue={applicationData?.jobType || ""}
             groupRadios={questions.jobType.answer}
@@ -191,10 +190,15 @@ export default function AppForm({ email, registered, applicationData }: {
           />
           <FormControl>
             <FormLabel>
-              If you would like to be considered for an opportunity with our company sponsors, add in a shareable link to your resume here. If your resume is on Google Docs, make sure you see "Anyone with the link" after clicking the "Share" button in the top right corner.
+              If you would like to be considered for an opportunity with our company sponsors, add in a shareable link to your resume here. If your resume is on Google Docs or Google Drive, make sure you see "Anyone with the link" after clicking the "Share" button in the top right corner. 
+              <br/>
+              <img src={"/images/share_perms.png"} alt="Share permissions" style={{width: "500px", maxWidth: "100%"}}/>
             </FormLabel>
-            <TextField placeholder="Enter your answer" defaultValue={applicationData && applicationData.resumeLink} name="resumeLink" disabled={registered} />
+            <TextField placeholder="Enter your shareable link (Optional)" defaultValue={applicationData && applicationData.resumeLink} name="resumeLink" disabled={registered} />
           </FormControl>
+          <div>
+            If you have any other questions or comments, please email <a href="mailto:sparkhacks@uic.edu">sparkhacks@uic.edu</a>.
+          </div>
           {!registered && <Button
             variant="contained"
             disabled={loading}
