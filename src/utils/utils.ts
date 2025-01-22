@@ -1,4 +1,3 @@
-import sheets, { SHEET_ID } from "../googlesheet/client"
 import { db } from "../firebase/server"
 import { questions } from "./questions"
 import type { FormSubmissionData } from "../env"

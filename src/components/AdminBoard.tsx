@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react"
 import AdminTable from "./components/AdminTable"
 import ViewCard from "./components/ViewCard"
 import type { FormViewData } from "../env"
-import { collection, count, doc, getCountFromServer, getDoc, getDocs, limit, orderBy, query, startAfter, where, type DocumentData } from "firebase/firestore"
+import { collection, doc, getCountFromServer, getDoc, getDocs, limit, orderBy, query, startAfter, where, type DocumentData } from "firebase/firestore"
 import { db } from "../firebase/client"
 
 export const PAGE_SIZE = 50
@@ -247,7 +247,7 @@ const convertDocToFormViewData = (doc: DocumentData) => {
     dietaryRestriction: docData.dietaryRestriction,
     otherDietaryRestriction: docData.otherDietaryRestriction,
     shirtSize: docData.shirtSize,
-    teamPlan: docData.hackathonPlan,
+    teamPlan: docData.teamPlan,
     preWorkshops: docData.preWorkshops,
     jobType: docData.jobType,
     otherJobType: docData.otherJobType,

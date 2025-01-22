@@ -124,7 +124,7 @@ function Row({id, data, view, setView, setDatas, datas}: {
   }
 
   return (
-    <div className={styles.rowTable} style={{backgroundColor: backgroundColor, border: (view?.email === data.email) ? "3px solid black" : "", borderRadius: "8px"}}>
+    <div className={styles.rowTable} style={{backgroundColor: backgroundColor, border: (view?.email === data.email) ? "3px solid black" : "", borderRadius: (view?.email === data.email) ? "8px" : ""}}>
       <div className={styles.cellId}><strong>{id}</strong></div>
       <div className={styles.cellEmail}>{data.email}</div>
       <div className={styles.cellName}>{data.firstName} {data.lastName}</div>
