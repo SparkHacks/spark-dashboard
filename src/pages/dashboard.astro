@@ -58,7 +58,7 @@ try {
     registered = true
     const data = docSnap.data()
     appStatus = data?.appStatus || ""
-    submittedDate = data?.createdAt.toDate().toLocaleString() || ""
+    submittedDate = data?.createdAt.toDate().toLocaleString("en-US", { timeZone: "America/Chicago"}) || ""
 
   }
 

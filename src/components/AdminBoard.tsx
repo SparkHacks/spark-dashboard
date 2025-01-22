@@ -235,7 +235,7 @@ export default function AdminBoard() {
 const convertDocToFormViewData = (doc: DocumentData) => {
   const docData = doc.data()
   const result: FormViewData = {
-    createdAt: docData.createdAt.toDate().toLocaleString(),
+    createdAt: docData.createdAt.toDate().toLocaleString("en-US", { timeZone: "America/Chicago"}),
     email: docData.email,
     firstName: docData.firstName,
     lastName: docData.lastName,

@@ -55,7 +55,7 @@ try {
       otherJobType: data.otherJobType,// optional
       resumeLink: data.resumeLink, // optional
       appStatus: data.appStatus, // status of application
-      createdAt: data.createdAt.toDate().toLocaleString() || ""
+      createdAt: data.createdAt.toDate().toLocaleString("en-US", { timeZone: "America/Chicago"}) || ""
     }
   }
 
