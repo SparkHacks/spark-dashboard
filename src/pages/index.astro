@@ -35,7 +35,7 @@ try {
 	</main>
 	<script>
 		import { auth, provider } from '../firebase/client';
-		import { getAdditionalUserInfo, signInWithPopup } from "firebase/auth";
+		import { deleteUser, getAdditionalUserInfo, signInWithPopup } from "firebase/auth";
 
 		const btn = document.getElementById("google-sign-btn") as HTMLButtonElement
 		const errMsg = document.getElementById("errMsg") as HTMLElement
@@ -51,6 +51,11 @@ try {
 					errMsg.textContent = "Due to an influx of applications, we are no longer taking new registrations at this time."
 					errMsg.style.display = "unset"
 					btn.disabled = false
+					
+					const user = auth.currentUser
+					if (user) {
+						deleteUser(user)
+					}
 					return
 				}
 
