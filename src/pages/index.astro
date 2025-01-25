@@ -35,7 +35,7 @@ try {
 	</main>
 	<script>
 		import { auth, provider } from '../firebase/client';
-		import { signInWithPopup } from "firebase/auth";
+		import { getAdditionalUserInfo, signInWithPopup } from "firebase/auth";
 
 		const btn = document.getElementById("google-sign-btn") as HTMLButtonElement
 		const errMsg = document.getElementById("errMsg") as HTMLElement
@@ -45,6 +45,15 @@ try {
 			btn.disabled = true
 			try {
 				const userCredential = await signInWithPopup(auth, provider)
+				const additionalInfo = getAdditionalUserInfo(userCredential)
+
+				if (additionalInfo?.isNewUser) {
+					errMsg.textContent = "Due to an influx of applications, we are no longer taking new registrations at this time."
+					errMsg.style.display = "unset"
+					btn.disabled = false
+					return
+				}
+
 				const idToken = await userCredential.user.getIdToken()
 				const res = await fetch("/api/auth/signin", {
 					headers: {
