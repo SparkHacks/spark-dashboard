@@ -8,7 +8,7 @@ import { sendEmailConfirmation } from "../../../nodemailer/nodemailer.ts";
 
 export const POST: APIRoute = async ({ request, cookies, redirect }) => {
 
-  return new Response(`Registration closed`, { status: 400 });
+  return new Response(`Registration closed`, { status: 403 });
 
   // const auth = getAuth(app)
 

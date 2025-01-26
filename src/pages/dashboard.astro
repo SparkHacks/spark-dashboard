@@ -96,13 +96,13 @@ try {
   <section class="dashboard-app">
     <div style="display: flex; justify-content: space-between; align-items: center">
       <h2>Application to SparkHacks</h2>
-      <div><strong>Close at:</strong> N/A</div>
+      <div><strong>Close at:</strong> N/A (Closed)</div>
     </div>
     {(submittedDate !== "") &&
       <div><strong>Submitted at:</strong> {submittedDate}</div>
     }
-    <button id="app-btn">
-      {(registered)? "View Application" : "Start Application"}
+    <button id="app-btn" disabled={(!registered)? "true" : ""}>
+      {(registered)? "View Application" : "Application is closed due to reaching capacity"}
     </button>
   </section>
   <script>

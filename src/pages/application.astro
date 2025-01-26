@@ -58,6 +58,9 @@ try {
       createdAt: data.createdAt.toDate().toLocaleString("en-US", { timeZone: "America/Chicago"}) || ""
     }
   }
+  else {
+    return new Response("Application is closed due to reaching capacity", { status: 403 })
+  }
 
 } catch (err) {
   console.error(err);
