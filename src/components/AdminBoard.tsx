@@ -7,7 +7,7 @@ import { db } from "../firebase/client"
 
 export const PAGE_SIZE = 50
 
-interface Summary {
+export interface Summary {
   total: number,
   fullyAccepted: number,
   userAccepted: number,
@@ -17,6 +17,7 @@ interface Summary {
   waiting: number,
 }
 
+export type Mode = "everything" | "fullyAccepted" | "userAccepted" | "accepted" | "waitlist" | "waiting" | "declined"
 
 const buttonStyle = {
   padding: "10px 20px",
@@ -37,35 +38,45 @@ export default function AdminBoard() {
   const [searchEmail, setSearchEmail] = useState("")
   const searchInputRef = useRef(null)
   const [summary, setSummary] = useState<Summary | null>(null)
+  const [mode, setMode] = useState<Mode>("everything")
 
+  const totalPage = (summary)
+    ? (mode === "everything") 
+      ? getTotalPages(summary.total, PAGE_SIZE)
+      : getTotalPages(summary[mode], PAGE_SIZE)
+    : 0
+
+  const isHighlight = (curMode: Mode) => (curMode === mode)? {border: "4px solid"} : {}  
+  
   const handleNext = async () => {
     const newPage = page + 1
-    console.log(newPage)
     if (searchEmail !== "") {
       return
     }
     if (numMax) {
-      console.log("no more doc")
+      // console.log("no more doc")
       if (newPage  * PAGE_SIZE < datas.length) {
         setPage(newPage)
       }
     }
     else {
       if (newPage * PAGE_SIZE == datas.length) { // new limit
-        const q = query(collection(db, "Forms"), orderBy("createdAt"), limit(PAGE_SIZE), startAfter(afterThis))
+        const q = (mode === "everything")
+          ? query(collection(db, "Forms"), orderBy("createdAt"), limit(PAGE_SIZE), startAfter(afterThis))
+          : query(collection(db, "Forms"), where("appStatus", "==", mode), orderBy("createdAt"), limit(PAGE_SIZE), startAfter(afterThis))
         const qSnap = await getDocs(q)
         if (qSnap.empty) { // if the next query is empty then we reach limit
-          console.log("attempting to get new data but there is no new data.")
+          // console.log("attempting to get new data but there is no new data.")
           setNumMax(true)
           return
         }
-        console.log(qSnap.docs)
+        // console.log(qSnap.docs)
         const newDatas: FormViewData[] = [...datas]
         qSnap.forEach((doc) => {
           const item = convertDocToFormViewData(doc)
           newDatas.push(item)
         })
-        console.log(newDatas)
+        // console.log(newDatas)
         setDatas(newDatas)
         setPage(newPage)
         setAfterThis(qSnap.docs[qSnap.docs.length - 1]) // cursor for pagination
@@ -74,7 +85,7 @@ export default function AdminBoard() {
         }
       }
       else {
-        console.log("not new data")
+        // console.log("not new data")
         setPage(newPage)
       }
     }
@@ -124,7 +135,9 @@ export default function AdminBoard() {
       searchInputRef.current.value = ""
       setSearchEmail("")
       if (searchEmail === "") return
-      const q = query(collection(db, "Forms"), orderBy("createdAt"), limit(PAGE_SIZE))
+      const q = (mode === "everything")
+        ? query(collection(db, "Forms"), orderBy("createdAt"), limit(PAGE_SIZE))
+        : query(collection(db, "Forms"), where("appStatus", "==", mode), orderBy("createdAt"), limit(PAGE_SIZE))
       const qSnap = await getDocs(q)
       const newDatas: FormViewData[] = []
       qSnap.forEach((doc) => {
@@ -150,6 +163,16 @@ export default function AdminBoard() {
   useEffect(() => {
     const fetchData = async () => {
 
+      // reset: page -> 0, searchEmail -> "", numMax -> false
+      setPage(0)
+      setNumMax(false)
+      if (searchInputRef.current) {
+        searchInputRef.current.value = ""  
+      }
+      setSearchEmail("")
+      setDatas([])
+      setAfterThis(null)
+
       // fetch summary
       const totalCount = (await getCountFromServer(collection(db, "Forms"))).data().count
       const fullyAcceptedCount = (await getCountFromServer(query(collection(db, "Forms"), where("appStatus", "==", "fullyAccepted")))).data().count
@@ -169,7 +192,9 @@ export default function AdminBoard() {
       })
 
       // fetch first PAGE_SIZE documents
-      const q = query(collection(db, "Forms"), orderBy("createdAt"), limit(PAGE_SIZE))
+      const q = (mode === "everything") 
+        ? query(collection(db, "Forms"), orderBy("createdAt"), limit(PAGE_SIZE)) 
+        : query(collection(db, "Forms"), where("appStatus", "==", mode), orderBy("createdAt"), limit(PAGE_SIZE))
       const qSnap = await getDocs(q)
       const newDatas: FormViewData[] = []
       qSnap.forEach((doc) => {
@@ -187,7 +212,7 @@ export default function AdminBoard() {
       console.error(err)
       alert("Something wrong with initial fetch data")
     })
-  }, [])
+  }, [mode])
 
   return (
     <>
@@ -198,7 +223,20 @@ export default function AdminBoard() {
           <button onClick={handleSearch}>Search</button>
           <button onClick={handleClearSearch}>Clear</button>
         </div>
-        <div style={{display: "flex", justifyContent: "center", gap: "10px"}}>
+        <div style={{marginBottom: "10px"}}>
+          <h2>Mode: {mode}</h2>
+          <div>
+            <button style={isHighlight("everything")} onClick={() => setMode("everything")}>Everything</button>
+            <button style={isHighlight("fullyAccepted")} onClick={() => setMode("fullyAccepted")}>Only FullyAccepted</button>
+            <button style={isHighlight("userAccepted")} onClick={() => setMode("userAccepted")}>Only UserAccepted</button>
+            <button style={isHighlight("accepted")} onClick={() => setMode("accepted")}>Only Accepted</button>
+            <button style={isHighlight("waitlist")} onClick={() => setMode("waitlist")}>Only Waitlist</button>
+            <button style={isHighlight("waiting")} onClick={() => setMode("waiting")}>Only Waiting</button>
+            <button style={isHighlight("declined")} onClick={() => setMode("declined")}>Only Declined</button>
+          </div>
+        </div>
+        <div style={{display: "flex", gap: "10px", justifyContent: "center", alignItems: "center"}}>
+          <h2>Page: {page + 1}/{totalPage}</h2>
           <button 
             disabled={page === 0 || searchEmail !== ""}
             onClick={handlePrevious}
@@ -214,21 +252,36 @@ export default function AdminBoard() {
           <h2>Summary</h2>
           <div style={{ width: "100%", display: "flex", flexWrap: "wrap", gap: "8px",}}>
             <div><strong>Total:</strong> {summary.total}</div>
-            <div><strong>fullyAccepted:</strong> {summary.fullyAccepted}</div>
-            <div><strong>userAccepted:</strong> {summary.userAccepted}</div>
-            <div><strong>accepted:</strong> {summary.accepted}</div>
-            <div><strong>waitlist:</strong> {summary.waitlist}</div>
-            <div><strong>declined:</strong> {summary.declined}</div>
-            <div><strong>waiting:</strong> {summary.waiting}</div>
+            <div><Dot backgroundColor="#72f784"/> <strong>fullyAccepted:</strong> {summary.fullyAccepted}</div>
+            <div><Dot backgroundColor="#bdc3f5"/> <strong>userAccepted:</strong> {summary.userAccepted}</div>
+            <div><Dot backgroundColor="#cff5bd"/> <strong>accepted:</strong> {summary.accepted}</div>
+            <div><Dot backgroundColor="#f5e3bd"/> <strong>waitlist:</strong> {summary.waitlist}</div>
+            <div><Dot backgroundColor="#f5bdbd"/> <strong>declined:</strong> {summary.declined}</div>
+            <div><Dot backgroundColor="white"/> <strong>waiting:</strong> {summary.waiting}</div>
           </div>
         </section>
       }
       <div style={{width: "100%", display: "flex"}}>
         <ViewCard view={view} setView={setView}/>
-        <AdminTable datas={datas} view={view} setView={setView} page={page} setDatas={setDatas}/> 
+        <AdminTable datas={datas} view={view} setView={setView} page={page} setDatas={setDatas} setSummary={setSummary} summary={summary}/> 
       </div>
     </>
   )
+}
+
+
+function Dot({backgroundColor}: {
+  backgroundColor: string
+}) {
+  return (
+    <div style={{backgroundColor: backgroundColor, width: "15px", height: "15px", display: "inline-block", borderRadius: 9999, border: "1px solid black"}}></div>
+  )
+}
+
+const getTotalPages = (numDocs: number, pageSize: number) => {
+  if (numDocs === 0) return 0
+  if (numDocs % pageSize === 0) return Math.floor(numDocs / pageSize)
+  return Math.floor(numDocs / pageSize) + 1
 }
 
 // convert document data to FormViewData object

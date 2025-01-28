@@ -1,16 +1,19 @@
 import styles from "./styles/AdminTable.module.css"
 import { useMemo, useState } from "react"
 import type { FormViewData } from "../../env"
-import { PAGE_SIZE } from "../AdminBoard"
+import { PAGE_SIZE, type Summary } from "../AdminBoard"
 
-export default function AdminTable({datas, setDatas, view, setView, page}: {
+export default function AdminTable({datas, setDatas, view, setView, page, setSummary, summary}: {
   datas: FormViewData[],
   setDatas: React.Dispatch<React.SetStateAction<FormViewData[]>>,
   view: FormViewData | null,
   setView: React.Dispatch<React.SetStateAction<FormViewData | null>>,
-  page: number
+  page: number,
+  setSummary: React.Dispatch<React.SetStateAction<Summary | null>>,
+  summary: Summary | null,
 }) {
 
+  const [globalLoading, setGlobalLoading] = useState(false)
   const pageDatas = useMemo(() => datas.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE), [page, datas])
 
   return (
@@ -28,7 +31,7 @@ export default function AdminTable({datas, setDatas, view, setView, page}: {
       <div className={styles.contentTable}>
         {(datas.length === 0)
           ? <div style={{marginTop: "20px", textAlign: "center"}}>No data</div>
-          : pageDatas.map((data, id) => <Row key={id} id={page * PAGE_SIZE + id} data={data} view={view} setView={setView} setDatas={setDatas} datas={datas}/>)
+          : pageDatas.map((data, id) => <Row key={id} id={page * PAGE_SIZE + id} data={data} view={view} setView={setView} setDatas={setDatas} datas={datas} summary={summary} setSummary={setSummary} globalLoading={globalLoading} setGlobalLoading={setGlobalLoading}/>)
         }
       </div>
       
@@ -36,16 +39,20 @@ export default function AdminTable({datas, setDatas, view, setView, page}: {
   )
 }
 
-function Row({id, data, view, setView, setDatas, datas}: {
+function Row({id, data, view, setView, setDatas, datas, summary, setSummary, globalLoading, setGlobalLoading}: {
   id: number,
   data: FormViewData,
   view: FormViewData | null,
   setView: React.Dispatch<React.SetStateAction<FormViewData | null>>,
   datas: FormViewData[]
   setDatas: React.Dispatch<React.SetStateAction<FormViewData[]>>,
+  setSummary: React.Dispatch<React.SetStateAction<Summary | null>>,
+  summary: Summary | null,
+  globalLoading: boolean,
+  setGlobalLoading: React.Dispatch<React.SetStateAction<boolean>>
 }) {
 
-  const [loading, setLoading] = useState(false)
+  // const [loading, setLoading] = useState(false)
   // const time_string = time.toLocaleString()
   // console.log(time_string)
 
@@ -61,7 +68,7 @@ function Row({id, data, view, setView, setDatas, datas}: {
     const formData = new FormData()
     formData.set("email", data.email)
     formData.set("updateAction", updateAction)
-    setLoading(true)
+    setGlobalLoading(true)
 
     try {
       const res = await fetch("/api/auth/update-form", {
@@ -76,13 +83,24 @@ function Row({id, data, view, setView, setDatas, datas}: {
       }
 
       const newDatas = [...datas]
+      let oldStatus = updateAction as "waitlist" | "declined" | "accepted" | "waiting" | "fullyAccepted" | "userAccepted"
       for (const item of newDatas) {
         if (item.email === data.email) {
+          oldStatus = item.appStatus
           item.appStatus = updateAction
           break
         }
       }
       setDatas(newDatas)
+
+      // set summary:
+      if (summary) {
+        const newSummary = {...summary}
+        newSummary[oldStatus] -= 1
+        newSummary[updateAction] += 1
+        console.log(`${new Date().toLocaleString("en-US", {timeZone: "America/Chicago"})} ${data.email}: ${oldStatus} -> ${updateAction}`)
+        setSummary(newSummary)
+      }
 
     }
     catch (err) {
@@ -90,7 +108,7 @@ function Row({id, data, view, setView, setDatas, datas}: {
       alert("Error: something is wrong with waitlist data")
     }
     finally {
-      setLoading(false)
+      setGlobalLoading(false)
     }
   }
 
@@ -134,11 +152,11 @@ function Row({id, data, view, setView, setDatas, datas}: {
         {data.appStatus}
       </div>
       <div className={styles.cellActions}>
-        <button className={styles.declineBtn} disabled={loading || data.appStatus === "declined"} onClick={handleDecline}>Decline</button>
-        <button className={styles.acceptBtn} disabled={loading || data.appStatus === "accepted" || data.appStatus === "fullyAccepted" || data.appStatus === "userAccepted"} onClick={handleAccept}>Accept</button>
-        <button className={styles.waitlistBtn} disabled={loading || data.appStatus === "waitlist"} onClick={handleWaitlist}>Waitlist</button>
-        <button className={styles.waitBtn} disabled={loading || data.appStatus === "waiting"} onClick={handleWait}>Wait</button>
-        <button className={styles.fullyAcceptBtn} disabled={loading || data.appStatus === "fullyAccepted"} onClick={handleFullyAccept}>Fully Accept</button>
+        <button className={styles.declineBtn} disabled={globalLoading || data.appStatus === "declined"} onClick={handleDecline}>Decline</button>
+        <button className={styles.acceptBtn} disabled={globalLoading || data.appStatus === "accepted" || data.appStatus === "fullyAccepted" || data.appStatus === "userAccepted"} onClick={handleAccept}>Accept</button>
+        <button className={styles.waitlistBtn} disabled={globalLoading || data.appStatus === "waitlist"} onClick={handleWaitlist}>Waitlist</button>
+        <button className={styles.waitBtn} disabled={globalLoading || data.appStatus === "waiting"} onClick={handleWait}>Wait</button>
+        <button className={styles.fullyAcceptBtn} disabled={globalLoading || data.appStatus === "fullyAccepted"} onClick={handleFullyAccept}>Fully Accept</button>
         <button className={styles.viewBtn} onClick={handleView}>View</button>
       </div>
     </div>
