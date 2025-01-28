@@ -18,7 +18,7 @@ const statusMessage = {
   waitlist: "Due to limited space, your application has been waitlisted. We will reach out with status updates.",
   accepted: "You've been accepted! Please check your inbox for next steps in the coming days.",
   userAccepted: "You accept to participate SparkHacks. Wait for SparkHacks team to officially accept you.",
-  fullyAccepted: "Congratulation! Check inbox for details about schedules."
+  fullyAccepted: "Congratulation 🎉🎉🎉! You are officially a SparkHacks 2025 participant! Check inbox for details about schedules."
 };
 
 const getMessage = (appStatus: "waiting" | "declined" | "waitlist" | "accepted" | "userAccepted" | "fullyAccepted") => statusMessage[appStatus] || "Unknown result. Please email sparkhacks@uic.edu to reach out our team for support.";
@@ -82,7 +82,7 @@ try {
     <strong>Application Status: </strong>{getMessage(appStatus as any)}
     {(appStatus === "accepted") && 
       <>
-        <div>Do you still accept to participate SparkHacks? You have 3 days to decide.</div>
+        <div>Do you still accept to participate SparkHacks?</div>
         <div class="decideBtns">
           <button id="accept-btn">Accept</button>
           <button id="withdraw-btn">Withdraw</button>
@@ -175,7 +175,7 @@ try {
     background-color: #7cba7b;
   }
   .dashboard-status.fullyAccepted {
-    background-color: #57ff55;
+    background-color: #aefead;
   }
   
   .dashboard-app {
@@ -203,10 +203,25 @@ try {
   }
 
   .decideBtns {
-
+    margin-top: 10px;
+    display: flex;
+    gap: 10px;
   }
-  #accept-btn {
+  #accept-btn, #withdraw-btn {
+    cursor: pointer;
+    flex: 1;
+    border: none;
+    border-radius: 4px;
+    padding: 16px 16px;
+    font-size: 16px;
+  }
 
+  #accept-btn {
+    background-color: white;
+  }
+
+  #withdraw-btn {
+    background-color: #ff8a8a
   }
 
   .admin-btn {
