@@ -35,11 +35,11 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
   // update appResult
   try {
     const formData = await request.formData()
-    const action = formData.get("action")?.toString() || "" // should be either accept or withdraw
+    const withdrawText = formData.get("withdraw-text")?.toString() || "" // should be either accept or withdraw
 
     // invalid action
-    if (action !== "userAccepted" && action !== "declined") {
-      return new Response("Invalid action", { status: 400 })
+    if (withdrawText !== email) {
+      return new Response("Invalid email", { status: 400 })
     }
     
     // disallow action when current appStatus is not "accepted" or there is no form
@@ -47,16 +47,16 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
     if (!docSnap.exists) {
       return new Response("Invalid action", {status: 400})
     }
-    if (docSnap.data()?.appStatus !== "accepted") {
-      return new Response("Invalid action: user not accepted", {status: 400})
+    if (docSnap.data()?.appStatus !== "fullyAccepted") {
+      return new Response("Invalid action: user not fullyAccepted", {status: 400})
     }
 
     // action
     const res = await db.collection("Forms").doc(email).update({
-      appStatus: action
+      appStatus: "declined"
     })
     
-    return new Response(`Successfully ${action} the hackathon`)
+    return new Response(`Successfully withdraw the hackathon`)
   }
   catch (err) {
     console.error(err)
