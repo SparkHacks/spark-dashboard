@@ -23,7 +23,7 @@ const statusMessage = {
   fullyAccepted: "Congratulation! Check inbox for details about schedules"
 };
 
-const getMessage = (appStatus: "waiting" | "declined" | "waitlist" | "accepted" | "userAccepted" | "fullyAccepted") => statusMessage[appStatus] || "Unknown result. Please contact support.";
+const getMessage = (appStatus: string) => statusMessage[appStatus as keyof typeof statusMessage] || "Unknown result. Please contact support.";
 
 try {
   const auth = getAuth(app);
