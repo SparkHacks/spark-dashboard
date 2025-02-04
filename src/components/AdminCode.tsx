@@ -104,31 +104,31 @@ export default function AdminCode() {
           <div style={{display: 'flex', flexDirection: 'column', gap: '5px'}}>
             <span>Day 1:</span>
             <div className=''>
-              <label htmlFor="d1Snack">Ate Snack?</label>
               <input id="d1Snack" type="checkbox"/>
+              <label htmlFor="d1Snack">Ate Snack?</label>
             </div>
             <div>
-              <label htmlFor="d1Dinner">Ate Dinner?</label>
               <input id="d1Dinner" type="checkbox"/>
+              <label htmlFor="d1Dinner">Ate Dinner?</label>
             </div>
             <div>
-              <label htmlFor="d1Cookies">Ate Cookies?</label>
               <input id="d1Cookies" type="checkbox"/>
+              <label htmlFor="d1Cookies">Ate Cookies?</label>
             </div>
           </div>
           <div style={{display: 'flex', flexDirection: 'column', gap: '5px'}}>
             <span>Day 2:</span>
             <div>
-              <label htmlFor="d2Breakfast">Ate Breakfast?</label>
               <input id="d2Breakfast" type="checkbox"/>
+              <label htmlFor="d2Breakfast">Ate Breakfast?</label>
             </div>
             <div>
-              <label htmlFor="d2Lunch">Ate Lunch?</label>
               <input id="d2Lunch" type="checkbox"/>
+              <label htmlFor="d2Lunch">Ate Lunch?</label>
             </div>
             <div>
-              <label htmlFor="d2Dinner">Ate Dinner?</label>
               <input id="d2Dinner" type="checkbox"/>
+              <label htmlFor="d2Dinner">Ate Dinner?</label>
             </div>
           </div>
         </div>
@@ -138,31 +138,38 @@ export default function AdminCode() {
           <div style={{display: 'flex', flexDirection: 'column', gap: '5px'}}>
             <span>Day 1:</span>
             <div>
-              <label htmlFor="d1SnackOld">Ate Snack?</label>
               <input id="d1SnackOld" disabled type="checkbox"/>
+              <label htmlFor="d1SnackOld">Ate Snack?</label>
+              
             </div>
+
             <div>
-              <label htmlFor="d1DinnerOld">Ate Dinner?</label>
               <input id="d1DinnerOld" disabled type="checkbox"/>
+              <label htmlFor="d1DinnerOld">Ate Dinner?</label>
             </div>
+
             <div>
-              <label htmlFor="d1CookiesOld">Ate Cookies?</label>
               <input id="d1CookiesOld" disabled type="checkbox"/>
+              <label htmlFor="d1CookiesOld">Ate Cookies?</label>
             </div>
+
           </div>
           <div style={{display: 'flex', flexDirection: 'column', gap: '5px'}}>
             <span>Day 2:</span>
             <div>
-              <label htmlFor="d2BreakfastOld">Ate Breakfast?</label>
               <input id="d2BreakfastOld" disabled type="checkbox"/>
+              <label htmlFor="d2BreakfastOld">Ate Breakfast?</label>
+              
             </div>
             <div>
-              <label htmlFor="d2LunchOld">Ate Lunch?</label>
               <input id="d2LunchOld" disabled type="checkbox"/>
+              <label htmlFor="d2LunchOld">Ate Lunch?</label>
+              
             </div>
             <div>
-              <label htmlFor="d2DinnerOld">Ate Dinner?</label>
               <input id="d2DinnerOld" disabled type="checkbox"/>
+              <label htmlFor="d2DinnerOld">Ate Dinner?</label>
+              
             </div>
           </div>
         </div>
