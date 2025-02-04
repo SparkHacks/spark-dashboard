@@ -21,6 +21,7 @@
     "firebase": "^11.1.0",
     "firebase-admin": "^13.0.1",
     "googleapis": "^144.0.0",
+    "html5-qrcode": "^2.3.8",
     "nodemailer": "^6.9.16",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
