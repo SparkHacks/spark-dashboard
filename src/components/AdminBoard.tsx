@@ -103,8 +103,9 @@ export default function AdminBoard() {
     if (!searchInputRef.current) return
     try {
       let regex = /^[a-zA-Z0-9._%+-]+@uic\.edu$/
-      if (!regex.test(searchInputRef.current.value)) {
-        alert("Please enter full uic email")
+      let regex2 = /^[a-zA-Z0-9._%+-]+@gmail\.com$/
+      if (!regex.test(searchInputRef.current.value) && !regex2.test(searchInputRef.current.value)) {
+        alert("Please enter full uic.edu email or gmail.edu email")
         return
       }
       if (searchEmail !== searchInputRef.current.value) {

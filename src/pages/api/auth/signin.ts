@@ -22,6 +22,9 @@ export const GET: APIRoute = async ({request, cookies}) => {
           console.log(email, "admin user!")
           isAdmin = true
         }
+        else if (user.customClaims && user.customClaims.exception === true) { // if the email is exception then does not need to go through email check
+          console.log(email, "exception user!")
+        }
         else {
           const emailReg = /^[a-zA-Z0-9._%+-]+@uic\.edu$/
           if (!emailReg.test(email)) {
