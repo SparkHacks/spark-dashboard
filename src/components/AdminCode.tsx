@@ -1,5 +1,11 @@
 import { Html5QrcodeScanner } from 'html5-qrcode';
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { collection, doc, getCountFromServer, getDoc, getDocs, limit, orderBy, query, startAfter, where, type DocumentData } from "firebase/firestore"
+import { db } from "../firebase/client"
+import type { FunctionResponse } from 'firebase/vertexai';
+import type { FormViewData } from '../env';
+import { convertDocToFormViewData } from './AdminBoard';
+import { toast, ToastContainer } from 'react-toastify';
 
 const createConfig = (props: any) => {
   let config: any = {};
@@ -45,19 +51,53 @@ const QrcodePlugin = (props: any) => {
   )
 }
 
+let timeoutId: ReturnType<typeof setTimeout>;
+function debounce(cb: Function, delay: number) {
+  return (...args: any[]) => {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => {
+      cb(...args);
+    }, delay);
+  };
+}
+
 export default function AdminCode() {
-  
+  const [userInfo, setUserInfo] = useState<FormViewData | null>(null)
+  const emailRef = useRef<string | null>(null)
+  const getUser = async (code: string) => {
+    try {
+      if(code === emailRef.current) return
+      const docSnap = await getDoc(doc(db, "Forms", code))
+      console.log(docSnap)
+      
+      if (!docSnap.exists()) {
+        alert("doc not exist")
+        return
+      } 
+
+      const userData = convertDocToFormViewData(docSnap)
+      emailRef.current = userData.email
+      setUserInfo(userData)
+      toast.success(`Scanned user: ${userData.firstName} ${userData.lastName}`)
+    } catch(e: any) {
+      console.log(e)
+      toast.error("Error scanning user", e)
+    }
+  }
 
   return (
     <div>
       <QrcodePlugin
-          fps={10}
-          qrbox={250}
-          disableFlip={false}
-          qrCodeSuccessCallback={(...a: any[]) => {
-            
-          }}
+        fps={10}
+        qrbox={250}
+        disableFlip={false}
+        qrCodeSuccessCallback={getUser}
       />
+      {userInfo && <div>
+        <p>Name: {userInfo.firstName} {userInfo.lastName}</p>
+        <p>Status: {userInfo.appStatus}</p>
+      </div>}
+      <ToastContainer />
     </div>
   )
 }
