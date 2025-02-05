@@ -64,7 +64,9 @@ function debounce(cb: Function, delay: number) {
 export default function AdminCode() {
   const [userInfo, setUserInfo] = useState<any | null>(null)
   const emailRef = useRef<string | null>(null)
+  const inputRef = useRef<HTMLInputElement | null>(null)
   const getUser = async (code: string) => {
+    console.log(code)
     try {
       if(code === emailRef.current) return
       const docRef = doc(db, "Forms", code)
@@ -86,6 +88,15 @@ export default function AdminCode() {
       toast.error("Error scanning user", e)
       setUserInfo(null)
     }
+  }
+
+  function searchUser() {
+    const value = inputRef.current?.value
+    if (!value) {
+      toast.error("Empty email")
+      return
+    }
+    getUser(value)
   }
 
   async function submitFoodData() {
@@ -114,6 +125,13 @@ export default function AdminCode() {
         disableFlip={false}
         qrCodeSuccessCallback={getUser}
       />
+      <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px', marginTop: '20px'}}>
+        <span>Manually Search User</span>
+        <div>
+          <input type='text' placeholder='Enter email' ref={inputRef} />
+          <button onClick={searchUser}>Submit</button>
+        </div>
+      </div>
       {userInfo && <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', gap: '10px'}}>
         <span>Name: {userInfo.firstName} {userInfo.lastName}</span>
         <span>Status: {userInfo.appStatus}</span>
