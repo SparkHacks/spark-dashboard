@@ -13,7 +13,7 @@ try {
       // if user is admin then redirect to /admin, otherwise the user is regular and redirect to /dashboard
       const user = await auth.getUser(decodedCookie.uid);
       if (user.customClaims && user.customClaims.admin == true) {
-        return Astro.redirect("/admin");
+        return Astro.redirect("/admin/qr");
       }
 
       return Astro.redirect("/dashboard");
