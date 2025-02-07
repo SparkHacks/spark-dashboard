@@ -52,18 +52,18 @@ try {
         const userCredential = await signInWithPopup(auth, provider);
         const additionalInfo = getAdditionalUserInfo(userCredential);
 
-        // if (additionalInfo?.isNewUser) {
-        //   errMsg.textContent =
-        //     "Due to an influx of applications, we are no longer taking new registrations at this time.";
-        //   errMsg.style.display = "unset";
-        //   btn.disabled = false;
+        if (additionalInfo?.isNewUser) {
+          errMsg.textContent =
+            "Due to an influx of applications, we are no longer taking new registrations at this time.";
+          errMsg.style.display = "unset";
+          btn.disabled = false;
 
-        //   const user = auth.currentUser;
-        //   if (user) {
-        //     deleteUser(user);
-        //   }
-        //   return;
-        // }
+          const user = auth.currentUser;
+          if (user) {
+            deleteUser(user);
+          }
+          return;
+        }
 
         const idToken = await userCredential.user.getIdToken();
         const res = await fetch("/api/auth/signin", {

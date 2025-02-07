@@ -31,7 +31,7 @@ import Layout from "./Layout.astro";
       try {
         const res = await fetch("/api/auth/signout");
         if (!res.ok) {
-          alert("response not okay");
+          alert("cannot sign out");
           return;
         }
         await auth.signOut();
