@@ -70,7 +70,7 @@ function debounce(cb: Function, delay: number) {
   };
 }
 
-const checkboxInputs = ["d1Snack", "d1Dinner", "d1Cookies", "d2Breakfast", "d2Lunch", "d2Dinner"]
+const checkboxInputs = ["d1Snack", "d1Dinner", "d1Cookies", "d1Here", "d2Breakfast", "d2Lunch", "d2Dinner", "d2Here"]
 export default function AdminCode() {
   const [userInfo, setUserInfo] = useState<any | null>(null)
   const emailRef = useRef<string | null>(null)
@@ -151,6 +151,10 @@ export default function AdminCode() {
           <div style={{display: 'flex', flexDirection: 'column', gap: '5px'}}>
             <span>Day 1:</span>
             <div>
+              <input name='d1Here' id="d1Here"  type="checkbox" data-id="d1Here"/>
+              <label htmlFor="d1Here">Day 1 Here?</label>
+            </div>
+            <div>
               <input name='d1Snack' id="d1Snack"  type="checkbox" data-id="d1Snack"/>
               <label htmlFor="d1Snack">Ate Snack?</label>
             </div>
@@ -165,6 +169,10 @@ export default function AdminCode() {
           </div>
           <div style={{display: 'flex', flexDirection: 'column', gap: '5px'}}>
             <span>Day 2:</span>
+            <div>
+              <input name='d2Here' id="d2Here"  type="checkbox" data-id="d2Here"/>
+              <label htmlFor="d2Here">Day 2 Here?</label>
+            </div>
             <div>
               <input name='d2Breakfast' id="d2Breakfast" type="checkbox" data-id="d2Breakfast"/>
               <label htmlFor="d2Breakfast">Ate Breakfast?</label>
@@ -184,6 +192,10 @@ export default function AdminCode() {
           <div style={{display: 'flex', flexDirection: 'column', gap: '5px'}}>
             <span>Day 1:</span>
             <div>
+              <input name='d1HereOld' id="d1HereOld"  type="checkbox" data-id="d1Here" disabled />
+              <label htmlFor="d1HereOld">Day 1 Here?</label>
+            </div>
+            <div>
               <input id="d1SnackOld" disabled type="checkbox" data-id="d1Snack"/>
               <label htmlFor="d1SnackOld">Ate Snack?</label>
             </div>
@@ -198,6 +210,10 @@ export default function AdminCode() {
           </div>
           <div style={{display: 'flex', flexDirection: 'column', gap: '5px', padding: '0 0 10px 0'}}>
             <span>Day 2:</span>
+            <div>
+              <input name='d2HereOld' id="d2HereOld"  type="checkbox" data-id="d2Here" disabled/>
+              <label htmlFor="d2HereOld">Day 2 Here?</label>
+            </div>
             <div>
               <input id="d2BreakfastOld" disabled type="checkbox" data-id="d2Breakfast"/>
               <label htmlFor="d2BreakfastOld">Ate Breakfast?</label>

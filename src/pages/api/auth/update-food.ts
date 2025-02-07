@@ -50,9 +50,11 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
       d1Snack: formData.d1Snack,
       d1Dinner: formData.d1Dinner,
       d1Cookies: formData.d1Cookies,
+      d1Here: formData.d1Here,
       d2Breakfast: formData.d2Breakfast,
       d2Lunch: formData.d2Lunch,
       d2Dinner: formData.d2Dinner,
+      d2Here: formData.d2Here
     })
     // console.log(res)
     return new Response("Successful update")
