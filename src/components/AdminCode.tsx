@@ -140,14 +140,14 @@ export default function AdminCode() {
       checkboxInputs.forEach((input) => [...document.querySelectorAll(`[data-id="${input}"]`)].forEach((el: any) => { el.checked = data[input] }))
 
       // update summary
-      try {
-        const checkinData = await getNumCheckin()
-        setSummary(checkinData)
-      }
-      catch (err) {
-        console.error(err)
-        toast.error("Something is wrong with getting checkin summary")
-      }
+      // try {
+      //   const checkinData = await getNumCheckin()
+      //   setSummary(checkinData)
+      // }
+      // catch (err) {
+      //   console.error(err)
+      //   toast.error("Something is wrong with getting checkin summary")
+      // }
     } catch(e) {
       toast.error("Failed to update food data")
     }
@@ -155,7 +155,7 @@ export default function AdminCode() {
 
   const handleRefresh = async () => {
     try {
-      const checkinData = await getNumCheckin()
+      const checkinData = await getSummaryStats()
       setSummary(checkinData)
     }
     catch (err) {
@@ -176,7 +176,7 @@ export default function AdminCode() {
   useEffect(() => {
     const fetchSummary = async () => {
       try {
-        const checkinData = await getNumCheckin()
+        const checkinData = await getSummaryStats()
         setSummary(checkinData)
       }
       catch (err) {
@@ -195,28 +195,18 @@ export default function AdminCode() {
         disableFlip={false}
         qrCodeSuccessCallback={getUser}
       />
-      <section style={{border: "1px solid grey", borderRadius: "4px", marginTop: "10px", padding: "10px", marginLeft: "10px", marginRight: "10px"}}>
-        <div style={{display: "flex", gap: "20px", alignItems: "center"}}>
-          <h2>Summary</h2>
-          <button onClick={handleRefresh} style={{padding: "8px 16px"}}>Refresh</button>
-        </div>
-        <div style={{display: "flex", gap: "20px"}}>
-          <div><strong>Checkin Day 1:</strong> {summary.numCheckin1}</div>
-          <div><strong>Checkin Day 2:</strong> {summary.numCheckin2}</div>
-        </div>
-      </section>
-      <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px', marginTop: '20px'}}>
+      <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px', marginBottom: '20px'}}>
         <h3 style={{marginBottom: "0px"}}>Manually Search User</h3>
         <div>
           <input type='text' placeholder='Enter email' ref={inputRef} />
           <button onClick={searchUser}>Submit</button>
-          <button onClick={handleClearSearch}>Clear Search</button>
+          <button onClick={handleClearSearch}>Clear</button>
         </div>
         {!!errMsg && <span style={{color: "red", fontWeight: "bold", textAlign: "center"}}>Error: {errMsg}</span>}
       </div>
       {<div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', gap: '10px'}}>
         <span>Name: {userInfo?.firstName} {userInfo?.lastName}</span>
-        <span>Status: {userInfo?.appStatus}</span>
+        <span> Status: <span style={{color: userInfo?.appStatus == "fullyAccepted" ? "green" : "red"}}> {userInfo?.appStatus}</span></span>
         <span>Email: {userInfo?.email}</span>
         <span>Shirt Size: {userInfo?.shirtSize}</span>
         <h3 style={{marginBottom: "0px"}}>Current Food Data</h3>
@@ -303,16 +293,66 @@ export default function AdminCode() {
         </div>
         <button onClick={submitFoodData} style={{marginTop: "20px", width: "250px", height: "40px", marginBottom: "20px"}} disabled={userInfo === null}>Submit!</button>
       </div>}
+      <section style={{border: "1px solid grey", borderRadius: "4px", marginTop: "10px", padding: "10px", marginLeft: "10px", marginRight: "10px", marginBottom: "20px"}}>
+        <div style={{display: "flex", gap: "20px", justifyContent: "center"}}>
+          <h2>Summary</h2>
+          <button onClick={handleRefresh} style={{padding: "8px 16px", margin: "15px"}}>Refresh</button>
+        </div>
+        <div style={{display: "flex", flexDirection: "row", gap: "20px", justifyContent: "center"}}>
+          <div style={{display: "flex", flexDirection: "row", gap: "10px"}}>
+            <div style={{display: "flex", flexDirection: "column", gap: "10px", alignItems: "end"}}>
+              <span><strong>Check-in Day 1:</strong></span>
+              <span><strong>Snack Day 1:</strong></span>
+              <span><strong>Dinner Day 1:</strong></span>
+              <span><strong>Cookies Day 1:</strong></span>
+            </div>
+            <div style={{display: "flex", flexDirection: "column", gap: "10px"}}>
+              <span>{summary.d1Here}</span>
+              <span>{summary.d1Snack}</span>
+              <span>{summary.d1Dinner}</span>
+              <span>{summary.d1Cookies}</span>
+            </div>
+          </div>
+          <div style={{display: "flex", flexDirection: "row", gap: "10px"}}>
+          <div style={{display: "flex", flexDirection: "column", gap: "10px",  alignItems: "end"}}>
+              <span><strong>Check-in Day 2:</strong></span>
+              <span><strong>Breakfast Day 2:</strong></span>
+              <span><strong>Lunch Day 2:</strong></span>
+              <span><strong>Dinner Day 2:</strong></span>
+            </div>
+            <div style={{display: "flex", flexDirection: "column", gap: "10px"}}>
+              <span>{summary.d2Here}</span>
+              <span>{summary.d2Breakfast}</span>
+              <span>{summary.d2Lunch}</span>
+              <span>{summary.d2Dinner}</span>
+            </div>
+          </div>
+        </div>
+      </section>
       <ToastContainer />
     </div>
   )
 }
 
-const getNumCheckin = async () => {
-  const numCheckin1 = (await getCountFromServer(query(collection(db, "Forms"), where("d1Here", "==", true)))).data().count
-  const numCheckin2 = (await getCountFromServer(query(collection(db, "Forms"), where("d2Here", "==", true)))).data().count
+const getSummaryStats = async () => {
+  const d1Here = (await getCountFromServer(query(collection(db, "Forms"), where("d1Here", "==", true)))).data().count
+  const d1Snack = (await getCountFromServer(query(collection(db, "Forms"), where("d1Snack", "==", true)))).data().count
+  const d1Dinner = (await getCountFromServer(query(collection(db, "Forms"), where("d1Dinner", "==", true)))).data().count
+  const d1Cookies = (await getCountFromServer(query(collection(db, "Forms"), where("d1Cookies", "==", true)))).data().count
+
+  const d2Here = (await getCountFromServer(query(collection(db, "Forms"), where("d2Here", "==", true)))).data().count
+  const d2Breakfast = (await getCountFromServer(query(collection(db, "Forms"), where("d2Breakfast", "==", true)))).data().count
+  const d2Lunch = (await getCountFromServer(query(collection(db, "Forms"), where("d2Lunch", "==", true)))).data().count
+  const d2Dinner = (await getCountFromServer(query(collection(db, "Forms"), where("d2Dinner", "==", true)))).data().count
+
   return {
-    numCheckin1,
-    numCheckin2
+    d1Here,
+    d1Snack,
+    d1Dinner,
+    d1Cookies,
+    d2Here,
+    d2Breakfast,
+    d2Lunch,
+    d2Dinner
   }
 }
