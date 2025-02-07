@@ -1,6 +1,6 @@
 import { Html5QrcodeScanner } from 'html5-qrcode';
 import { useEffect, useRef, useState } from 'react';
-import { doc, getDoc} from "firebase/firestore"
+import { collection, doc, getCountFromServer, getDoc, query, where} from "firebase/firestore"
 import { db } from "../firebase/client"
 import { toast, ToastContainer } from 'react-toastify';
 
@@ -70,6 +70,8 @@ function debounce(cb: Function, delay: number) {
 const checkboxInputs = ["d1Snack", "d1Dinner", "d1Cookies", "d1Here", "d2Breakfast", "d2Lunch", "d2Dinner", "d2Here"]
 export default function AdminCode() {
   const [userInfo, setUserInfo] = useState<any | null>(null)
+  const [errMsg, setErrMsg] = useState("")
+  const [summary, setSummary] = useState<any | null>("")
   const emailRef = useRef<string | null>(null)
   const inputRef = useRef<HTMLInputElement | null>(null)
   const getUser = async (code: string) => {
@@ -87,6 +89,7 @@ export default function AdminCode() {
       emailRef.current = userData.email
       setUserInfo(userData)
       toast.success(`Scanned user: ${userData.firstName} ${userData.lastName}`)
+      setErrMsg("")
       checkboxInputs.forEach((input) => [...document.querySelectorAll(`[data-id="${input}"]`)].forEach((el: any) => { el.checked = userData[input] }))        
     } catch(e: any) {
       // Prevent spamming
@@ -98,12 +101,22 @@ export default function AdminCode() {
   }
 
   function searchUser() {
-    const value = inputRef.current?.value
-    if (!value) {
+    const email = inputRef.current?.value
+    if (!email) {
+      setErrMsg("Empty email")
       toast.error("Empty email")
       return
     }
-    getUser(value)
+
+    let regex = /^[a-zA-Z0-9._%+-]+@uic\.edu$/
+    let regex2 = /^[a-zA-Z0-9._%+-]+@gmail\.com$/
+    if (!regex.test(email) && !regex2.test(email)) {
+      toast.error("Please enter full uic.edu or gmail.com email")
+      setErrMsg("Please enter full uic.edu or gmail.com email")
+      return
+    }
+
+    getUser(email)
   }
 
   async function submitFoodData() {
@@ -125,10 +138,54 @@ export default function AdminCode() {
       }
       toast.success("Updated Food data!")
       checkboxInputs.forEach((input) => [...document.querySelectorAll(`[data-id="${input}"]`)].forEach((el: any) => { el.checked = data[input] }))
+
+      // update summary
+      try {
+        const checkinData = await getNumCheckin()
+        setSummary(checkinData)
+      }
+      catch (err) {
+        console.error(err)
+        toast.error("Something is wrong with getting checkin summary")
+      }
     } catch(e) {
       toast.error("Failed to update food data")
     }
   }
+
+  const handleRefresh = async () => {
+    try {
+      const checkinData = await getNumCheckin()
+      setSummary(checkinData)
+    }
+    catch (err) {
+      console.error(err)
+      toast.error("Something is wrong with getting checkin summary")
+    }
+  }
+
+  const handleClearSearch = () => {
+    if (inputRef.current) {
+      inputRef.current.value = ""
+    }
+    setUserInfo(null)
+    emailRef.current = null
+    checkboxInputs.forEach((input) => [...document.querySelectorAll(`[data-id="${input}"]`)].forEach((el: any) => { el.checked = false }))
+  }
+
+  useEffect(() => {
+    const fetchSummary = async () => {
+      try {
+        const checkinData = await getNumCheckin()
+        setSummary(checkinData)
+      }
+      catch (err) {
+        console.error(err)
+        toast.error("Something is wrong with getting checkin summary")
+      }
+    }
+    fetchSummary()
+  }, [])
 
   return (
     <div>
@@ -138,18 +195,30 @@ export default function AdminCode() {
         disableFlip={false}
         qrCodeSuccessCallback={getUser}
       />
+      <section style={{border: "1px solid grey", borderRadius: "4px", marginTop: "10px", padding: "10px", marginLeft: "10px", marginRight: "10px"}}>
+        <div style={{display: "flex", gap: "20px", alignItems: "center"}}>
+          <h2>Summary</h2>
+          <button onClick={handleRefresh} style={{padding: "8px 16px"}}>Refresh</button>
+        </div>
+        <div style={{display: "flex", gap: "20px"}}>
+          <div><strong>Checkin Day 1:</strong> {summary.numCheckin1}</div>
+          <div><strong>Checkin Day 2:</strong> {summary.numCheckin2}</div>
+        </div>
+      </section>
       <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px', marginTop: '20px'}}>
-        <span>Manually Search User</span>
+        <h3 style={{marginBottom: "0px"}}>Manually Search User</h3>
         <div>
           <input type='text' placeholder='Enter email' ref={inputRef} />
           <button onClick={searchUser}>Submit</button>
+          <button onClick={handleClearSearch}>Clear Search</button>
         </div>
+        {!!errMsg && <span style={{color: "red", fontWeight: "bold", textAlign: "center"}}>Error: {errMsg}</span>}
       </div>
       {<div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', gap: '10px'}}>
         <span>Name: {userInfo?.firstName} {userInfo?.lastName}</span>
         <span>Status: {userInfo?.appStatus}</span>
         <span>Email: {userInfo?.email}</span>
-        <span>Current Food Data</span>
+        <h3 style={{marginBottom: "0px"}}>Current Food Data</h3>
         <div id='form' style={{display: 'flex', flexDirection: 'row', gap: '10px'}}>
           <div style={{display: 'flex', flexDirection: 'column', gap: '5px'}}>
             <span>Day 1:</span>
@@ -190,7 +259,7 @@ export default function AdminCode() {
             </div>
           </div>
         </div>
-        <span>Old Food Data</span>
+        <h3 style={{marginBottom: "0px"}}>Old Food Data</h3>
         <div style={{display: 'flex', flexDirection: 'row', gap: '10px'}}>
           <div style={{display: 'flex', flexDirection: 'column', gap: '5px'}}>
             <span>Day 1:</span>
@@ -236,4 +305,13 @@ export default function AdminCode() {
       <ToastContainer />
     </div>
   )
+}
+
+const getNumCheckin = async () => {
+  const numCheckin1 = (await getCountFromServer(query(collection(db, "Forms"), where("d1Here", "==", true)))).data().count
+  const numCheckin2 = (await getCountFromServer(query(collection(db, "Forms"), where("d2Here", "==", true)))).data().count
+  return {
+    numCheckin1,
+    numCheckin2
+  }
 }

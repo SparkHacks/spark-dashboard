@@ -133,6 +133,7 @@ const uidDataURI = await QRCode.toDataURL(userEmail, {
         <button class="admin-btn" onclick="window.location.assign('/admin')">
           Go to admin
         </button>
+        <button class="qr-nav-btn" onclick="window.location.assign('/admin/qr')">To QrScanner</button>
       </section>
     )
   }
@@ -382,6 +383,13 @@ const uidDataURI = await QRCode.toDataURL(userEmail, {
     cursor: pointer;
     border: none;
     border-radius: 8px;
+  }
+  .qr-nav-btn {
+    padding: 8px 16px;
+    background-color: yellow;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
   }
   #modal-open-btn {
     display: block;
