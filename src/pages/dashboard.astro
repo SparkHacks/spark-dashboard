@@ -164,11 +164,16 @@ const uidDataURI = await QRCode.toDataURL(userEmail, {
 
   {
     appStatus === "fullyAccepted" && (
-      <section style="display: flex; justify-content: center; width: 1000px; max-width: 100%; border: 6px solid #c0ffd6; margin-top: 20px; box-sizing: border-box; border-radius: .75em">
-        <img
+      <section style="width: 1000px; max-width: 100%; border: 6px solid #c0ffd6; margin-top: 20px; box-sizing: border-box; border-radius: .75em; padding: 20px">
+        <h2>QR Code</h2>
+        <div>Use this for check in and get food! ✅</div>
+        <div style="display: flex; justify-content: center;">
+          <img
           style="display: block; height: 20rem; width: 20rem;"
           src={uidDataURI}
         />
+        </div>
+        
       </section>
     )
   }
