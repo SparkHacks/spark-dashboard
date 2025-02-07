@@ -164,7 +164,7 @@ export default function AdminCode() {
               <label htmlFor="d2Lunch">Ate Lunch?</label>
             </div>
             <div>
-              <input name='d2Dinner' id="d2Dinner" type="checkbox" defaultChecked={userInfo.d1Dinner}/>
+              <input name='d2Dinner' id="d2Dinner" type="checkbox" defaultChecked={userInfo.d2Dinner}/>
               <label htmlFor="d2Dinner">Ate Dinner?</label>
             </div>
           </div>
