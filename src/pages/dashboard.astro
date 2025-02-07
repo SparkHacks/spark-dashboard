@@ -93,6 +93,8 @@ try {
 const uidDataURI = await QRCode.toDataURL(userEmail, {
   errorCorrectionLevel: "H",
 });
+
+const newUserState = (await db.collection("Settings").doc("newUserState").get()).data()?.isNewUserEnabled
 ---
 
 <DashboardLayout>
@@ -133,7 +135,13 @@ const uidDataURI = await QRCode.toDataURL(userEmail, {
         <button class="admin-btn" onclick="window.location.assign('/admin')">
           Go to admin
         </button>
-        <button class="qr-nav-btn" onclick="window.location.assign('/admin/qr')">To QrScanner</button>
+        <button class="qr-nav-btn" onclick="window.location.assign('/admin/qr')">
+          To QrScanner
+        </button>
+        <button id="toggle-newusers-btn" style={newUserState ? "background-color: red" : "background-color: green"}>
+          {newUserState ? "Disable" : "Enable"} newUsers
+        </button>
+        
       </section>
     )
   }
@@ -191,22 +199,24 @@ const uidDataURI = await QRCode.toDataURL(userEmail, {
         </div>
       )
     }
-    <button id="app-btn" disabled={!registered ? "true" : ""}>
+    <button id="app-btn" disabled={newUserState ? false : true} onclick={newUserState ? "window.location.assign('/application')" : ""}>
       {
         registered
           ? "View Application"
-          : "Application is closed due to reaching capacity"
+          : (newUserState ? "Start Application" : "Application is closed due to reaching capacity")
       }
     </button>
   </section>
   <script>
+    const toggleNewUsers = document.getElementById(
+      "toggle-newusers-btn"
+    ) as HTMLButtonElement;
     const acceptBtn = document.getElementById(
       "accept-btn"
     ) as HTMLButtonElement;
     const withdrawBtn = document.getElementById(
       "withdraw-btn"
     ) as HTMLButtonElement;
-    const appBtn = document.getElementById("app-btn") as HTMLButtonElement;
 
     const modal = document.getElementsByClassName(
       "modal-wrapper"
@@ -225,9 +235,33 @@ const uidDataURI = await QRCode.toDataURL(userEmail, {
       "withdraw-form"
     ) as HTMLFormElement;
 
-    appBtn?.addEventListener("click", () => {
-      window.location.assign("/application");
-    });
+    toggleNewUsers.addEventListener("click", async () => {
+      const currentState = await fetch('/api/auth/toggle-newusers').then(res => res.json());
+      const newState = !currentState.isNewUserEnabled;
+
+      try {
+      const response = await fetch('/api/auth/toggle-newusers', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ isEnabled: newState }),
+      });
+
+      const result = await response.json();
+      console.log(result)
+
+
+      if (result.success) {
+        alert(`New Sign ups are now ${newState ? 'enabled' : 'disabled'}`) ? "" : location.reload();
+      } else {
+        alert('Failed to toggle login state');
+      }
+      } catch (error) {
+        console.error('Error toggling login state:', error);
+        alert('An error occurred while toggling the login state');
+      }
+    })
 
     modalOpenBtn?.addEventListener("click", () => {
       modal.style.display = "flex";
@@ -241,6 +275,7 @@ const uidDataURI = await QRCode.toDataURL(userEmail, {
     modalContent?.addEventListener("click", (e) => {
       e.stopPropagation();
     });
+    
 
     withdrawForm?.addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -397,7 +432,16 @@ const uidDataURI = await QRCode.toDataURL(userEmail, {
     border-radius: 8px;
     cursor: pointer;
   }
-  #modal-open-btn {
+
+  #toggle-newusers-btn{
+    padding: 8px 16px;
+    background-color: grey;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  #modal-op
+  en-btn {
     display: block;
     padding: 8px 16px;
     background-color: #ff8a8a;
