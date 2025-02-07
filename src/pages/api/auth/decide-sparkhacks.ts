@@ -56,6 +56,7 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
       appStatus: action
     })
     
+    console.log(`${email}: Successfully ${action} the hackathon`)
     return new Response(`Successfully ${action} the hackathon`)
   }
   catch (err) {

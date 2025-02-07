@@ -57,6 +57,7 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
       d2Here: formData.d2Here
     })
     // console.log(res)
+    console.log(`${formData.email}: Successfully update food`)
     return new Response("Successful update")
   }
   catch (err) {

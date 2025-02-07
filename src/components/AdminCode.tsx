@@ -1,10 +1,7 @@
 import { Html5QrcodeScanner } from 'html5-qrcode';
 import { useEffect, useRef, useState } from 'react';
-import { collection, doc, getCountFromServer, getDoc, getDocs, limit, orderBy, query, setDoc, startAfter, where, type DocumentData } from "firebase/firestore"
+import { doc, getDoc} from "firebase/firestore"
 import { db } from "../firebase/client"
-import type { FunctionResponse } from 'firebase/vertexai';
-import type { FormViewData } from '../env';
-import { convertDocToFormViewData } from './AdminBoard';
 import { toast, ToastContainer } from 'react-toastify';
 
 const createConfig = (props: any) => {

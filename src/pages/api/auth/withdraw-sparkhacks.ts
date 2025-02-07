@@ -56,6 +56,7 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
       appStatus: "declined"
     })
     
+    console.log(`${email}: Successfully withdraw the hackathon`)
     return new Response(`Successfully withdraw the hackathon`)
   }
   catch (err) {
