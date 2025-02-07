@@ -115,16 +115,22 @@ export default function AdminCode() {
       return
     }
     const data = [...document.querySelectorAll("#form input")].reduce((acc: any, curr: any) => (acc[curr.name] = curr.checked, acc), {})
+
     data.email = userInfo.email
-    const response = await fetch("/api/auth/update-food", {
-      method: "POST",
-      body: JSON.stringify(data)
-    })
-    if (!response.ok) {
+    try {
+      const response = await fetch("/api/auth/update-food", {
+        method: "POST",
+        body: JSON.stringify(data)
+      })
+      if (!response.ok) {
+        toast.error("Failed to update food data")
+        return
+      }
+      toast.success("Updated Food data!")
+      checkboxInputs.forEach((input) => [...document.querySelectorAll(`[data-id="${input}"]`)].forEach((el: any) => { el.checked = data[input] }))
+    } catch(e) {
       toast.error("Failed to update food data")
-      return
     }
-    toast.success("Updated Food data!")
   }
 
   return (
