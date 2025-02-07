@@ -86,7 +86,7 @@ export default function AdminCode() {
       const userData = docSnap.data()
       emailRef.current = userData.email
       setUserInfo(userData)
-      toast.success(`Scanned user: ${userData.firstName} ${userData.lastName}`)
+      toast.success(`Scanned user ${userData.email}: ${userData.firstName} ${userData.lastName}`)
       checkboxInputs.forEach((input) => [...document.querySelectorAll(`[data-id="${input}"]`)].forEach((el: any) => { el.checked = userData[input] }))        
     } catch(e: any) {
       // Prevent spamming
