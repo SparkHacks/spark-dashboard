@@ -48,7 +48,7 @@ export const GET: APIRoute = async ({request, cookies}) => {
     })
 
     if (isAdmin) {
-      return new Response("/admin")
+      return new Response("/admin/qr")
     }
     return new Response("/dashboard")
 }   

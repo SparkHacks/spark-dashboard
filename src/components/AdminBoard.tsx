@@ -286,7 +286,7 @@ const getTotalPages = (numDocs: number, pageSize: number) => {
 }
 
 // convert document data to FormViewData object
-const convertDocToFormViewData = (doc: DocumentData) => {
+export const convertDocToFormViewData = (doc: DocumentData) => {
   const docData = doc.data()
   const result: FormViewData = {
     createdAt: docData.createdAt.toDate().toLocaleString("en-US", { timeZone: "America/Chicago"}),
