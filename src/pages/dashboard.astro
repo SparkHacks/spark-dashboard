@@ -70,7 +70,7 @@ try {
   return Astro.redirect("/");
 }
 
-const uidDataURI = await QRCode.toDataURL(userUID)
+const uidDataURI = await QRCode.toDataURL(userUID, { errorCorrectionLevel: 'H' })
 ---
 
 <DashboardLayout>
