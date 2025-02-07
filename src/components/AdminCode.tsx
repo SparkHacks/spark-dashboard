@@ -34,7 +34,16 @@ const QrcodePlugin = (props: any) => {
         throw "qrCodeSuccessCallback is required callback.";
     }
     const html5QrcodeScanner = new Html5QrcodeScanner("qrcodeRegionId", config, verbose);
-    html5QrcodeScanner.render(props.qrCodeSuccessCallback, props.qrCodeErrorCallback);
+
+    function success(...args: any[]) {
+      props.qrCodeSuccessCallback(...args);
+      html5QrcodeScanner.pause()
+      window.setTimeout(() => {
+        html5QrcodeScanner.resume()
+      }, 1000)
+    }
+
+    html5QrcodeScanner.render(success, props.qrCodeErrorCallback);
 
     // cleanup function when component will unmount
     return () => {
@@ -67,7 +76,6 @@ export default function AdminCode() {
   const emailRef = useRef<string | null>(null)
   const inputRef = useRef<HTMLInputElement | null>(null)
   const getUser = async (code: string) => {
-    console.log(code)
     try {
       if(code === emailRef.current) return
       const docRef = doc(db, "Forms", code)
@@ -82,7 +90,6 @@ export default function AdminCode() {
       emailRef.current = userData.email
       setUserInfo(userData)
       toast.success(`Scanned user: ${userData.firstName} ${userData.lastName}`)
-
       checkboxInputs.forEach((input) => [...document.querySelectorAll(`[data-id="${input}"]`)].forEach((el: any) => { el.checked = userData[input] }))        
     } catch(e: any) {
       // Prevent spamming
