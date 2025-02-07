@@ -218,6 +218,7 @@ export default function AdminCode() {
         <span>Name: {userInfo?.firstName} {userInfo?.lastName}</span>
         <span>Status: {userInfo?.appStatus}</span>
         <span>Email: {userInfo?.email}</span>
+        <span>Shirt Size: {userInfo?.shirtSize}</span>
         <h3 style={{marginBottom: "0px"}}>Current Food Data</h3>
         <div id='form' style={{display: 'flex', flexDirection: 'row', gap: '10px'}}>
           <div style={{display: 'flex', flexDirection: 'column', gap: '5px'}}>
