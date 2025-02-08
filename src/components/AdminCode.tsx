@@ -124,6 +124,12 @@ export default function AdminCode() {
       toast.error("No user info")
       return
     }
+
+    if (userInfo.appStatus !== "fullyAccepted") {
+      toast.error("User is not fully accepted!")
+      return
+    }
+
     const data = [...document.querySelectorAll("#form input")].reduce((acc: any, curr: any) => (acc[curr.name] = curr.checked, acc), {})
 
     const oldData = [...document.querySelectorAll("#formOld1 input")].reduce((acc: any, curr: any) => (acc[curr.id] = curr.checked, acc), {})
@@ -136,8 +142,13 @@ export default function AdminCode() {
     }
 
     // can get day 2's food when day 2 is checked
-    if (!oldData.d2HereOld && (data.d2Breakfast || data.d2Lunch || data.d2Dinner)) {
-      toast.error("Attempt to get day2's food but havent checkin Day 2 yet. Make sure to checkin to get merch!")
+    if ((!oldData.d2HereOld) && (data.d2Breakfast || data.d2Lunch || data.d2Dinner)) {
+      toast.error("Attempt to check day2's food but havent checkin Day 2 yet. Make sure to checkin to get merch!")
+      return
+    }
+
+    if ((!data.d2Here) && (data.d2Breakfast || data.d2Lunch || data.d2Dinner)) {
+      toast.error("Cannot do: check day2's food and uncheck day2's checkin")
       return
     }
 
