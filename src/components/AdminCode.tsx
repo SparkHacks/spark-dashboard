@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { doc, getDoc} from "firebase/firestore"
 import { db } from "../firebase/client"
 import { toast, ToastContainer } from 'react-toastify';
+import "./AdminCode.css"
 
 const createConfig = (props: any) => {
   let config: any = {};
@@ -86,7 +87,7 @@ export default function AdminCode() {
       const userData = docSnap.data()
       emailRef.current = userData.email
       setUserInfo(userData)
-      toast.success(`Scanned user: ${userData.firstName} ${userData.lastName}`)
+      toast.info(`Scanned user: ${userData.firstName} ${userData.lastName}`)
       checkboxInputs.forEach((input) => [...document.querySelectorAll(`[data-id="${input}"]`)].forEach((el: any) => { el.checked = userData[input] }))        
     } catch(e: any) {
       // Prevent spamming
