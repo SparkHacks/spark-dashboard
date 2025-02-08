@@ -1,7 +1,8 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import { app } from "../firebase/server";
+import { app, db } from "../firebase/server";
 import { getAuth } from "firebase-admin/auth";
+import { collection, query, where } from "firebase/firestore";
 
 try {
   const auth = getAuth(app);
@@ -22,6 +23,8 @@ try {
 } catch (err) {
   console.error(err);
 }
+
+const newUserState = (await db.collection("Settings").doc("newUserState").get()).data()?.isNewUserEnabled
 ---
 
 <Layout>
@@ -30,7 +33,7 @@ try {
     <h1 id="title">Welcome to SparkHacks 2025!</h1>
     <span id="subtitle">Sign in with your Google UIC email to get started</span>
     <div id="errMsg" style="color: red; display: none"></div>
-    <button id="google-sign-btn" class="fill-up-animation"
+    <button id="google-sign-btn" data-message={newUserState} class="fill-up-animation"
       >Sign in with Google</button
     >
   </main>
@@ -43,6 +46,10 @@ try {
     } from "firebase/auth";
 
     const btn = document.getElementById("google-sign-btn") as HTMLButtonElement;
+
+    const isNewUserEnabled = (btn.dataset.message == 'true')
+    console.log(isNewUserEnabled)
+
     const errMsg = document.getElementById("errMsg") as HTMLElement;
     btn.addEventListener("click", async () => {
       errMsg.textContent = "";
@@ -52,7 +59,9 @@ try {
         const userCredential = await signInWithPopup(auth, provider);
         const additionalInfo = getAdditionalUserInfo(userCredential);
 
-        if (additionalInfo?.isNewUser) {
+        const message = btn.dataset.message;
+
+        if (additionalInfo?.isNewUser && !isNewUserEnabled) {
           errMsg.textContent =
             "Due to an influx of applications, we are no longer taking new registrations at this time.";
           errMsg.style.display = "unset";

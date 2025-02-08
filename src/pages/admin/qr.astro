@@ -49,15 +49,26 @@ catch (err) {
 ---
 
 <DashboardLayout>
-  <section class="user-info">
-    <p>Scanning Mode for {userName}!</p>
+  <button class="admin-nav-btn" style="margin-bottom: 20px;" onclick="window.location.assign('/admin')">To Admin</button>
+
+  <!-- <section class="user-info">
+    <h1>Scanning Mode for {userName}!</h1>
     <img src={"/adminUser.svg"} alt="avatar" width="35" height="35" style="border-radius: 9999px;"/>
-  </section>
+  </section> -->
+  
   <div style="flex: 1; width: 100%;">
     <AdminCode client:load />
   </div>
 </DashboardLayout>
 <style>
+  .admin-nav-btn {
+    padding: 8px 16px;
+    background-color: yellow;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 10px;
+  }
   .user-info {
     max-width: 100%;
     font-size: x-large;

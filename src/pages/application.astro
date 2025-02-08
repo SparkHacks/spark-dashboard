@@ -31,6 +31,8 @@ try {
   }
 
   userEmail = user.email as string;
+  const newUserState = (await db.collection("Settings").doc("newUserState").get()).data()?.isNewUserEnabled
+
 
   // if already registered then do not render submit button
   const docSnap = await db.collection("Forms").doc(decodedCookie.email as string).get()
@@ -58,7 +60,7 @@ try {
       createdAt: data.createdAt.toDate().toLocaleString("en-US", { timeZone: "America/Chicago"}) || ""
     }
   }
-  else {
+  else if (!newUserState) {
     return new Response("Application is closed due to reaching capacity", { status: 403 })
   }
 
