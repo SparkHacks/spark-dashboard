@@ -164,6 +164,7 @@ export default function AdminCode() {
       }
       toast.success("Updated Food data!")
       checkboxInputs.forEach((input) => [...document.querySelectorAll(`[data-id="${input}"]`)].forEach((el: any) => { el.checked = data[input] }))
+      document.body.animate({ backgroundColor: ["white", "#8d6db5", "white"] }, 500); // Add dramatic flash so people can tell they checked in
 
       // update summary
       // try {
