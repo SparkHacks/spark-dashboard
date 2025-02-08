@@ -126,6 +126,21 @@ export default function AdminCode() {
     }
     const data = [...document.querySelectorAll("#form input")].reduce((acc: any, curr: any) => (acc[curr.name] = curr.checked, acc), {})
 
+    const oldData = [...document.querySelectorAll("#formOld1 input")].reduce((acc: any, curr: any) => (acc[curr.id] = curr.checked, acc), {})
+
+    if ((data.d1Cookies === oldData.d1CookiesOld) && (data.d1Dinner === oldData.d1DinnerOld) && (data.d1Snack === oldData.d1SnackOld) && (data.d1Here === oldData.d1HereOld)
+      && (data.d2Breakfast === oldData.d2BreakfastOld) && (data.d2Dinner === oldData.d2DinnerOld) && (data.d2Lunch === oldData.d2LunchOld) && (data.d2Here === oldData.d2HereOld)
+    ) {
+      toast.error("No change")
+      return
+    }
+
+    // can get day 2's food when day 2 is checked
+    if (!oldData.d2HereOld && (data.d2Breakfast || data.d2Lunch || data.d2Dinner)) {
+      toast.error("Attempt to get day2's food but havent checkin Day 2 yet. Make sure to checkin to get merch!")
+      return
+    }
+
     data.email = userInfo.email
     try {
       const response = await fetch("/api/auth/update-food", {
@@ -214,19 +229,19 @@ export default function AdminCode() {
           <div style={{display: 'flex', flexDirection: 'column', gap: '5px'}}>
             <span>Day 1:</span>
             <div>
-              <input name='d1Here' id="d1Here"  type="checkbox" data-id="d1Here"/>
+              <input disabled name='d1Here' id="d1Here"  type="checkbox" data-id="d1Here"/>
               <label htmlFor="d1Here">Day 1 Here?</label>
             </div>
             <div>
-              <input name='d1Snack' id="d1Snack"  type="checkbox" data-id="d1Snack"/>
+              <input disabled name='d1Snack' id="d1Snack"  type="checkbox" data-id="d1Snack"/>
               <label htmlFor="d1Snack">Ate Snack?</label>
             </div>
             <div>
-              <input name='d1Dinner' id="d1Dinner" type="checkbox" data-id="d1Dinner"/>
+              <input disabled name='d1Dinner' id="d1Dinner" type="checkbox" data-id="d1Dinner"/>
               <label htmlFor="d1Dinner">Ate Dinner?</label>
             </div>
             <div>
-              <input name='d1Cookies' id="d1Cookies" type="checkbox" data-id="d1Cookies"/>
+              <input disabled name='d1Cookies' id="d1Cookies" type="checkbox" data-id="d1Cookies"/>
               <label htmlFor="d1Cookies">Ate Cookies?</label>
             </div>
           </div>
@@ -251,7 +266,7 @@ export default function AdminCode() {
           </div>
         </div>
         <h3 style={{marginBottom: "0px"}}>Old Food Data</h3>
-        <div style={{display: 'flex', flexDirection: 'row', gap: '10px'}}>
+        <div id="formOld1" style={{display: 'flex', flexDirection: 'row', gap: '10px'}}>
           <div style={{display: 'flex', flexDirection: 'column', gap: '5px'}}>
             <span>Day 1:</span>
             <div>
