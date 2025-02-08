@@ -235,7 +235,7 @@ const newUserState = (await db.collection("Settings").doc("newUserState").get())
       "withdraw-form"
     ) as HTMLFormElement;
 
-    toggleNewUsers.addEventListener("click", async () => {
+    toggleNewUsers?.addEventListener("click", async () => {
       const currentState = await fetch('/api/auth/toggle-newusers').then(res => res.json());
       const newState = !currentState.isNewUserEnabled;
 
@@ -253,7 +253,8 @@ const newUserState = (await db.collection("Settings").doc("newUserState").get())
 
 
       if (result.success) {
-        alert(`New Sign ups are now ${newState ? 'enabled' : 'disabled'}`) ? "" : location.reload();
+        alert(`New Sign ups are now ${newState ? 'enabled' : 'disabled'}`)
+        location.reload();
       } else {
         alert('Failed to toggle login state');
       }
@@ -440,8 +441,7 @@ const newUserState = (await db.collection("Settings").doc("newUserState").get())
     border-radius: 8px;
     cursor: pointer;
   }
-  #modal-op
-  en-btn {
+  #modal-open-btn {
     display: block;
     padding: 8px 16px;
     background-color: #ff8a8a;
