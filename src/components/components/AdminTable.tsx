@@ -1,19 +1,15 @@
 import styles from "./styles/AdminTable.module.css"
 import { useMemo, useState } from "react"
 import type { FormViewData } from "../../env"
-import { PAGE_SIZE, type Summary } from "../AdminBoard"
+import { PAGE_SIZE } from "../AdminBoard"
 
-export default function AdminTable({datas, setDatas, view, setView, page, setSummary, summary}: {
+export default function AdminTable({datas, setDatas, setView, page}: {
   datas: FormViewData[],
   setDatas: React.Dispatch<React.SetStateAction<FormViewData[]>>,
-  view: FormViewData | null,
   setView: React.Dispatch<React.SetStateAction<FormViewData | null>>,
-  page: number,
-  setSummary: React.Dispatch<React.SetStateAction<Summary | null>>,
-  summary: Summary | null,
+  page: number
 }) {
 
-  const [globalLoading, setGlobalLoading] = useState(false)
   const pageDatas = useMemo(() => datas.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE), [page, datas])
 
   return (
@@ -31,7 +27,7 @@ export default function AdminTable({datas, setDatas, view, setView, page, setSum
       <div className={styles.contentTable}>
         {(datas.length === 0)
           ? <div style={{marginTop: "20px", textAlign: "center"}}>No data</div>
-          : pageDatas.map((data, id) => <Row key={id} id={page * PAGE_SIZE + id} data={data} view={view} setView={setView} setDatas={setDatas} datas={datas} summary={summary} setSummary={setSummary} globalLoading={globalLoading} setGlobalLoading={setGlobalLoading}/>)
+          : pageDatas.map((data, id) => <Row key={id} id={page * PAGE_SIZE + id} data={data} setView={setView} setDatas={setDatas} datas={datas}/>)
         }
       </div>
       
@@ -39,36 +35,31 @@ export default function AdminTable({datas, setDatas, view, setView, page, setSum
   )
 }
 
-function Row({id, data, view, setView, setDatas, datas, summary, setSummary, globalLoading, setGlobalLoading}: {
+function Row({id, data, setView, setDatas, datas}: {
   id: number,
   data: FormViewData,
-  view: FormViewData | null,
   setView: React.Dispatch<React.SetStateAction<FormViewData | null>>,
   datas: FormViewData[]
   setDatas: React.Dispatch<React.SetStateAction<FormViewData[]>>,
-  setSummary: React.Dispatch<React.SetStateAction<Summary | null>>,
-  summary: Summary | null,
-  globalLoading: boolean,
-  setGlobalLoading: React.Dispatch<React.SetStateAction<boolean>>
 }) {
 
-  // const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(false)
   // const time_string = time.toLocaleString()
   // console.log(time_string)
 
 
   const backgroundColor = (data.appStatus === "waitlist")? "#f5e3bd"
-    : (data.appStatus === "declined")? "#f5bdbd"
-    : (data.appStatus === "accepted")? "#cff5bd"
-    : (data.appStatus === "userAccepted")? "#bdc3f5" // TODO: choose better color
-    : (data.appStatus === "fullyAccepted")? "#72f784" // TODO: choose better color
+    : (data.appStatus === "declined")? "#f88378"
+    : (data.appStatus === "accepted")? "#afd9ae"
+    : (data.appStatus === "userAccepted")? "blue" // TODO: choose better color
+    : (data.appStatus === "fullyAccepted")? "green" // TODO: choose better color
     : ""
 
   const updateForm = async (updateAction: "waitlist" | "declined" | "accepted" | "waiting" | "fullyAccepted") => {
     const formData = new FormData()
     formData.set("email", data.email)
     formData.set("updateAction", updateAction)
-    setGlobalLoading(true)
+    setLoading(true)
 
     try {
       const res = await fetch("/api/auth/update-form", {
@@ -83,24 +74,13 @@ function Row({id, data, view, setView, setDatas, datas, summary, setSummary, glo
       }
 
       const newDatas = [...datas]
-      let oldStatus = updateAction as "waitlist" | "declined" | "accepted" | "waiting" | "fullyAccepted" | "userAccepted"
       for (const item of newDatas) {
         if (item.email === data.email) {
-          oldStatus = item.appStatus
           item.appStatus = updateAction
           break
         }
       }
       setDatas(newDatas)
-
-      // set summary:
-      if (summary) {
-        const newSummary = {...summary}
-        newSummary[oldStatus] -= 1
-        newSummary[updateAction] += 1
-        console.log(`${new Date().toLocaleString("en-US", {timeZone: "America/Chicago"})} ${data.email}: ${oldStatus} -> ${updateAction}`)
-        setSummary(newSummary)
-      }
 
     }
     catch (err) {
@@ -108,7 +88,7 @@ function Row({id, data, view, setView, setDatas, datas, summary, setSummary, glo
       alert("Error: something is wrong with waitlist data")
     }
     finally {
-      setGlobalLoading(false)
+      setLoading(false)
     }
   }
 
@@ -133,16 +113,11 @@ function Row({id, data, view, setView, setDatas, datas, summary, setSummary, glo
   }
 
   const handleView = () => {
-    if (!view || view.email !== data.email) {
-      setView(data)
-    }
-    else {
-      setView(null)
-    }
+    setView(data)
   }
 
   return (
-    <div className={styles.rowTable} style={{backgroundColor: backgroundColor, border: (view?.email === data.email) ? "3px solid black" : "", borderRadius: (view?.email === data.email) ? "8px" : ""}}>
+    <div className={styles.rowTable} style={{backgroundColor: backgroundColor}}>
       <div className={styles.cellId}><strong>{id}</strong></div>
       <div className={styles.cellEmail}>{data.email}</div>
       <div className={styles.cellName}>{data.firstName} {data.lastName}</div>
@@ -152,11 +127,11 @@ function Row({id, data, view, setView, setDatas, datas, summary, setSummary, glo
         {data.appStatus}
       </div>
       <div className={styles.cellActions}>
-        <button className={styles.declineBtn} disabled={globalLoading || data.appStatus === "declined"} onClick={handleDecline}>Decline</button>
-        <button className={styles.acceptBtn} disabled={globalLoading || data.appStatus === "accepted" || data.appStatus === "fullyAccepted" || data.appStatus === "userAccepted"} onClick={handleAccept}>Accept</button>
-        <button className={styles.waitlistBtn} disabled={globalLoading || data.appStatus === "waitlist"} onClick={handleWaitlist}>Waitlist</button>
-        <button className={styles.waitBtn} disabled={globalLoading || data.appStatus === "waiting"} onClick={handleWait}>Wait</button>
-        <button className={styles.fullyAcceptBtn} disabled={globalLoading || data.appStatus === "fullyAccepted"} onClick={handleFullyAccept}>Fully Accept</button>
+        <button className={styles.declineBtn} disabled={loading || data.appStatus === "declined"} onClick={handleDecline}>Decline</button>
+        <button className={styles.acceptBtn} disabled={loading || data.appStatus === "accepted" || data.appStatus === "fullyAccepted" || data.appStatus === "userAccepted"} onClick={handleAccept}>Accept</button>
+        <button className={styles.waitlistBtn} disabled={loading || data.appStatus === "waitlist"} onClick={handleWaitlist}>Waitlist</button>
+        <button className={styles.waitBtn} disabled={loading || data.appStatus === "waiting"} onClick={handleWait}>Wait</button>
+        <button className={styles.fullyAcceptBtn} disabled={loading || data.appStatus === "fullyAccepted"} onClick={handleFullyAccept}>Fully Accept</button>
         <button className={styles.viewBtn} onClick={handleView}>View</button>
       </div>
     </div>

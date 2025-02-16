@@ -4,14 +4,10 @@ import { FieldValue } from "firebase-admin/firestore";
 import { getAuth } from "firebase-admin/auth";
 import { app, db } from "../../../firebase/server.ts";
 import type { FormSubmissionData } from "../../../env";
+import nodemailer from "nodemailer"
 import { sendEmailConfirmation } from "../../../nodemailer/nodemailer.ts";
 
 export const POST: APIRoute = async ({ request, cookies, redirect }) => {
-
-  const newUserState = (await db.collection("Settings").doc("newUserState").get()).data()?.isNewUserEnabled
-
-  if (!newUserState)
-    return new Response(`Registration closed`, { status: 403 });
 
   const auth = getAuth(app)
 
@@ -62,22 +58,23 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
   const year = formData.get("year")?.toString()
   const availability = formData.get("availability")?.toString()
   const moreAvailability = formData.get("moreAvailability")?.toString() 
-  const dietaryRestriction = formData.getAll("dietaryRestriction").map(item => item.toString())
-  const otherDietaryRestriction = formData.get("otherDietaryRestriction")?.toString()
+  const dietaryRestriction = formData.get("dietaryRestriction")?.toString()
   const shirtSize = formData.get("shirtSize")?.toString()
-  const teamPlan = formData.get("teamPlan")?.toString()
+  const hackathonPlan = formData.get("hackathonPlan")?.toString()
   const preWorkshops = formData.getAll("preWorkshops").map(item => item.toString())
+  const workshops = formData.getAll("workshops").map(item => item.toString())
   const jobType = formData.get("jobType")?.toString()
-  const otherJobType = formData.get("otherJobType")?.toString()
   const resumeLink = formData.get("resumeLink")?.toString()
-  displayFormData(email, firstName, lastName, uin, gender, year, availability, moreAvailability, dietaryRestriction, otherDietaryRestriction, shirtSize, teamPlan, preWorkshops, jobType, otherJobType, resumeLink)
+  const otherQuestion = formData.get("otherQuestion")?.toString()
+  displayFormData(email, firstName, lastName, uin, gender, year, availability, moreAvailability, dietaryRestriction, shirtSize, hackathonPlan, preWorkshops, workshops, jobType, resumeLink, otherQuestion)
 
 
   // validate the input
-  const validateFormResult = validateFormData(firstName, lastName, uin, gender, year, availability, dietaryRestriction, otherDietaryRestriction, shirtSize, teamPlan, preWorkshops, jobType, otherJobType)
+  const validateFormResult = validateFormData(firstName, lastName, uin, gender, year, availability, dietaryRestriction, shirtSize, hackathonPlan, preWorkshops, workshops, jobType)
   if (!validateFormResult.success) {
     return new Response(`Incorrect form data: ${validateFormResult.msg}`, { status: 400 })
   }
+
   
   try {
     const formSubmissionData = {
@@ -90,13 +87,13 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
       availability,
       moreAvailability: moreAvailability || "",
       dietaryRestriction,
-      otherDietaryRestriction: (dietaryRestriction.includes("Other"))? otherDietaryRestriction : "",
       shirtSize,
-      teamPlan,
+      hackathonPlan,
       preWorkshops,
+      workshops,
       jobType: jobType || "",
-      otherJobType: (jobType === "Other") ? otherJobType : "",
       resumeLink: resumeLink || "",
+      otherQuestion: otherQuestion || "",
       appStatus: "waiting",
       createdAt: FieldValue.serverTimestamp()
     } as FormSubmissionData
@@ -107,7 +104,7 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
     await sendFormToFirestore(formSubmissionData)
 
     // send email to user to confirm
-    sendEmailConfirmation(email)
+    sendEmailConfirmation("gunnysolike@gmail.com", email)
 
     // wait for success, if not success then decline
     return new Response(`Successful: ${email}`)

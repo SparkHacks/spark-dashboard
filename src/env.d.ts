@@ -37,14 +37,14 @@ interface FormSubmissionData {
     year: string,
     availability: string,
     moreAvailability: string, // optional
-    dietaryRestriction: string[],
-    otherDietaryRestriction: string, // optional
+    dietaryRestriction: string,
     shirtSize: string,
-    teamPlan: string,
+    hackathonPlan: string,
     preWorkshops: string[],
-    jobType: string,
-    otherJobType: string, // optional
+    workshops: string[],
+    jobType: string, // optional
     resumeLink: string, // optional
+    otherQuestion: string, // optional
     appStatus: "waiting" | "declined" | "waitlist" | "accepted" | "userAccepted" | "fullyAccepted",
     createdAt: FieldValue
 }
@@ -58,14 +58,14 @@ interface FormViewData {
     year: string,
     availability: string,
     moreAvailability: string, // optional
-    dietaryRestriction: string[],
-    otherDietaryRestriction: string, // optional
+    dietaryRestriction: string,
     shirtSize: string,
-    teamPlan: string,
+    hackathonPlan: string,
     preWorkshops: string[],
-    jobType: string,
-    otherJobType: string, // optional
+    workshops: string[],
+    jobType: string, // optional
     resumeLink: string, // optional
+    otherQuestion: string, // optional
     appStatus: "waiting" | "declined" | "waitlist" | "accepted" | "userAccepted" | "fullyAccepted",
     createdAt: string
 }

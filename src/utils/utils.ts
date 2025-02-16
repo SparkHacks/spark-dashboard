@@ -1,6 +1,8 @@
+import sheets, { SHEET_ID } from "../googlesheet/client"
 import { db } from "../firebase/server"
 import { questions } from "./questions"
-import type { FormSubmissionData } from "../env"
+import type { FormSubmissionData, FormViewData } from "../env"
+import type { DocumentData } from "firebase/firestore"
 
 export const displayFormData = (
   email: string | undefined,
@@ -11,14 +13,14 @@ export const displayFormData = (
   year: string | undefined,
   availability: string | undefined,
   moreAvailability: string | undefined,
-  dietaryRestriction: string[] | undefined,
-  otherDietaryRestriction: string | undefined,
+  dietaryRestriction: string | undefined,
   shirtSize: string | undefined,
-  teamPlan: string | undefined,
+  hackathonPlan: string | undefined,
   preWorkshops: string[],
+  workshops: string[],
   jobType: string | undefined,
-  otherJobType: string | undefined,
   resumeLink: string | undefined,
+  otherQuestion: string | undefined,
 ) => {
   console.log("Email*:", email)
   console.log("First Name*:", firstName)
@@ -29,13 +31,13 @@ export const displayFormData = (
   console.log("Availability*:", availability)
   console.log("More availability:", moreAvailability)
   console.log("Dietary Restriction*:", dietaryRestriction)
-  console.log("Other Dietary Restriction:", otherDietaryRestriction)
   console.log("Shirt size*:", shirtSize)
-  console.log("Team Plan*:", teamPlan)
+  console.log("Hackathon plan*:", hackathonPlan)
   console.log("Pre workshops*:", preWorkshops)
-  console.log("Job type:*", jobType)
-  console.log("Other Job Type:", otherJobType)
+  console.log("Workshops*:", workshops)
+  console.log("Job type:", jobType)
   console.log("Resume Link:", resumeLink)
+  console.log("Other question:", otherQuestion)
 }
 
 // process form data
@@ -46,13 +48,12 @@ export const validateFormData = (
   gender: string | undefined,
   year: string | undefined,
   availability: string | undefined,
-  dietaryRestriction: string[],
-  otherDietaryRestriction: string | undefined,
+  dietaryRestriction: string | undefined,
   shirtSize: string | undefined,
-  teamPlan: string | undefined,
+  hackathonPlan: string | undefined,
   preWorkshops: string[],
-  jobType: string | undefined,
-  otherJobType: string | undefined,
+  workshops: string[],
+  jobType: string | undefined
 ) => {
 
   // First Name validation
@@ -101,18 +102,11 @@ export const validateFormData = (
   // Other: Hackathon availability (optional)
 
   // Dietary Restriction validation
-  if (dietaryRestriction.length === 0) {
+  if (!dietaryRestriction || dietaryRestriction === "") {
     return { success: false, msg: "Empty dietary restriction"}
   }
-  for (const diet of dietaryRestriction) {
-    if (!(questions.dietaryRestriction.answer.includes(diet))) {
-      return { success: false, msg: "Invalid dietary restriction"}
-    }
-  }
-  if (dietaryRestriction.includes("Other")) {
-    if (!otherDietaryRestriction || otherDietaryRestriction === "") {
-      return { success: false, msg: "Other dietary restriction is chosen but input is blank"}
-    }
+  if (!(questions.dietaryRestriction.answer.includes(dietaryRestriction))) {
+    return { success: false, msg: "Invalid dietary restriction"}
   }
 
   // T-shirt Size validation
@@ -123,12 +117,12 @@ export const validateFormData = (
     return { success: false, msg: "Invalid t-shirt size"}
   }
 
-  // Have Team validation
-  if (!teamPlan || teamPlan === "") {
-    return { success: false, msg: "Empty input for team" }
+  // Hackathon Plan validation
+  if (!hackathonPlan || hackathonPlan === "") {
+    return { success: false, msg: "Empty hackathon plan" }
   }
-  if (!(questions.teamPlan.answer.includes(teamPlan))) {
-    return { success: false, msg: "Invalid input for team"}
+  if (!(questions.hackathonPlan.answer.includes(hackathonPlan))) {
+    return { success: false, msg: "Invalid hackathon plan"}
   }
 
   // Pre-Workshop validation
@@ -141,25 +135,30 @@ export const validateFormData = (
     }
   }
 
-  // job type
-  if (!jobType || jobType === "") {
-    return { success: false, msg: "Empty job type"}
+  // Workshop validation
+  if (workshops.length === 0) {
+    return { success: false, msg: "Empty workshops"}
   }
-  if (!questions.jobType.answer.includes(jobType)) {
-    return { success: false, msg: "Invalid job type"}
+  for (const workS of workshops) {
+    if (!(questions.workshops.answer.includes(workS))) {
+      return { success: false, msg: "Invalid workshops"}
+    }
   }
-  if (jobType === "Other") {
-    if (!otherJobType || otherJobType == "") {
-      return { success: false, msg: "Job type is other but empty input"}
+
+  // Company (optional)
+  if (jobType) {
+    if (jobType !== "" && !questions.jobType.answer.includes(jobType)) {
+      return { success: false, msg: "Invalid job type"}
     }
   }
 
   // resume link (optional)
 
+  // Other note
+
   return { success: true, msg: "Valid form data" }
 }
 
-/*
 // send form to google sheet: THIS FUNCTION IS INCOMPLETE
 export const sendFormToGoogleSheet = async (formSubmissionData: FormSubmissionData) => {
   const { email, firstName, lastName, uin, gender, year, availability, moreAvailability, dietaryRestriction, shirtSize, hackathonPlan, preWorkshops, workshops, jobType, resumeLink, otherQuestion, appStatus } = formSubmissionData
@@ -190,7 +189,7 @@ export const sendFormToGoogleSheet = async (formSubmissionData: FormSubmissionDa
       ]]
     }
   })
-}*/
+}
 
 // send form to firestore
 export const sendFormToFirestore = async (formSubmissionData: FormSubmissionData) => {

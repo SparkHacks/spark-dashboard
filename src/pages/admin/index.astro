@@ -2,7 +2,7 @@
 import DashboardLayout from "../../layouts/DashboardLayout.astro"
 import AdminBoard from "../../components/AdminBoard"
 import { getAuth } from "firebase-admin/auth";
-import { app } from "../../firebase/server";
+import { app, db } from "../../firebase/server";
 
 let userEmail = "";
 let userName = ""
@@ -48,7 +48,6 @@ catch (err) {
 ---
 
 <DashboardLayout>
-  <button class="qr-nav-btn" onclick="window.location.assign('/admin/qr')">To QrScanner</button>
   <section class="user-info">
     <h1>Welcome Admin, {userName}!</h1>
     <img src={"/adminUser.svg"} alt="avatar" width="35" height="35" style="border-radius: 9999px;"/>
@@ -58,14 +57,6 @@ catch (err) {
   </div>
 </DashboardLayout>
 <style>
-  .qr-nav-btn {
-    padding: 8px 16px;
-    background-color: yellow;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    margin-top: 10px;
-  }
   .user-info {
     max-width: 100%;
     font-size: x-large;

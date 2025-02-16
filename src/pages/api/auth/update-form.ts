@@ -56,7 +56,6 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
       appStatus: updateAction
     })
     console.log(res)
-    console.log(`${email}: Successfully update form`)
     return new Response("Successful update")
   }
   catch (err) {

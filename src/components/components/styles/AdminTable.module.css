@@ -1,5 +1,4 @@
 .adminTable {
-  min-width: 700px;
   width: 100%;
   box-sizing: border-box;
   padding: 0 10px;
@@ -15,7 +14,7 @@
   /* border-radius: 4px; */
 }
 .headerTable {
-  background-color:#c0edff;
+  background-color:burlywood;
   border-bottom-left-radius: 0;
   border-bottom-right-radius: 0;
 }
@@ -37,13 +36,13 @@
   background-color: rgb(203, 229, 255)
 }
 .cellId {
-  width: 35px
+  width: 30px
 }
 .cellEmail {
   width: 150px;
 }
 .cellCreatedAt {
-  width: 200px
+  width: 180px
 }
 .cellName {
   width: 150px
@@ -74,17 +73,17 @@
   cursor: not-allowed;
 }
 .declineBtn {
-  background-color: #ff8a8a;
+  background-color: red;
 }
 .acceptBtn {
-  background-color: #cbffb3;
+  background-color: green;
 }
 .waitlistBtn {
-  background-color: #fbd583;
+  background-color: yellow;
 }
 .waitBtn {
-  background-color: #c1c1c1;
+  background-color: rgb(120, 120, 63);
 }
 .fullyAcceptBtn {
-  background-color: #4eff66;
+  background-color: chartreuse;
 }

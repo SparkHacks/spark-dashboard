@@ -22,9 +22,6 @@ export const GET: APIRoute = async ({request, cookies}) => {
           console.log(email, "admin user!")
           isAdmin = true
         }
-        else if (user.customClaims && user.customClaims.exception === true) { // if the email is exception then does not need to go through email check
-          console.log(email, "exception user!")
-        }
         else {
           const emailReg = /^[a-zA-Z0-9._%+-]+@uic\.edu$/
           if (!emailReg.test(email)) {
@@ -40,7 +37,7 @@ export const GET: APIRoute = async ({request, cookies}) => {
     }
 
     // create and set session cookie
-    const timeLimit = 5 * 24 * 60 * 60 * 1000 // 5 days in milliseconds
+    const timeLimit = 30 * 60 * 1000 // 30 minutes in milliseconds
     const sessionCookie = await auth.createSessionCookie(idToken, {expiresIn: timeLimit})
     cookies.set("__session", sessionCookie, {
         path: "/",
@@ -48,7 +45,7 @@ export const GET: APIRoute = async ({request, cookies}) => {
     })
 
     if (isAdmin) {
-      return new Response("/admin/qr")
+      return new Response("/admin")
     }
     return new Response("/dashboard")
 }   
