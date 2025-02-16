@@ -1,10 +1,9 @@
-import { Box, Button, Checkbox, FormControl, FormControlLabel, FormGroup, FormLabel, Input, InputLabel, MenuItem, Modal, Radio, RadioGroup, Select, TextField, Typography } from "@mui/material"
+import { Box, Button, FormControl, FormLabel, Modal, TextField } from "@mui/material"
 import { useRef, useState, type FormEvent } from "react"
 import Radios from "./components/Radios";
 import { questions } from "../utils/questions";
 import Checkboxes from "./components/Checkboxes";
-import type { FormSubmissionData } from "../env";
-
+import type { FormViewData } from "../env";
 
 const style = {
   position: 'absolute',
@@ -29,7 +28,7 @@ const style = {
 export default function AppForm({ email, registered, applicationData }: {
   email: string,
   registered: boolean,
-  applicationData: FormSubmissionData | null
+  applicationData: FormViewData | null
 }) {
   const formRef = useRef<HTMLFormElement | null>(null)
   const [loading, setLoading] = useState(false)
@@ -41,9 +40,9 @@ export default function AppForm({ email, registered, applicationData }: {
 
     setLoading(true)
     const formData = new FormData(formRef.current as HTMLFormElement)
-    for (let pair of formData.entries()) {
-      console.log(pair[0]+ ', ' + pair[1]); 
-    }
+    // for (let pair of formData.entries()) {
+    //   console.log(pair[0]+ ', ' + pair[1]); 
+    // }
 
     try {
       const response = await fetch("/api/auth/submit-form", {
@@ -89,6 +88,11 @@ export default function AppForm({ email, registered, applicationData }: {
       >Return to Dashboard</Button>
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "30px 10px" }}>
         <h1>SparkHacks 2025 Registration</h1>
+        {(applicationData && applicationData.createdAt !== "") && 
+          <div>
+            Submitted at: {applicationData?.createdAt}
+          </div>
+        }
         <form onSubmit={handleSubmit} ref={formRef} style={{ maxWidth: "800px", width: "100%", display: "flex", flexDirection: "column", gap: "20px" }}>
           <h2>General Information</h2>
           <div>
@@ -96,15 +100,15 @@ export default function AppForm({ email, registered, applicationData }: {
           </div>
           <FormControl required>
             <FormLabel>First Name</FormLabel>
-            <TextField name="firstName" placeholder="Enter your answer" defaultValue={applicationData && applicationData.firstName} disabled={registered} required fullWidth />
+            <TextField name="firstName" placeholder="Enter your first name" defaultValue={applicationData && applicationData.firstName} disabled={registered} required fullWidth />
           </FormControl>
           <FormControl required>
             <FormLabel>Last Name</FormLabel>
-            <TextField name="lastName" placeholder="Enter your answer" defaultValue={applicationData && applicationData.lastName} disabled={registered}  required fullWidth />
+            <TextField name="lastName" placeholder="Enter your last name" defaultValue={applicationData && applicationData.lastName} disabled={registered}  required fullWidth />
           </FormControl>
           <FormControl required>
             <FormLabel>UIN</FormLabel>
-            <TextField name="uin" placeholder="Enter your answer" defaultValue={applicationData && applicationData.uin} disabled={registered}  type="number" required fullWidth />
+            <TextField name="uin" placeholder="Enter your 9-Digit UIN" defaultValue={applicationData && applicationData.uin} disabled={registered}  type="number" required fullWidth />
           </FormControl>
           <Radios 
             required={true}
@@ -125,33 +129,28 @@ export default function AppForm({ email, registered, applicationData }: {
           <Radios
             required={true}
             disabled={registered}
-            label="Which day(s) are you available to attent the hackathon? Priority will be given to those who can attend both days. (Merch will be given day 2)"
+            label="Which day(s) are you available to attent the hackathon? Priority will be given to those who can attend both days."
             name="availability"
             defaultValue={applicationData?.availability || ""}
             groupRadios={questions.availability.answer}
           />
           <FormControl>
             <FormLabel>If you want to add more detailed availability please add it here!</FormLabel>
-            <TextField name="moreAvailability" defaultValue={applicationData && applicationData.moreAvailability} placeholder="Enter your answer" fullWidth multiline disabled={registered} />
+            <TextField name="moreAvailability" defaultValue={applicationData && applicationData.moreAvailability} placeholder="Enter your additional availability (Optional)" fullWidth multiline disabled={registered} />
           </FormControl>
 
-          <label>Do you have any dietary restrictions?</label>
-          <FormControl required fullWidth variant="filled">
-            <InputLabel>Choose</InputLabel>
-            <Select
-              name="dietaryRestriction"
-              defaultValue={applicationData?.dietaryRestriction || ""}
-              disabled={registered}
-            >
-              <MenuItem value="">Choose</MenuItem>
-              <MenuItem value="Vegetarian">Vegetarian</MenuItem>
-              <MenuItem value="Halal">Halal</MenuItem>
-              <MenuItem value="Vegan">Vegan</MenuItem>
-              <MenuItem value="Gluten Free">Gluten Free</MenuItem>
-              <MenuItem value="Nut Allergy">Nut Allergy</MenuItem>
-              <MenuItem value="N/A">N/A</MenuItem>
-            </Select>
-          </FormControl>
+          <Checkboxes 
+            required
+            disabled={registered}
+            label="Do you have any dietary restrictions?"
+            name="dietaryRestriction"
+            defaultValue={applicationData?.dietaryRestriction || []}
+            groupCheckboxes={questions.dietaryRestriction.answer}
+            other={true}
+            otherName={questions.dietaryRestriction.other}
+            otherValue={applicationData?.otherDietaryRestriction || ""}
+          />
+          
           <Radios 
             required
             disabled={registered}
@@ -165,47 +164,41 @@ export default function AppForm({ email, registered, applicationData }: {
           <Radios 
             required
             disabled={registered}
-            label={<>How do you plan to participate at SparkHacks? Everyone will be able to attend company sessions and/or workshops. <strong>Note: Maximum team size is 5</strong></>}
-            name="hackathonPlan"
-            defaultValue={applicationData?.hackathonPlan || ""}
-            groupRadios={questions.hackathonPlan.answer}
+            label={<>Do you have a team? If you do not already, no worries, we have you covered! <strong>Note: team size is restricted to 4-5 people.</strong></>}
+            name="teamPlan"
+            defaultValue={applicationData?.teamPlan || ""}
+            groupRadios={questions.teamPlan.answer}
           />
           <Checkboxes 
             required
             disabled={registered}
-            label="Which of the following Workshop topics would you find useful/interesting to attend PRIOR to SparkHacks? These will be held from 5th - 8th Feb 2024 from 5 - 6:30pm (Select all that apply)"
+            label={<>Which of the following Pre-Hack Workshops would you find useful/interesting to attend PRIOR to SparkHacks? These will be held from February 4th-6th, 2025. (Select all that apply)<br/>For more information on these workshops, view <a href="https://www.sparkhacks.org/">https://www.sparkhacks.org/</a>.</>}
             name="preWorkshops"
             defaultValue={applicationData?.preWorkshops || []}
             groupCheckboxes={questions.preWorkshops.answer}
           />
-          <Checkboxes 
-            required
-            disabled={registered}
-            label="Which of the following workshop topics would you find useful/interesting to attend DURING SparkHacks? (Select all that apply)"
-            name="workshops"
-            defaultValue={applicationData?.workshops || []}
-            groupCheckboxes={questions.workshops.answer}
-          />
           <Radios 
-            required={false}
+            required={true}
             disabled={registered}
-            label="If you'd like to be considered for an opportunity with our company partners, select the type of job you are looking for:"
+            label="If you would like to be considered for an opportunity with our company partners, select the type of job you are looking for:"
             name="jobType"
             defaultValue={applicationData?.jobType || ""}
             groupRadios={questions.jobType.answer}
+            other={true}
+            otherName={questions.jobType.other}
+            otherValue={applicationData?.otherJobType || ""}
           />
           <FormControl>
             <FormLabel>
-              If you’d like to be considered for an opportunity with our company partners, submit a PDF link (e.g. Google Drive) of your resume here.
+              If you would like to be considered for an opportunity with our company sponsors, add in a shareable link to your resume here. If your resume is on Google Docs or Google Drive, make sure you see "Anyone with the link" after clicking the "Share" button in the top right corner. 
+              <br/>
+              <img src={"/images/share_perms.png"} alt="Share permissions" style={{width: "500px", maxWidth: "100%"}}/>
             </FormLabel>
-            <TextField placeholder="Enter your answer" defaultValue={applicationData && applicationData.resumeLink} name="resumeLink" disabled={registered} />
+            <TextField placeholder="Enter your shareable link (Optional)" defaultValue={applicationData && applicationData.resumeLink} name="resumeLink" disabled={registered} />
           </FormControl>
-          <FormControl>
-            <FormLabel>
-              If you have any other questions / comments please drop them here!
-            </FormLabel>
-            <TextField placeholder="Enter your answer" defaultValue={applicationData && applicationData.otherQuestion} name="otherQuestion" fullWidth disabled={registered} />
-          </FormControl>
+          <div>
+            If you have any other questions or comments, please email <a href="mailto:sparkhacks@uic.edu">sparkhacks@uic.edu</a>.
+          </div>
           {!registered && <Button
             variant="contained"
             disabled={loading}

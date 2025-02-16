@@ -3,6 +3,7 @@ import DashboardLayout from "../../layouts/DashboardLayout.astro"
 import AdminBoard from "../../components/AdminBoard"
 import { getAuth } from "firebase-admin/auth";
 import { app } from "../../firebase/server";
+import AdminCode from "../../components/AdminCode";
 
 let userEmail = "";
 let userName = ""
@@ -48,17 +49,19 @@ catch (err) {
 ---
 
 <DashboardLayout>
-  <button class="qr-nav-btn" onclick="window.location.assign('/admin/qr')">To QrScanner</button>
-  <section class="user-info">
-    <h1>Welcome Admin, {userName}!</h1>
+  <button class="admin-nav-btn" style="margin-bottom: 20px;" onclick="window.location.assign('/admin')">To Admin</button>
+
+  <!-- <section class="user-info">
+    <h1>Scanning Mode for {userName}!</h1>
     <img src={"/adminUser.svg"} alt="avatar" width="35" height="35" style="border-radius: 9999px;"/>
-  </section>
+  </section> -->
+  
   <div style="flex: 1; width: 100%;">
-    <AdminBoard client:load/>
+    <AdminCode client:load />
   </div>
 </DashboardLayout>
 <style>
-  .qr-nav-btn {
+  .admin-nav-btn {
     padding: 8px 16px;
     background-color: yellow;
     border: none;

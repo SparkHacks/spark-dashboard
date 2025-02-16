@@ -39,24 +39,25 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
   // update appStatus
   try {
     // extract email and update action
-    const formData = await request.formData()
-    const email = formData.get("email")?.toString() || ""
-    const updateAction = formData.get("updateAction")?.toString() || ""
-
-    if (email === "") {
+    const formData = await request.json()
+    if(formData.email === "") {
       return new Response ("Empty email", { status: 400 })
     }
 
-    if (updateAction !== "declined" && updateAction !== "accepted" && updateAction !== "waitlist" && updateAction !== "waiting" && updateAction !== "fullyAccepted") {
-      return new Response ("Update action is not valid", { status: 400 })
-    }
-
     // try to update
-    const res = await db.collection("Forms").doc(email).update({
-      appStatus: updateAction
+    const res = await db.collection("Forms").doc(formData.email)
+    .update({
+      d1Snack: formData.d1Snack,
+      d1Dinner: formData.d1Dinner,
+      d1Cookies: formData.d1Cookies,
+      d1Here: formData.d1Here,
+      d2Breakfast: formData.d2Breakfast,
+      d2Lunch: formData.d2Lunch,
+      d2Dinner: formData.d2Dinner,
+      d2Here: formData.d2Here
     })
-    console.log(res)
-    console.log(`${email}: Successfully update form`)
+    // console.log(res)
+    console.log(`${formData.email}: Successfully update food`)
     return new Response("Successful update")
   }
   catch (err) {

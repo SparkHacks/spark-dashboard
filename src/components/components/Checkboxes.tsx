@@ -1,28 +1,50 @@
-import { Checkbox, FormControl, FormControlLabel, FormGroup, FormLabel } from "@mui/material"
+import { Checkbox, FormControl, FormControlLabel, FormGroup, FormLabel, TextField } from "@mui/material"
+import { useState } from "react"
 
-export default function Checkboxes({required, disabled, label, name, defaultValue, groupCheckboxes}: {
+export default function Checkboxes({required, disabled, label, name, defaultValue, groupCheckboxes, other = false, otherName = "", otherValue = ""}: {
     required: boolean,
     disabled: boolean,
     label: any,
     name: string,
     defaultValue: string[],
-    groupCheckboxes: string[]
+    groupCheckboxes: string[],
+    other?: boolean,
+    otherName?: string,
+    otherValue?: string,
 }) {
-    console.log(defaultValue)
+    const [otherChecked, setOtherChecked] = useState(false)
+
     return (
         <FormControl required={required} variant="filled">
             <FormLabel>{label}</FormLabel>
             <FormGroup style={{ marginLeft: "20px" }}>
-                {groupCheckboxes.map((checkboxValue, id) => 
-                {
-                    return (<FormControlLabel 
+                {groupCheckboxes.map((checkboxValue, id) => {
+                    return checkboxValue !== "Other" && 
+                    (<FormControlLabel 
                         key={id}
                         control={<Checkbox defaultChecked={defaultValue.includes(checkboxValue)}/>}
                         label={checkboxValue}
                         name={name}
                         value={checkboxValue}
                         disabled={disabled}
-                    />)})}
+                    />)
+                })}
+                {other && 
+                    <>
+                        <FormControlLabel 
+                            control={<Checkbox defaultChecked={defaultValue.includes("Other")} onChange={() => setOtherChecked(!otherChecked)}/>}
+                            label={"Other"}
+                            name={name}
+                            value={"Other"}
+                            disabled={disabled}
+                        />
+                        <TextField 
+                            name={otherName}
+                            defaultValue={otherValue}
+                            disabled={disabled || !otherChecked}
+                        />
+                    </>
+                }
             </FormGroup>
         </FormControl>
     )

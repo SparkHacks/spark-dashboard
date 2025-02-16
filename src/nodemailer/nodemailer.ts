@@ -10,7 +10,10 @@ const transporter = nodemailer.createTransport({
 
 export const sendEmailConfirmation = (to: string) => {
   const mailOption = {
-    from: import.meta.env.NODEMAILER_EMAIL,
+    from: {
+      name: "SparkHacks 2025",
+      address: import.meta.env.NODEMAILER_EMAIL
+    },
     to: to,
     subject: 'SparkHacks 2025 Registration Confirmation',
     text: "This is confirmation that we receive your registration form to SparkHacks 2025! 🐋"

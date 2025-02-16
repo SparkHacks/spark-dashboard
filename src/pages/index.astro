@@ -1,99 +1,197 @@
 ---
-import Layout from '../layouts/Layout.astro';
-import { app } from "../firebase/server";
+import Layout from "../layouts/Layout.astro";
+import { app, db } from "../firebase/server";
 import { getAuth } from "firebase-admin/auth";
+import { collection, query, where } from "firebase/firestore";
 
 try {
-	const auth = getAuth(app)
-	const sessionCookieObj = Astro.cookies.get("__session")
-	if (sessionCookieObj) {
-		const sessionCookie = sessionCookieObj.value;
-		const decodedCookie = await auth.verifySessionCookie(sessionCookie);
-		if (decodedCookie) {
+  const auth = getAuth(app);
+  const sessionCookieObj = Astro.cookies.get("__session");
+  if (sessionCookieObj) {
+    const sessionCookie = sessionCookieObj.value;
+    const decodedCookie = await auth.verifySessionCookie(sessionCookie);
+    if (decodedCookie) {
+      // if user is admin then redirect to /admin, otherwise the user is regular and redirect to /dashboard
+      const user = await auth.getUser(decodedCookie.uid);
+      if (user.customClaims && user.customClaims.admin == true) {
+        return Astro.redirect("/admin/qr");
+      }
 
-			// if user is admin then redirect to /admin, otherwise the user is regular and redirect to /dashboard
-			const user = await auth.getUser(decodedCookie.uid)
-			if (user.customClaims && user.customClaims.admin == true) {
-				return Astro.redirect("/admin")
-			}
-
-			return Astro.redirect("/dashboard")
-		}
-	}
+      return Astro.redirect("/dashboard");
+    }
+  }
 } catch (err) {
-	console.error(err)
+  console.error(err);
 }
+
+const newUserState = (await db.collection("Settings").doc("newUserState").get()).data()?.isNewUserEnabled
 ---
 
 <Layout>
-	<main>
-		<img src="/sparkhacks-logo.svg" alt="sparkhacks logo" height="200"/>
-		<h1>Welcome to SparkHacks 2025!</h1>
-		<div id="errMsg" style="color: red; display: none"></div>
-		<button id="google-sign-btn">Sign in with Google</button>
-	</main>
-	<script>
-		import { auth, provider } from '../firebase/client';
-		import { signInWithPopup } from "firebase/auth";
+  <main>
+    <img src="/sparkhacks-logo.svg" alt="sparkhacks logo" height="200" />
+    <h1 id="title">Welcome to SparkHacks 2025!</h1>
+    <span id="subtitle">Sign in with your Google UIC email to get started</span>
+    <div id="errMsg" style="color: red; display: none"></div>
+    <button id="google-sign-btn" data-message={newUserState} class="fill-up-animation"
+      >Sign in with Google</button
+    >
+  </main>
+  <script>
+    import { auth, provider } from "../firebase/client";
+    import {
+      deleteUser,
+      getAdditionalUserInfo,
+      signInWithPopup,
+    } from "firebase/auth";
 
-		const btn = document.getElementById("google-sign-btn") as HTMLButtonElement
-		const errMsg = document.getElementById("errMsg") as HTMLElement
-		btn.addEventListener("click", async () => {
-			errMsg.textContent = ""
-			errMsg.style.display = "none"
-			btn.disabled = true
-			try {
-				const userCredential = await signInWithPopup(auth, provider)
-				const idToken = await userCredential.user.getIdToken()
-				const res = await fetch("/api/auth/signin", {
-					headers: {
-						Authorization: `Bearer ${idToken}`
-					},
-				})
+    const btn = document.getElementById("google-sign-btn") as HTMLButtonElement;
 
-				if (!res.ok) {
-					const msg = await res.text()
-					errMsg.textContent = "Failed to sign in with Google account: " + msg
-					errMsg.style.display = "unset"
-					btn.disabled = false
-					return
-				}
-				const newRoute = await res.text()
-				window.location.assign(newRoute)
-				btn.disabled = false
-			} catch (err) {
-				console.log(err)
-				errMsg.textContent = "Failed to sign in with Google account"
-				errMsg.style.display = "unset"
-				btn.disabled = false
-			}
-		})
+    const isNewUserEnabled = (btn.dataset.message == 'true')
+    console.log(isNewUserEnabled)
 
-	</script>
+    const errMsg = document.getElementById("errMsg") as HTMLElement;
+    btn.addEventListener("click", async () => {
+      errMsg.textContent = "";
+      errMsg.style.display = "none";
+      btn.disabled = true;
+      try {
+        const userCredential = await signInWithPopup(auth, provider);
+        const additionalInfo = getAdditionalUserInfo(userCredential);
+
+        const message = btn.dataset.message;
+
+        if (additionalInfo?.isNewUser && !isNewUserEnabled) {
+          errMsg.textContent =
+            "Due to an influx of applications, we are no longer taking new registrations at this time.";
+          errMsg.style.display = "unset";
+          btn.disabled = false;
+
+          const user = auth.currentUser;
+          if (user) {
+            deleteUser(user);
+          }
+          return;
+        }
+
+        const idToken = await userCredential.user.getIdToken();
+        const res = await fetch("/api/auth/signin", {
+          headers: {
+            Authorization: `Bearer ${idToken}`,
+          },
+        });
+
+        if (!res.ok) {
+          const msg = await res.text();
+          errMsg.textContent = "Failed to sign in with Google account: " + msg;
+          errMsg.style.display = "unset";
+          btn.disabled = false;
+          return;
+        }
+        const newRoute = await res.text();
+        window.location.assign(newRoute);
+        btn.disabled = false;
+      } catch (err) {
+        console.log(err);
+        errMsg.textContent = "Failed to sign in with Google account";
+        errMsg.style.display = "unset";
+        btn.disabled = false;
+      }
+    });
+  </script>
 </Layout>
 <style>
-	main {
-		width: 100%;
-		height: 100%;
-		display: flex;
-		flex-direction: column;
-		justify-content: center;
-		align-items: center;
-	}
-	#google-sign-btn {
-		margin-top: 40px;
-		cursor: pointer;
-		background-color: #c0edff;
-		padding: 15px 44px;
-		border: none;
-		border-radius: 8px;
-	}
-	#google-sign-btn:disabled {
-		cursor:not-allowed
-	}
-	#google-sign-btn:hover {
-		filter: brightness(80%)
-	}
+  main {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+    background: linear-gradient(
+      180deg,
+      #002242 0%,
+      #0e477c 27%,
+      #855186 55%,
+      #e06e8d 85%,
+      #ff8d7e 100%
+    );
+    color: white;
+  }
+  #title {
+    text-align: center;
+    margin-bottom: 10px;
+  }
+  #subtitle {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  #google-sign-btn {
+    margin-top: 30px;
+    cursor: pointer;
+    background-color: #c0edff;
+    padding: 15px 44px;
+    border: none;
+    border-radius: 8px;
+    font-family: "nunito", system-ui, sans-serif;
+    font-size: large;
+    color: black;
+  }
+  #google-sign-btn:disabled {
+    cursor: not-allowed;
+  }
+  #google-sign-btn:hover {
+    filter: brightness(80%);
+  }
+  /*
+	.fill-up-animation::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        top: 0;
+        border-radius: 8px;
+        z-index: -1;
+    }
+
+  .fill-up-animation:hover::before {
+    background-color: #2C5A79;
+    animation: loadingWave 2s linear;
+  }
+
+  @keyframes loadingWave {
+      0% {
+          clip-path: polygon(0% 100%, 100% 100%, 99% 100%, 81% 100%, 64% 100%, 46% 100%, 29% 100%, 14% 100%, 0 100%); 
+      }
+
+      10% {
+          clip-path: polygon(0% 100%, 100% 100%, 100% 90%, 84% 94%, 66% 95%, 47% 94%, 31% 95%, 14% 96%, 0 94%);    
+      }
+
+      20% {
+          clip-path: polygon(0% 100%, 100% 100%, 100% 74%, 81% 72%, 63% 72%, 44% 75%, 33% 77%, 16% 78%, 0 74%);                
+      }
+
+      40% {
+          clip-path: polygon(0% 100%, 100% 100%, 100% 53%, 85% 55%, 67% 58%, 44% 54%, 30% 48%, 15% 47%, 0 49%);                
+      }
+
+      60% {
+          clip-path: polygon(0% 100%, 100% 100%, 100% 24%, 86% 25%, 69% 29%, 53% 34%, 37% 38%, 18% 40%, 0 38%); 
+      }
+      
+      80% {
+          clip-path: polygon(0% 100%, 100% 100%, 100% 22%, 84% 29%, 67% 31%, 45% 27%, 26% 17%, 12% 14%, 0 15%);    
+      }
+
+      90% {
+          clip-path: polygon(0% 100%, 100% 100%, 100% 5%, 86% 10%, 73% 10%, 55% 6%, 33% 3%, 15% 5%, 0 9%);   
+      }
+
+      100% {
+          clip-path: polygon(0% 100%, 100% 100%, 100% 0, 86% 0, 71% 0, 55% 0, 34% 0, 18% 0, 0 0);    
+      }
+    }*/
 </style>
-
-

@@ -13,7 +13,7 @@ export const questions = {
         answer: [
             "Male",
             "Female",
-            "Non binary"
+            "Non-binary"
         ]
     },
     year: {
@@ -23,21 +23,22 @@ export const questions = {
             "Sophomore",
             "Junior",
             "Senior",
-            "Graduate"
+            "Masters",
+            "PhD",
         ]
     },
     availability: {
-        question: "Which day(s) are you available to attent the hackathon? Priority will be given to those who can attend both days. (Merch will be given day 2)",
+        question: "Which day(s) are you available to attent the hackathon? Priority will be given to those who can attend both days.",
         answer: [
             "Both Days",
-            "Only Friday February 7th @ 2:30pm - 9pm",
-            "Only Saturday February 8th @ 9am - 8pm"
+            "Only Friday February 7th @ 6pm-9pm",
+            "Only Saturday February 8th @ 9am-9pm"
         ],
     },
     moreAvailability: { // not required
-        question: "If you want to add more detailed availability please add it here!"
+        question: "If you want to add more detailed availability, please add it here!"
     },
-    dietaryRestriction: {
+    dietaryRestriction: { // checkbox, other
         question: "Do you have any dietary restrictions?",
         answer: [
             "Vegetarian",
@@ -45,60 +46,51 @@ export const questions = {
             "Vegan",
             "Gluten Free",
             "Nut Allergy",
-            "N/A"
-        ]
+            "N/A",
+            "Other"
+        ],
+        other: "otherDietaryRestriction"
     },
     shirtSize: {
         question: "What is your unisex t-shirt size?",
         answer: [
-            "XS",
             "S",
             "M",
             "L",
-            "XL"
+            "XL",
+            "XXL"
         ]
     },
-    hackathonPlan: {
-        question: "How do you plan to participate at SparkHacks? Everyone will be able to attend company sessions and/or workshops. Note: Maximum team size is 5",
+    teamPlan: {
+        question: "Do you have a team? If you do not already, no worries, we have you covered! Note: team size is restricted to 4-5 people.",
         answer: [
-            "I will be hacking and I have a team",
-            "I will be hacking, but I do not have a team yet",
-            "I just want to attend the workshops"
+            "I have a team",
+            "I do not have a team just yet",
         ]
     },
-    preWorkshops: {
-        question: "Which of the following Workshop topics would you find useful/interesting to attend PRIOR to SparkHacks? These will be held from 5th - 8th Feb 2024 from 5 - 6:30pm (Select all that apply)",
+    preWorkshops: { // checkbox
+        question: "Which of the following Pre-Hack Workshops would you find useful/interesting to attend PRIOR to SparkHacks? These will be held from February 4th-6th, 2025. For more information on these workshops, view https://www.sparkhacks.org/.",
         answer: [
-            "Monday: Intro to Git - Git yourself Together",
-            "Tuesday: Intro to Web Dev (React & Tailwind CSS)",
-            "Wednesday: Intro to Google Firebase",
-            "Thursday: Team Building Social",
+            "Tuesday: Git Like a Pro",
+            "Wednesday: Overthinking? Just React!",
+            "Thursday: Tango with Django",
         ]
     },
-    workshops: {
-        question: "Which of the following workshop topics would you find useful/interesting to attend DURING  SparkHacks? (Select all that apply)",
-        answer: [
-            "Ideation Workshop with Discover",
-            "Intro to AWS with Discover",
-            "Resume Review Workshop with Caterpillar",
-            "Interviewing Tips and Tricks with Abbvie",
-            "Intro to API Workshop with Caterpillar",
-            "Creating a Basic Web App Workshop with John Deere",
-        ]
-    },
-    jobType: { // not required
+    jobType: { // required, other
         question: "If you’d like to be considered for an opportunity with our company partners, select the type of job you are looking for:",
         answer: [
-            "Full-time New Grad Job",
-            "Summer 2024 Internship",
-            "Fall 2024 Internship",
-            "I am not currently looking for a job"
-        ]
+            "Summer 2025 Internship",
+            "Fall 2025 Internship",
+            "Data Analysis New Grad Job",
+            "Data Science New Grad Job",
+            "Software Engineer New Grad Job",
+            "I am currently not looking for a job",
+            "Other"
+        ],
+        other: "otherJobType"
+        
     },
     resumeLink: { // not required
-        question: "If you’d like to be considered for an opportunity with our company partners, submit a PDF of your resume here."
+        question: "If you would like to be considered for an opportunity with our company sponsors, add in a shareable link to your resume here. If your resume is on Google Docs, make sure you see \"Anyone with the link\" after clicking the \"Share\" button in the top right corner."
     },
-    otherQuestion: { // not required
-        question: "If you have any other questions / comments please drop them here!"
-    }
 }
