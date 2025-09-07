@@ -6,15 +6,15 @@ import Layout from "./Layout.astro";
   <main id="dashboard">
     <nav>
       <div id="logo" style="display: flex; gap: 10px; align-items: center">
-        <img src="/sparkhacks-logo.svg" alt="logo" width="45" height="45"/>
-        <h1>Dashboard</h1>
+        <!-- <img src="/sparkhacks-logo.svg" alt="logo" width="45" height="45"/> -->
+        <h1>SparkHacks Dashboard</h1>
       </div>
       <button id="signout-button">Sign out</button>
     </nav>
     <main id="dashboard-main">
       <slot />
     </main>
-    <footer>Made by <strong>SparkHacks 2025 team</strong> with love ♥</footer>
+    <footer>Made by the <strong>SparkHacks 2026 team</strong> with love ♥</footer>
   </main>
   <script>
     import { auth } from "../firebase/client";
@@ -45,13 +45,13 @@ import Layout from "./Layout.astro";
 </Layout>
 <style>
   	@font-face {
-    font-family: 'nunito';
-    src: url('/fonts/Nunito-VariableFont_wght.ttf') format('opentype');
+    font-family: 'Arial';
+    /* src: url('/fonts/Nunito-VariableFont_wght.ttf') format('opentype'); */
     font-weight: 0 900;
   }
 
 	html {
-    font-family: 'nunito', system-ui, sans-serif;
+    font-family: 'Arial', system-ui, sans-serif;
     scroll-behavior: smooth;
   }
   
@@ -68,40 +68,46 @@ import Layout from "./Layout.astro";
   }
 
   #dashboard {
-    width: 100%;
-    height: 100%;
+    /* width: 100%;
+    height: 100%; */
     display: flex;
     flex-direction: column;
+    justify-content: center;
+    /* align-items: center; */
   }
   nav {
-    width: 100%;
+    /* width: 100%; */
     display: flex;
     justify-content: space-between;
     align-items: center;
     height: 60px;
     padding: 20px 40px;
     box-sizing: border-box;
-    background-color: #C0EDFF;
+    border-radius: 15px;
+    background-color: #F7F7F7;
     color: black;
+    margin: 15px;
   }
   #dashboard-main {
-    width: 100%;
+    /* width: 100%; */
     flex: 1;
     display: flex;
     flex-direction: column;
-    align-items: center;
+    /* align-items: center; */
+    margin: 15px;
   }
   footer {
     text-align: center;
     padding: 10px 20px;
-    background-color: #c0edff;
+    margin: 10px;
+    border-radius: 10px;
+    background-color: #F7F7F7;
   }
   #logo {
     cursor: pointer;
   }
   #signout-button {
 		cursor: pointer;
-		background-color: #c0edff;
     font-size: large;
 		padding: 8px 16px;
 		border: none;

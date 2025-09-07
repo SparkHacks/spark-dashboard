@@ -216,40 +216,37 @@ export default function AdminBoard() {
   }, [mode])
 
   return (
-    <>
-      <div style={{textAlign: "center", padding: "10px 10px"}}>
-        <div style={{display: "flex", justifyContent: "center", gap: "10px", paddingBottom: "10px"}}>
-          <label>Search Form based on email</label>
-          <input placeholder="Type a user's email" ref={searchInputRef}/>
-          <button onClick={handleSearch}>Search</button>
-          <button onClick={handleClearSearch}>Clear</button>
+    <div style={{backgroundColor: "#F7F7F7", margin: "10px", borderRadius: "10px"}}>
+      <div style={{textAlign: "left", padding: "10px 10px"}}>
+        <div style={{display: "flex", alignItems: "center", justifyContent:"space-between"}}>
+            <h1>Applicants</h1>
+            <div style={{ justifyContent: "center",  gap: "10px"}}>
+              {/* <label>Search form based on email</label> */}
+              <input placeholder="Search Applicant Email" style={{borderRadius:"30px", minWidth:"250px", minHeight:"40px", border: "none", paddingLeft: "45px", marginRight: "15px", backgroundImage:"url(search.svg)", backgroundRepeat:"no-repeat", backgroundPosition: "10px 10px"}} ref={searchInputRef} onKeyDown={(e) => {
+    if (e.key === "Enter") {
+      handleSearch()
+    }
+  }}/>
+              
+            </div>
         </div>
+        
         <div style={{marginBottom: "10px"}}>
           <h2>Mode: {mode}</h2>
           <div>
-            <button style={isHighlight("everything")} onClick={() => setMode("everything")}>Everything</button>
-            <button style={isHighlight("fullyAccepted")} onClick={() => setMode("fullyAccepted")}>Only FullyAccepted</button>
-            <button style={isHighlight("userAccepted")} onClick={() => setMode("userAccepted")}>Only UserAccepted</button>
-            <button style={isHighlight("accepted")} onClick={() => setMode("accepted")}>Only Accepted</button>
-            <button style={isHighlight("waitlist")} onClick={() => setMode("waitlist")}>Only Waitlist</button>
-            <button style={isHighlight("waiting")} onClick={() => setMode("waiting")}>Only Waiting</button>
-            <button style={isHighlight("declined")} onClick={() => setMode("declined")}>Only Declined</button>
+            <button className="filterButton" style={isHighlight("everything")} onClick={() => setMode("everything")}>Everything</button>
+            <button className="filterButton" style={isHighlight("fullyAccepted")} onClick={() => setMode("fullyAccepted")}>Only FullyAccepted</button>
+            <button className="filterButton" style={isHighlight("userAccepted")} onClick={() => setMode("userAccepted")}>Only UserAccepted</button>
+            <button className="filterButton" style={isHighlight("accepted")} onClick={() => setMode("accepted")}>Only Accepted</button>
+            <button className="filterButton" style={isHighlight("waitlist")} onClick={() => setMode("waitlist")}>Only Waitlist</button>
+            <button className="filterButton" style={isHighlight("waiting")} onClick={() => setMode("waiting")}>Only Waiting</button>
+            <button className="filterButton" style={isHighlight("declined")} onClick={() => setMode("declined")}>Only Declined</button>
           </div>
         </div>
-        <div style={{display: "flex", gap: "10px", justifyContent: "center", alignItems: "center"}}>
-          <h2>Page: {page + 1}/{totalPage}</h2>
-          <button 
-            disabled={page === 0 || searchEmail !== ""}
-            onClick={handlePrevious}
-          >Previous</button>
-          <button
-            disabled={(numMax && ((page + 1) * PAGE_SIZE > datas.length)) || (searchEmail !== "")}
-            onClick={handleNext}
-          >Next</button>
-        </div>
+        
       </div>
       {summary &&
-        <section style={{margin: "8px", padding: "8px", border: "1px solid black", borderRadius: "8px", boxSizing: "border-box"}}>
+        <section style={{margin: "8px", padding: "8px", borderRadius: "8px", boxSizing: "border-box"}}>
           <h2>Summary</h2>
           <div style={{ width: "100%", display: "flex", flexWrap: "wrap", gap: "8px",}}>
             <div><strong>Total:</strong> {summary.total}</div>
@@ -266,9 +263,21 @@ export default function AdminBoard() {
         <ViewCard view={view} setView={setView}/>
         <AdminTable datas={datas} view={view} setView={setView} page={page} setDatas={setDatas} setSummary={setSummary} summary={summary}/> 
       </div>
-    </>
+      <div style={{display: "flex", gap: "10px", justifyContent: "center", alignItems: "center"}}>
+          <h2>Page: {page + 1}/{totalPage}</h2>
+          <button 
+            disabled={page === 0 || searchEmail !== ""}
+            onClick={handlePrevious}
+          >Previous</button>
+          <button
+            disabled={(numMax && ((page + 1) * PAGE_SIZE > datas.length)) || (searchEmail !== "")}
+            onClick={handleNext}
+          >Next</button>
+        </div>
+    </div>
   )
 }
+
 
 
 function Dot({backgroundColor}: {

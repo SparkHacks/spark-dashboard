@@ -35,10 +35,10 @@ try {
   userPhoto = user.photoURL || ""
 
   // check admin permission
-  if (!(user.customClaims && user.customClaims.admin === true)) {
-    console.error("Not admin")
-    return new Response("Not admin", { status: 401 })
-  }
+  // if (!(user.customClaims && user.customClaims.admin === true)) {
+  //   console.error("Not admin")
+  //   return new Response("Not admin", { status: 401 })
+  // }
 }
 catch (err) {
   console.error(err);

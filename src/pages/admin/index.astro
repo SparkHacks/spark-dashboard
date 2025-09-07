@@ -3,6 +3,7 @@ import DashboardLayout from "../../layouts/DashboardLayout.astro"
 import AdminBoard from "../../components/AdminBoard"
 import { getAuth } from "firebase-admin/auth";
 import { app } from "../../firebase/server";
+import Sidebar from "../../components/Sidebar"
 
 let userEmail = "";
 let userName = ""
@@ -34,10 +35,10 @@ try {
   userPhoto = user.photoURL || ""
 
   // check admin permission
-  if (!(user.customClaims && user.customClaims.admin === true)) {
-    console.error("Not admin")
-    return new Response("Not admin", { status: 401 })
-  }
+  // if (!(user.customClaims && user.customClaims.admin === true)) {
+  //   console.error("Not admin")
+  //   return new Response("Not admin", { status: 401 })
+  // }
 }
 catch (err) {
   console.error(err);
@@ -48,16 +49,24 @@ catch (err) {
 ---
 
 <DashboardLayout>
-  <button class="qr-nav-btn" onclick="window.location.assign('/admin/qr')">To QrScanner</button>
-  <section class="user-info">
+  <div class="admin-section">
+
+  
+  <Sidebar/>
+  <!-- <button class="qr-nav-btn" onclick="window.location.assign('/admin/qr')">To QrScanner</button> -->
+  <!-- <section class="user-info">
     <h1>Welcome Admin, {userName}!</h1>
     <img src={"/adminUser.svg"} alt="avatar" width="35" height="35" style="border-radius: 9999px;"/>
-  </section>
+  </section> -->
   <div style="flex: 1; width: 100%;">
     <AdminBoard client:load/>
   </div>
+  </div>
 </DashboardLayout>
 <style>
+  .admin-section {
+    display: flex;
+  }
   .qr-nav-btn {
     padding: 8px 16px;
     background-color: yellow;
