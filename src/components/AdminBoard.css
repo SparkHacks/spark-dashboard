@@ -1,0 +1,15 @@
+.filterButton {
+    background: none;
+    margin-right: 15px;
+    border-radius: 5px;
+    padding: 10px;
+    cursor: pointer;
+}
+
+.pageButton {
+    background: none;
+    margin-right: 15px;
+    border-radius: 5px;
+    padding: 10px;
+    cursor: pointer;
+}

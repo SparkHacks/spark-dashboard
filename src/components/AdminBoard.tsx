@@ -4,6 +4,7 @@ import ViewCard from "./components/ViewCard"
 import type { FormViewData } from "../env"
 import { collection, doc, getCountFromServer, getDoc, getDocs, limit, orderBy, query, startAfter, where, type DocumentData } from "firebase/firestore"
 import { db } from "../firebase/client"
+import "./AdminBoard.css"
 
 export const PAGE_SIZE = 50
 
@@ -46,7 +47,7 @@ export default function AdminBoard() {
       : getTotalPages(summary[mode], PAGE_SIZE)
     : 0
 
-  const isHighlight = (curMode: Mode) => (curMode === mode)? {border: "4px solid"} : {}  
+  const isHighlight = (curMode: Mode) => (curMode === mode)? {border: "3px solid"} : {}  
   
   const handleNext = async () => {
     const newPage = page + 1
@@ -216,7 +217,7 @@ export default function AdminBoard() {
   }, [mode])
 
   return (
-    <div style={{backgroundColor: "#F7F7F7", margin: "10px", borderRadius: "10px"}}>
+    <div style={{backgroundColor: "#F7F7F7", marginBottom: "10px", marginLeft: "10px", borderRadius: "10px"}}>
       <div style={{textAlign: "left", padding: "10px 10px"}}>
         <div style={{display: "flex", alignItems: "center", justifyContent:"space-between"}}>
             <h1>Applicants</h1>
@@ -231,7 +232,7 @@ export default function AdminBoard() {
             </div>
         </div>
         
-        <div style={{marginBottom: "10px"}}>
+        <div>
           <h2>Mode: {mode}</h2>
           <div>
             <button className="filterButton" style={isHighlight("everything")} onClick={() => setMode("everything")}>Everything</button>
@@ -264,14 +265,16 @@ export default function AdminBoard() {
         <AdminTable datas={datas} view={view} setView={setView} page={page} setDatas={setDatas} setSummary={setSummary} summary={summary}/> 
       </div>
       <div style={{display: "flex", gap: "10px", justifyContent: "center", alignItems: "center"}}>
-          <h2>Page: {page + 1}/{totalPage}</h2>
           <button 
             disabled={page === 0 || searchEmail !== ""}
             onClick={handlePrevious}
+            className="pageButton"
           >Previous</button>
+          <h2>Page: {page + 1}/{totalPage}</h2>
           <button
             disabled={(numMax && ((page + 1) * PAGE_SIZE > datas.length)) || (searchEmail !== "")}
             onClick={handleNext}
+            className="pageButton"
           >Next</button>
         </div>
     </div>

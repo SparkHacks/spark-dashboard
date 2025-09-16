@@ -4,6 +4,7 @@ import { app, db } from "../firebase/server";
 import { getAuth } from "firebase-admin/auth";
 import QRCode from "qrcode";
 import Sidebar from "../components/Sidebar";
+import StatCard from "../components/StatCard"
 
 // information that will be displayed in dashboard page
 let userUID;
@@ -147,6 +148,7 @@ const newUserState = (await db.collection("Settings").doc("newUserState").get())
         <button id="toggle-newusers-btn" class="dashButton" style={newUserState ? "background-color: red" : "background-color: green"}>
           {newUserState ? "Disable" : "Enable"} newUsers
         </button>
+    <StatCard client:load/>
         
       </section>
     )

@@ -1,0 +1,22 @@
+/* .sidebar-menu {
+
+} */
+
+.sidebar-menu-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+ul > li {
+    margin-bottom: 15px;
+}
+
+ul li  a {
+    text-decoration: none;
+    color: black;
+}
+
+ul li a.active {
+    font-weight: bold;
+}
