@@ -278,8 +278,8 @@ export default function AdminCode() {
             </div>
           </div>
         </div>
-        <h3 style={{marginBottom: "0px"}}>Old Food Data</h3>
-        <div id="formOld1" style={{display: 'flex', flexDirection: 'row', gap: '10px'}}>
+        {/* <h3 style={{marginBottom: "0px"}}>Old Food Data</h3> */}
+        {/* <div id="formOld1" style={{display: 'flex', flexDirection: 'row', gap: '10px'}}>
           <div style={{display: 'flex', flexDirection: 'column', gap: '5px'}}>
             <span>Day 1:</span>
             <div>
@@ -318,7 +318,7 @@ export default function AdminCode() {
               <label htmlFor="d2DinnerOld">Ate Dinner?</label>
             </div>
           </div>
-        </div>
+        </div> */}
         <button onClick={submitFoodData} style={{marginTop: "20px", width: "250px", height: "40px", marginBottom: "20px"}} disabled={userInfo === null}>Submit!</button>
       </div>}
       <section style={{border: "1px solid grey", borderRadius: "4px", marginTop: "10px", padding: "10px", marginLeft: "10px", marginRight: "10px", marginBottom: "20px"}}>

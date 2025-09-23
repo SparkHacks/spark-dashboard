@@ -1,10 +1,11 @@
 ---
-import DashboardLayout from "../layouts/DashboardLayout.astro";
-import AppForm from "../components/AppForm.tsx";
-import { app, db } from "../firebase/server";
+import DashboardLayout from "../../layouts/DashboardLayout.astro";
+import AppForm from "../../components/AppForm.tsx";
+import { app, db } from "../../firebase/server";
 import { getAuth } from "firebase-admin/auth";
 import type { DocumentData } from "firebase-admin/firestore";
-import type { FormViewData } from "../env";
+import type { FormViewData } from "../../env";
+import Sidebar from "../../components/Sidebar"
 
 let userEmail = "";
 let registered = false
@@ -31,7 +32,7 @@ try {
   }
 
   userEmail = user.email as string;
-  const newUserState = (await db.collection("Settings").doc("newUserState").get()).data()?.isNewUserEnabled
+  const newUserState = false
 
 
   // if already registered then do not render submit button
@@ -61,7 +62,7 @@ try {
     }
   }
   else if (!newUserState) {
-    return new Response("Application is closed due to reaching capacity", { status: 403 })
+    // return new Response("Application is closed due to reaching capacity", { status: 403 })
   }
 
 } catch (err) {
@@ -71,5 +72,30 @@ try {
 ---
 
 <DashboardLayout>
-  <AppForm email={userEmail} registered={registered} applicationData={applicationData} isAdmin={false} client:only="react" />
+    <div class="admin-section">
+        <Sidebar/>
+        <div class="app-form">
+            <AppForm email={userEmail} registered={registered} applicationData={applicationData} isAdmin={true} client:only="react" />
+        </div>
+  
+        </div>
+    
 </DashboardLayout>
+
+<style>
+.admin-section {
+    display: flex;
+}
+
+.app-form {
+    border: 5px solid #f7f7f7;
+    /* background-color: #f7f7f7; */
+    margin: 0 0 10px 20px;
+    border-radius: 10px;
+    padding: 15px;
+    width: 100%;
+    max-height: 100vh;
+    overflow-y: auto;
+}
+</style>
+

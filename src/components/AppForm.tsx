@@ -25,10 +25,11 @@ const style = {
 };
 
 // TODO: replace with React MUI
-export default function AppForm({ email, registered, applicationData }: {
+export default function AppForm({ email, registered, applicationData, isAdmin }: {
   email: string,
   registered: boolean,
   applicationData: FormViewData | null
+  isAdmin: boolean | false
 }) {
   const formRef = useRef<HTMLFormElement | null>(null)
   const [loading, setLoading] = useState(false)
@@ -80,14 +81,14 @@ export default function AppForm({ email, registered, applicationData }: {
           >Back to Dashboard</Button>
         </Box>
       </Modal>
-      <Button
+      {/* <Button
         variant="contained"
         disabled={loading}
         onClick={() => window.location.assign("/dashboard")}
         style={{ marginTop: "10px", marginRight: "10px" }}
-      >Return to Dashboard</Button>
+      >Return to Dashboard</Button> */}
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "30px 10px" }}>
-        <h1>SparkHacks 2025 Registration</h1>
+        <h1><u>Admin View:</u> SparkHacks 2026 Registration</h1>
         {(applicationData && applicationData.createdAt !== "") && 
           <div>
             Submitted at: {applicationData?.createdAt}
@@ -199,7 +200,7 @@ export default function AppForm({ email, registered, applicationData }: {
           <div>
             If you have any other questions or comments, please email <a href="mailto:sparkhacks@uic.edu">sparkhacks@uic.edu</a>.
           </div>
-          {!registered && <Button
+          {!registered && !isAdmin && <Button
             variant="contained"
             disabled={loading}
             type="submit"

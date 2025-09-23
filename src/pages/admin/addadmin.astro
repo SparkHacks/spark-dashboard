@@ -1,0 +1,207 @@
+---
+import DashboardLayout from "../../layouts/DashboardLayout.astro";
+import { auth } from "../../firebase/server";
+import { app } from "../../firebase/server";
+import AdminCode from "../../components/AdminCode";
+import Sidebar from "../../components/Sidebar";
+
+let adminUsers = null;
+let exceptionUsers = null;
+let regularUsers = null;
+
+let isRealDatabase = import.meta.env.REAL_DATABASE === "true" ? "yes" : "no";
+
+try {
+  const users = await auth.listUsers();
+  adminUsers = users.users.filter(
+    (user) => user.customClaims && user.customClaims.admin === true
+  );
+  exceptionUsers = users.users.filter(
+    (user) => user.customClaims && user.customClaims.exception === true
+  );
+  regularUsers = users.users.filter(
+    (user) =>
+      !(
+        user.customClaims &&
+        (user.customClaims.admin === true ||
+          user.customClaims.exception === true)
+      )
+  );
+} catch (err) {
+  console.error(err);
+}
+---
+
+<DashboardLayout>
+  <div class="admin-section">
+    <Sidebar />
+    <div class="app-section">
+      <h1>Is Real Database: {isRealDatabase}</h1>
+      <h1>Register New User</h1>
+      <button id="register-btn">Sign in with google</button>
+      <h1>Admin users</h1>
+      <form id="admin-form">
+        <input
+          class="email-input"
+          name="email"
+          type="email"
+          placeholder="Type a registered email"
+        />
+        <input type="radio" id="add" name="action" value="add" />
+        <label for="add">Assign admin role</label>
+        <input type="radio" id="remove" name="action" value="remove" />
+        <label for="remove">Remove admin role</label>
+        <button type="submit">Submit</button>
+      </form>
+      <h1>Exception users</h1>
+      <form id="exception-form">
+        <input
+            class="email-input"
+          name="email"
+          type="email"
+          placeholder="Type a registered email"
+        />
+        <input type="radio" id="add" name="action" value="add" />
+        <label for="add">Assign exception role</label>
+        <input type="radio" id="remove" name="action" value="remove" />
+        <label for="remove">Remove exception role</label>
+        <button type="submit">Submit</button>
+      </form>
+      <h1>List of admin users: {adminUsers && `${adminUsers.length}`}</h1>
+      <ul>
+        {adminUsers?.map((user) => <li>{user.email}</li>)}
+      </ul>
+      <h1>
+        List of exception users: {exceptionUsers && `${exceptionUsers.length}`}
+      </h1>
+      <ul>
+        {exceptionUsers?.map((user) => <li>{user.email}</li>)}
+      </ul>
+      <h1>
+        List of regular users: {regularUsers && `${regularUsers.length}`}
+      </h1>
+      <ul>
+        {regularUsers?.map((user) => <li>{user.email}</li>)}
+      </ul>
+      <script>
+        import { signInWithPopup } from "firebase/auth";
+        import { auth, provider } from "../../firebase/client";
+
+        const adminForm = document.getElementById(
+          "admin-form"
+        ) as HTMLFormElement;
+        const exceptionForm = document.getElementById(
+          "exception-form"
+        ) as HTMLFormElement;
+        const btn = document.getElementById(
+          "register-btn"
+        ) as HTMLButtonElement;
+        btn.addEventListener("click", async () => {
+          try {
+            const userCredential = await signInWithPopup(auth, provider);
+            const email = userCredential.user.email;
+            alert(`Successful register new account: ${email}`);
+            window.location.reload();
+          } catch (err) {
+            console.error(err);
+            alert("Something is wrong with register account");
+          }
+        });
+        adminForm?.addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const formData = new FormData(adminForm);
+          try {
+            const res = await fetch("/api/modify-admin", {
+              method: "POST",
+              body: formData,
+            });
+            if (!res.ok) {
+              const msg = await res.text();
+              alert(`Something is wrong with getting user to admin: ${msg}`);
+              return;
+            }
+
+            const msg = await res.text();
+            alert(msg);
+            window.location.reload();
+          } catch (err) {
+            console.error(err);
+            alert("Something is wrong with getting user to admin");
+          }
+        });
+
+        exceptionForm?.addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const formData = new FormData(exceptionForm);
+          try {
+            const res = await fetch("/api/modify-exception", {
+              method: "POST",
+              body: formData,
+            });
+            if (!res.ok) {
+              const msg = await res.text();
+              alert(
+                `Something is wrong with getting user to exception: ${msg}`
+              );
+              return;
+            }
+
+            const msg = await res.text();
+            alert(msg);
+            window.location.reload();
+          } catch (err) {
+            console.error(err);
+            alert("Something is wrong with getting user to exception");
+          }
+        });
+      </script>
+    </div>
+  </div>
+</DashboardLayout>
+
+<style>
+  .admin-section {
+    display: flex;
+    gap: 20px;
+  }
+
+  .app-section {
+    display: flex;
+    flex-direction: column;
+    background-color: #f7f7f7;
+    margin: 0 0 10px 0;
+    border-radius: 10px;
+    padding: 15px;
+    width: 100%;
+  }
+
+  .email-input {
+    border-radius: 10px;
+    min-width: 250px;
+    min-height: 40px;
+    border: 1px solid gray;
+    padding-left: 20px;
+    margin-right: 15px;
+    background-repeat: no-repeat;
+    background-position: 10px 10px;
+  }
+
+  button {
+    background: none;
+    margin-right: 15px;
+    border-radius: 5px;
+    padding: 10px;
+    cursor: pointer;
+    border: 1px solid black;
+  }
+
+  #register-btn {
+    cursor: pointer;
+    background: none;
+    padding: 10px 40px;
+    border: 1px solid black;
+    border-radius: 8px;
+    color: black;
+    width: fit-content;
+  }
+</style>
