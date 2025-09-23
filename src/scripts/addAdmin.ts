@@ -1,4 +1,4 @@
-import { app } from "./scriptServer";
+import { app } from "./scriptServer.ts";
 import { getAuth } from "firebase-admin/auth";
 
 
