@@ -5,6 +5,15 @@ import { app } from "../../firebase/server";
 import AdminCode from "../../components/AdminCode";
 import Sidebar from "../../components/Sidebar";
 
+import getRoleFlags from "../../scripts/getRoles.ts";
+import type { RoleFlags } from "../../scripts/getRoles.ts";
+let roles: RoleFlags = {
+  isAdmin: false,
+  isQrScanner: false,
+  isWebDev: false,
+  isDirector: false,
+};
+
 let userEmail = "";
 let userName = ""
 let userPhoto = ""
@@ -29,6 +38,7 @@ try {
   if (!user) {
     return Astro.redirect("/");
   }
+  roles = getRoleFlags(user);
 
   userEmail = user.email as string;
   userName = user.displayName || ""

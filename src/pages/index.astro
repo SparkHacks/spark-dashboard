@@ -4,6 +4,15 @@ import { app, db } from "../firebase/server";
 import { getAuth } from "firebase-admin/auth";
 import { collection, query, where } from "firebase/firestore";
 
+import getRoleFlags from "../scripts/getRoles.ts";
+import type { RoleFlags } from "../scripts/getRoles.ts";
+let roles: RoleFlags = {
+  isAdmin: false,
+  isQrScanner: false,
+  isWebDev: false,
+  isDirector: false,
+};
+
 try {
   const auth = getAuth(app);
   const sessionCookieObj = Astro.cookies.get("__session");
@@ -13,6 +22,7 @@ try {
     if (decodedCookie) {
       // if user is admin then redirect to /admin, otherwise the user is regular and redirect to /dashboard
       const user = await auth.getUser(decodedCookie.uid);
+      roles = getRoleFlags(user);
       // if (user.customClaims && user.customClaims.admin == true) {  
         return Astro.redirect("/admin/qr");
       // }
