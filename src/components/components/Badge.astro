@@ -1,0 +1,17 @@
+---
+const { color = "gray" } = Astro.props as { color?: string };
+---
+
+<span class="badge" style={`background-color: ${color};`}>
+  <slot />
+</span>
+
+<style>
+  .badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border-radius: 9999px;
+  }
+</style>

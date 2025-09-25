@@ -4,7 +4,8 @@ import { app, db } from "../firebase/server";
 import { getAuth } from "firebase-admin/auth";
 import QRCode from "qrcode";
 import Sidebar from "../components/Sidebar";
-import StatCard from "../components/StatCard"
+import StatCard from "../components/StatCard";
+import Badge from "../components/components/Badge.astro";
 
 // information that will be displayed in dashboard page
 let userUID;
@@ -13,8 +14,14 @@ let userName;
 let userPhoto;
 let registered = false;
 let appStatus = "";
-let isAdmin = true;
 let submittedDate = "";
+
+const ROLES = ["admin", "qrScanner", "webDev", "director"] as const;
+
+let isAdmin = false;
+let isQrScanner = false;
+let isWebDev = false;
+let isDirector = false;
 
 const statusMessage = {
   waiting:
@@ -43,6 +50,9 @@ const getMessage = (
   statusMessage[appStatus] ||
   "Unknown result. Please email sparkhacks@uic.edu to reach out our team for support.";
 
+
+
+  
 try {
   const auth = getAuth(app);
 
@@ -69,8 +79,22 @@ try {
   userPhoto = user.photoURL;
 
   // check if user is an admin
-  if (user.customClaims && (user.customClaims as any).admin === true) {
-    isAdmin = true;
+  for (const role of ROLES) {
+    const hasRole = user.customClaims?.[role] === true;
+    switch (role) {
+      case "admin":
+        isAdmin = hasRole;
+        break;
+      case "qrScanner":
+        isQrScanner = hasRole;
+        break;
+      case "webDev":
+        isWebDev = hasRole;
+        break;
+      case "director":
+        isDirector = hasRole;
+        break;
+    }
   }
 
   // check if the user already register the application:
@@ -126,7 +150,7 @@ const newUserState = (await db.collection("Settings").doc("newUserState").get())
   <div class="main-right-section">
   <section class="user-info">
     
-    <h1>Welcome{isAdmin && " Admin"}, {userName}!</h1>
+    <h1>Welcome, {userName}!</h1>
     <!-- <img
       src={isAdmin ? "/adminUser.svg" : "/regularUser.svg"}
       alt="avatar"
@@ -137,7 +161,32 @@ const newUserState = (await db.collection("Settings").doc("newUserState").get())
   </section>
   {
     isAdmin && (
-      
+
+      // Roles section
+      <section style="margin-bottom: 15px;">
+        <div style="display: flex; align-items: center; gap: 4px">
+          <p>
+            Roles:
+          </p>
+          {isAdmin && (
+            <Badge color="lightcoral">
+              Admin
+            </Badge>)}
+             {isQrScanner && (
+            <Badge color="lightseagreen">
+              QRScanner
+            </Badge>)}
+            {isWebDev && (
+            <Badge color="lightgreen">
+              WebDev
+            </Badge>)}
+            {isDirector && (
+            <Badge color="lightblue">
+              Director
+            </Badge>)}
+        </div>
+      </section>
+
       <section style="margin-top: 15px">
         <button id="admin-btn" class="dashButton" onclick="window.location.assign('/admin')">
           View Applicants
