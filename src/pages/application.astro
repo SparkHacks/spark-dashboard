@@ -10,6 +10,15 @@ let userEmail = "";
 let registered = false
 let applicationData: FormViewData | null = null
 
+import getRoleFlags from "../scripts/getRoles.ts";
+import type { RoleFlags } from "../scripts/getRoles.ts";
+let roles: RoleFlags = {
+  isAdmin: false,
+  isQrScanner: false,
+  isWebDev: false,
+  isDirector: false,
+};
+
 try {
   const auth = getAuth(app);
 
@@ -29,6 +38,7 @@ try {
   if (!user) {
     return Astro.redirect("/");
   }
+  roles = getRoleFlags(user);
 
   userEmail = user.email as string;
   const newUserState = (await db.collection("Settings").doc("newUserState").get()).data()?.isNewUserEnabled
@@ -71,5 +81,5 @@ try {
 ---
 
 <DashboardLayout>
-  <AppForm email={userEmail} registered={registered} applicationData={applicationData} isAdmin={false} client:only="react" />
+  <AppForm email={userEmail} registered={registered} applicationData={applicationData} isAdmin={roles.isAdmin} client:only="react" />
 </DashboardLayout>

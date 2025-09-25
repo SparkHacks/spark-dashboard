@@ -7,6 +7,9 @@ import Sidebar from "../components/Sidebar";
 import StatCard from "../components/StatCard";
 import Badge from "../components/components/Badge.astro";
 
+import getRoleFlags from "../scripts/getRoles.ts";
+import type { RoleFlags } from "../scripts/getRoles.ts";
+
 // information that will be displayed in dashboard page
 let userUID;
 let userEmail: string;
@@ -16,12 +19,13 @@ let registered = false;
 let appStatus = "";
 let submittedDate = "";
 
-const ROLES = ["admin", "qrScanner", "webDev", "director"] as const;
 
-let isAdmin = false;
-let isQrScanner = false;
-let isWebDev = false;
-let isDirector = false;
+let roles: RoleFlags = {
+  isAdmin: false,
+  isQrScanner: false,
+  isWebDev: false,
+  isDirector: false,
+};
 
 const statusMessage = {
   waiting:
@@ -77,25 +81,7 @@ try {
   userEmail = user.email as string;
   userName = user.displayName;
   userPhoto = user.photoURL;
-
-  // check if user is an admin
-  for (const role of ROLES) {
-    const hasRole = user.customClaims?.[role] === true;
-    switch (role) {
-      case "admin":
-        isAdmin = hasRole;
-        break;
-      case "qrScanner":
-        isQrScanner = hasRole;
-        break;
-      case "webDev":
-        isWebDev = hasRole;
-        break;
-      case "director":
-        isDirector = hasRole;
-        break;
-    }
-  }
+  roles = getRoleFlags(user);
 
   // check if the user already register the application:
   const docSnap = await db
@@ -146,13 +132,13 @@ const newUserState = (await db.collection("Settings").doc("newUserState").get())
     </div>
   </section>
   <div class="main-section">
-  {isAdmin && <Sidebar/>}
+  {roles.isAdmin && <Sidebar/>}
   <div class="main-right-section">
   <section class="user-info">
     
     <h1>Welcome, {userName}!</h1>
     <!-- <img
-      src={isAdmin ? "/adminUser.svg" : "/regularUser.svg"}
+      src={roles.isAdmin ? "/adminUser.svg" : "/regularUser.svg"}
       alt="avatar"
       width="35"
       height="35"
@@ -160,7 +146,7 @@ const newUserState = (await db.collection("Settings").doc("newUserState").get())
     /> -->
   </section>
   {
-    isAdmin && (
+    roles.isAdmin && (
 
       // Roles section
       <section style="margin-bottom: 15px;">
@@ -168,19 +154,19 @@ const newUserState = (await db.collection("Settings").doc("newUserState").get())
           <p>
             Roles:
           </p>
-          {isAdmin && (
+          {roles.isAdmin && (
             <Badge color="lightcoral">
               Admin
             </Badge>)}
-             {isQrScanner && (
+             {roles.isQrScanner && (
             <Badge color="lightseagreen">
               QRScanner
             </Badge>)}
-            {isWebDev && (
+            {roles.isWebDev && (
             <Badge color="lightgreen">
               WebDev
             </Badge>)}
-            {isDirector && (
+            {roles.isDirector && (
             <Badge color="lightblue">
               Director
             </Badge>)}
@@ -242,7 +228,7 @@ const newUserState = (await db.collection("Settings").doc("newUserState").get())
       </section>
     )
   }
-  { !isAdmin && <section class="dashboard-app">
+  { !roles.isAdmin && <section class="dashboard-app">
     <div
       style="display: flex; justify-content: space-between; align-items: center"
     >
