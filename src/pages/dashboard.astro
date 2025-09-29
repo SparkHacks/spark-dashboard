@@ -148,7 +148,7 @@ const newUserState = (await db.collection("Settings").doc("newUserState").get())
         <button id="toggle-newusers-btn" class="dashButton" style={newUserState ? "background-color: red" : "background-color: green"}>
           {newUserState ? "Disable" : "Enable"} newUsers
         </button>
-    <StatCard client:load/>
+    {/* <StatCard client:load/> */}
         
       </section>
     )
