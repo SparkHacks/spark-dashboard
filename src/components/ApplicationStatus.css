@@ -1,0 +1,57 @@
+.svg-container {
+ /* width: 1000px;
+ height: 150px; */
+ resize: both; 
+ border: 1px dashed #aaa;
+}
+
+.text-container {
+    display: flex;
+    gap: 5%;
+    justify-content: center;
+    text-align: center;
+}
+
+/* "waiting" , "declined" , "waitlist" , "accepted" , "userAccepted" , "fullyAccepted"  */
+.emptyStatus {
+    color: #000000;
+    stroke: #D9D9D9;
+    fill: #D9D9D9;
+    font-weight: bold;
+}
+
+.declined {
+    color: #F97979;
+    stroke: #F97979;
+    fill: #F97979;
+    font-weight: bold;
+}
+
+/* .waitlist {
+    color: #F6C27D;
+    stroke: #F6C27D;
+    fill: #F6C27D;
+    font-weight: bold;
+} */
+
+.waiting, .waitlist{
+    color: #A9D796;
+    stroke: #A9D796;
+    fill: #A9D796;
+    font-weight: bold;
+}
+
+.accepted {
+    color: #40911F;
+    stroke: #40911F;
+    fill: #40911F;
+    font-weight: bold;
+}
+
+.userAccepted, .fullyAccepted {
+    color: #215F07;
+    stroke: #215F07;
+    fill: #215F07;
+    font-weight: bold;
+}
+

@@ -4,7 +4,8 @@ import { app, db } from "../firebase/server";
 import { getAuth } from "firebase-admin/auth";
 import QRCode from "qrcode";
 import Sidebar from "../components/Sidebar";
-import StatCard from "../components/StatCard"
+import StatCard from "../components/StatCard";
+import ApplicationStatus from "../components/ApplicationStatus";
 
 // information that will be displayed in dashboard page
 let userUID;
@@ -17,147 +18,149 @@ let isAdmin = true;
 let submittedDate = "";
 
 const statusMessage = {
-  waiting:
-    "We have received your application and will review it shortly. Please check this website and email for updates.",
-  declined:
-    "Your application has been declined due to your decision or space limit. Please come back next year to re-apply!",
-  waitlist:
-    "Due to limited space, your application has been waitlisted. We will reach out with status updates.",
-  accepted:
-    "You've been accepted! Please check your inbox for next steps in the coming days.",
-  userAccepted:
-    "You accept to participate SparkHacks. Wait for SparkHacks team to officially accept you.",
-  fullyAccepted:
-    "Congratulation 🎉🎉🎉! You are officially a SparkHacks 2026 participant! Check inbox for details about schedules.",
+	waiting:
+		"We have received your application and will review it shortly. Please check this website and email for updates.",
+	declined:
+		"Your application has been declined due to your decision or space limit. Please come back next year to re-apply!",
+	waitlist:
+		"Due to limited space, your application has been waitlisted. We will reach out with status updates.",
+	accepted: "You've been accepted! Please check your inbox for next steps in the coming days.",
+	userAccepted:
+		"You accept to participate SparkHacks. Wait for SparkHacks team to officially accept you.",
+	fullyAccepted:
+		"Congratulation 🎉🎉🎉! You are officially a SparkHacks 2026 participant! Check inbox for details about schedules.",
 };
 
 const getMessage = (
-  appStatus:
-    | "waiting"
-    | "declined"
-    | "waitlist"
-    | "accepted"
-    | "userAccepted"
-    | "fullyAccepted"
+	appStatus: "waiting" | "declined" | "waitlist" | "accepted" | "userAccepted" | "fullyAccepted"
 ) =>
-  statusMessage[appStatus] ||
-  "Unknown result. Please email sparkhacks@uic.edu to reach out our team for support.";
+	statusMessage[appStatus] ||
+	"Unknown result. Please email sparkhacks@uic.edu to reach out our team for support.";
 
 try {
-  const auth = getAuth(app);
+	const auth = getAuth(app);
 
-  // no session or invalid session will redirect to sign in page
-  const sessionCookieObj = Astro.cookies.get("__session");
-  if (!sessionCookieObj) {
-    return Astro.redirect("/");
-  }
-  const sessionCookie = sessionCookieObj.value;
-  const decodedCookie = await auth.verifySessionCookie(sessionCookie);
-  if (!decodedCookie) {
-    return Astro.redirect("/");
-  }
+	// no session or invalid session will redirect to sign in page
+	const sessionCookieObj = Astro.cookies.get("__session");
+	if (!sessionCookieObj) {
+		return Astro.redirect("/");
+	}
+	const sessionCookie = sessionCookieObj.value;
+	const decodedCookie = await auth.verifySessionCookie(sessionCookie);
+	if (!decodedCookie) {
+		return Astro.redirect("/");
+	}
 
-  // invalid user will redirect to sign in page
-  const user = await auth.getUser(decodedCookie.uid);
-  if (!user) {
-    return Astro.redirect("/");
-  }
+	// invalid user will redirect to sign in page
+	const user = await auth.getUser(decodedCookie.uid);
+	if (!user) {
+		return Astro.redirect("/");
+	}
 
-  userUID = user.uid;
-  userEmail = user.email as string;
-  userName = user.displayName;
-  userPhoto = user.photoURL;
+	userUID = user.uid;
+	userEmail = user.email as string;
+	userName = user.displayName;
+	userPhoto = user.photoURL;
 
-  // check if user is an admin
-  if (user.customClaims && (user.customClaims as any).admin === true) {
-    isAdmin = true;
-  }
+	// check if user is an admin
+	if (user.customClaims && (user.customClaims as any).admin === true) {
+		isAdmin = true;
+	}
 
-  // check if the user already register the application:
-  const docSnap = await db
-    .collection("Forms")
-    .doc(decodedCookie.email as string)
-    .get();
-  if (docSnap.exists) {
-    registered = true;
-    const data = docSnap.data();
-    appStatus = data?.appStatus || "";
-    submittedDate =
-      data?.createdAt
-        .toDate()
-        .toLocaleString("en-US", { timeZone: "America/Chicago" }) || "";
-  }
+	// check if the user already register the application:
+	const docSnap = await db
+		.collection("Forms")
+		.doc(decodedCookie.email as string)
+		.get();
+	if (docSnap.exists) {
+		registered = true;
+		const data = docSnap.data();
+		appStatus = data?.appStatus || "";
+		submittedDate =
+			data?.createdAt.toDate().toLocaleString("en-US", { timeZone: "America/Chicago" }) || "";
+	}
 } catch (err) {
-  console.error(err);
-  return Astro.redirect("/");
+	console.error(err);
+	return Astro.redirect("/");
 }
 
 const uidDataURI = await QRCode.toDataURL(userEmail, {
-  errorCorrectionLevel: "H",
+	errorCorrectionLevel: "H",
 });
 
-const newUserState = (await db.collection("Settings").doc("newUserState").get()).data()?.isNewUserEnabled
+const newUserState = (await db.collection("Settings").doc("newUserState").get()).data()
+	?.isNewUserEnabled;
 ---
 
 <DashboardLayout>
-  <section class="modal-wrapper">
-    <div class="modal">
-      <button class="modal-return-btn">Return</button>
-      <img src="/sparkhacks-logo.svg" alt="logo" width="150" height="150" />
-      <h2>Are you sure you want to withdraw SparkHacks 2026?</h2>
-      <p>
-        Type <strong><em>{userEmail}</em></strong> and hit Enter (Or click "withdraw"
-        button) to withdraw yourself from SparkHacks 2026 <strong
-          >(Doing this, you cannot revert your action)</strong>
-      </p>
-      <form id="withdraw-form">
-        <input
-          class="modal-input"
-          placeholder="Enter text"
-          name="withdraw-text"
-          required
-        />
-        <button class="modal-withdraw-btn" type="submit">Withdraw</button>
-      </form>
-    </div>
-  </section>
-  <div class="main-section">
-  {isAdmin && <Sidebar/>}
-  <div class="main-right-section">
-  <section class="user-info">
-    
-    <h1>Welcome{isAdmin && " Admin"}, {userName}!</h1>
-    <!-- <img
-      src={isAdmin ? "/adminUser.svg" : "/regularUser.svg"}
-      alt="avatar"
-      width="35"
-      height="35"
-      style="border-radius: 9999px;"
-    /> -->
-  </section>
-  {
-    isAdmin && (
-      
-      <section style="margin-top: 15px">
-        <button id="admin-btn" class="dashButton" onclick="window.location.assign('/admin')">
-          View Applicants
-        </button>
-        <button id="qr-nav-btn" class="dashButton" onclick="window.location.assign('/admin/qr')">
-          QR Scanner
-        </button>
-        <button id="toggle-newusers-btn" class="dashButton" style={newUserState ? "background-color: red" : "background-color: green"}>
-          {newUserState ? "Disable" : "Enable"} newUsers
-        </button>
-    <StatCard client:load/>
-        
-      </section>
-    )
-  }
-  <section
-    class={`dashboard-status ${appStatus !== "" ? appStatus : ""}`}
-    style={appStatus !== "" ? "" : "display: none"}
-  >
-    <strong>Application Status: </strong>{getMessage(appStatus as any)}
+	<section class="modal-wrapper">
+		<div class="modal">
+			<button class="modal-return-btn">Return</button>
+			<img src="/sparkhacks-logo.svg" alt="logo" width="150" height="150" />
+			<h2>Are you sure you want to withdraw SparkHacks 2026?</h2>
+			<p>
+				Type <strong><em>{userEmail}</em></strong> and hit Enter (Or click "withdraw" button)
+				to withdraw yourself from SparkHacks 2026 <strong
+					>(Doing this, you cannot revert your action)</strong
+				>
+			</p>
+			<form id="withdraw-form">
+				<input class="modal-input" placeholder="Enter text" name="withdraw-text" required />
+				<button class="modal-withdraw-btn" type="submit">Withdraw</button>
+			</form>
+		</div>
+	</section>
+	<div class="main-section">
+		{isAdmin && <Sidebar />}
+		<div class="main-right-section">
+			<section class="user-info">
+				<h1>Welcome{isAdmin && " Admin"}, {userName}!</h1>
+				<img
+					src={isAdmin ? "/adminUser.svg" : "/regularUser.svg"}
+					alt="avatar"
+					width="35"
+					height="35"
+					style="border-radius: 9999px;"
+				/>
+			</section>
+			{
+				isAdmin && (
+					<section style="margin-top: 15px">
+						<button
+							id="admin-btn"
+							class="dashButton"
+							onclick="window.location.assign('/admin')"
+						>
+							View Applicants
+						</button>
+						<button
+							id="qr-nav-btn"
+							class="dashButton"
+							onclick="window.location.assign('/admin/qr')"
+						>
+							QR Scanner
+						</button>
+						<button
+							id="toggle-newusers-btn"
+							class="dashButton"
+							style={
+								newUserState ? "background-color: red" : "background-color: green"
+							}
+						>
+							{newUserState ? "Disable" : "Enable"} newUsers
+						</button>
+						{/* <StatCard type={""} total={0} color={""} client:load/> */}
+            <p style={{width: 'auto'}}>Welcome to your SparkHacks 2026 dashboard! Here, you can submit your application, view your application status, and get the latest updates on SparkHacks news.</p>
+					</section>
+				)
+			}
+			<section
+				class={`dashboard-status`}
+				style={appStatus !== "" ? "" : "display: none"}
+			>
+        <p></p>
+				<ApplicationStatus message={appStatus} />
+				<!-- <strong>Application Status: </strong>{getMessage(appStatus as any)}
     {
       appStatus === "accepted" && (
         <>
@@ -175,299 +178,329 @@ const newUserState = (await db.collection("Settings").doc("newUserState").get())
           <button id="modal-open-btn">Withdraw SparkHacks</button>
         </>
       )
-    }
-  </section>
+    } -->
+			</section>
 
-  {
-    appStatus === "fullyAccepted" && (
-      <section style="width: 1000px; max-width: 100%; border: 6px solid #c0ffd6; margin-top: 20px; box-sizing: border-box; border-radius: .75em; padding: 20px">
-        <h2>QR Code</h2>
-        <div>Use this for check in and get food! ✅</div>
-        <div style="display: flex; justify-content: center;">
-          <img
-          style="display: block; height: 20rem; width: 20rem;"
-          src={uidDataURI}
-        />
-        </div>
-        
-      </section>
-    )
-  }
-  { !isAdmin && <section class="dashboard-app">
-    <div
-      style="display: flex; justify-content: space-between; align-items: center"
-    >
-      <h2>Application to SparkHacks</h2>
-      <div><strong>Close at:</strong> Closed</div>
-    </div>
-    {
-      submittedDate !== "" && (
-        <div>
-          <strong>Submitted at:</strong> {submittedDate}
-        </div>
-      )
-    }
-    <button id="app-btn" disabled={newUserState ? false : true} onclick={newUserState ? "window.location.assign('/application')" : ""}>
-      {
-        registered
-          ? "View Application"
-          : (newUserState ? "Start Application" : "Application is closed due to reaching capacity")
-      }
-    </button>
-  </section> }
-  
-  </div>
-  </div>
-  <script>
-    const toggleNewUsers = document.getElementById(
-      "toggle-newusers-btn"
-    ) as HTMLButtonElement;
-    const acceptBtn = document.getElementById(
-      "accept-btn"
-    ) as HTMLButtonElement;
-    const withdrawBtn = document.getElementById(
-      "withdraw-btn"
-    ) as HTMLButtonElement;
+			<div class="dashboard-status">
+				{ appStatus == "waiting" &&
+				(<p> 
+					<span class="waiting">Pending Review:</span> Our team is currently reviewing your application and will get back to you as soon as possible. Please come back to this dashboard throughout the next week to see your decision and respond.
+				</p>)
+				}
 
-    const modal = document.getElementsByClassName(
-      "modal-wrapper"
-    )[0] as HTMLElement;
-    const modalContent = document.getElementsByClassName(
-      "modal"
-    )[0] as HTMLElement;
-    const modalOpenBtn = document.getElementById(
-      "modal-open-btn"
-    ) as HTMLButtonElement;
-    const modalCloseBtn = document.getElementsByClassName(
-      "modal-return-btn"
-    )[0] as HTMLElement;
+				{ appStatus == "accepted" &&
+				(<p> 
+					<span class="accepted">Invited 🎉:</span> Congratulations! You have been selected to join SparkHacks 2026 this February. To <b>secure</b> your spot, you must respond to your invitation by the end of (date), otherwise you will be placed on the waitlist.
+				</p>)
+				}
 
-    const withdrawForm = document.getElementById(
-      "withdraw-form"
-    ) as HTMLFormElement;
+				<!-- { appStatus == "userAccepted" &&
+					(<p> 
+						<span class="accepted">Accepted 🎉:</span> Congratulations! You have been selected to join SparkHacks 2026 this February.
+					</p>)
+				} -->
 
-    toggleNewUsers?.addEventListener("click", async () => {
-      const currentState = await fetch('/api/auth/toggle-newusers').then(res => res.json());
-      const newState = !currentState.isNewUserEnabled;
+				{
+					(appStatus === "fullyAccepted" || appStatus == "userAccepted") && (
+						<div style="display: flex; flex-direction: row; gap: 2rem; justify-content: space-between; ">
+							<div style="">
+								<p><span class="fullyAccepted">You’re in 🍿:</span> Welcome to SparkHacks 2026! You’re officially a Hacker.</p>
+								<p><b>Things to Know:</b></p>
+								<ol>
+									<li>You must check in on Day 1 to be admitted into Day 2. Otherwise, your spot will be given to a student on the waitlist.</li>
+									<li>...</li>
+									<li>...</li>
+									<li>...</li>
+								</ol>
 
-      try {
-      const response = await fetch('/api/auth/toggle-newusers', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ isEnabled: newState }),
-      });
+								<p>Can’t make it anymore? Give your spot to a Hacker on the waitlist.</p>
+								<button id="withdraw-btn">Withdraw Application</button>
+							</div>
 
-      const result = await response.json();
-      console.log(result)
+							<div style="display: flex; justify-content: center; flex-direction: column; align-items: center">
+								<img
+									style="display: block; height: 20rem; width: 20rem; border: 16px solid #c0ffd6; margin: auto; box-sizing: border-box; border-radius: .75em; padding: 5px"
+									src={uidDataURI}
+								/>
+								<h2 style="color: #40911F;">Download QR Code PNG</h2>
+							</div>
+						</div>
+					)
+				}
+			</div>
+			{appStatus == "accepted" &&
+				(<div class="decideBtns">
+					<button id="accept-btn">Accept</button>
+					<button id="waitlist-btn">Join Waitlist</button>
+					<button id="withdraw-btn">Decline</button>
+				</div>)
+			}
 
+			{
+				!isAdmin && (
+					<section class="dashboard-app">
+						<div style="display: flex; justify-content: space-between; align-items: center">
+							<h2>Application to SparkHacks</h2>
+							<div>
+								<strong>Close at:</strong> Closed
+							</div>
+						</div>
+						{submittedDate !== "" && (
+							<div>
+								<strong>Submitted at:</strong> {submittedDate}
+							</div>
+						)}
+						<button
+							id="app-btn"
+							disabled={newUserState ? false : true}
+							onclick={newUserState ? "window.location.assign('/application')" : ""}
+						>
+							{registered
+								? "View Application"
+								: newUserState
+									? "Start Application"
+									: "Application is closed due to reaching capacity"}
+						</button>
+					</section>
+				)
+			}
+		</div>
+	</div>
+	<script>
+		const toggleNewUsers = document.getElementById("toggle-newusers-btn") as HTMLButtonElement;
+		const acceptBtn = document.getElementById("accept-btn") as HTMLButtonElement;
+		const withdrawBtn = document.getElementById("withdraw-btn") as HTMLButtonElement;
 
-      if (result.success) {
-        alert(`New Sign ups are now ${newState ? 'enabled' : 'disabled'}`)
-        location.reload();
-      } else {
-        alert('Failed to toggle login state');
-      }
-      } catch (error) {
-        console.error('Error toggling login state:', error);
-        alert('An error occurred while toggling the login state');
-      }
-    })
+		const modal = document.getElementsByClassName("modal-wrapper")[0] as HTMLElement;
+		const modalContent = document.getElementsByClassName("modal")[0] as HTMLElement;
+		const modalOpenBtn = document.getElementById("modal-open-btn") as HTMLButtonElement;
+		const modalCloseBtn = document.getElementsByClassName("modal-return-btn")[0] as HTMLElement;
 
-    modalOpenBtn?.addEventListener("click", () => {
-      modal.style.display = "flex";
-    });
-    modalCloseBtn?.addEventListener("click", () => {
-      modal.style.display = "none";
-    });
-    modal.addEventListener("click", () => {
-      modal.style.display = "none";
-    });
-    modalContent?.addEventListener("click", (e) => {
-      e.stopPropagation();
-    });
-    
+		const withdrawForm = document.getElementById("withdraw-form") as HTMLFormElement;
 
-    withdrawForm?.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      try {
-        const response = await fetch("/api/auth/withdraw-sparkhacks", {
-          method: "POST",
-          body: new FormData(withdrawForm),
-        });
+		toggleNewUsers?.addEventListener("click", async () => {
+			const currentState = await fetch("/api/auth/toggle-newusers").then((res) => res.json());
+			const newState = !currentState.isNewUserEnabled;
 
-        if (!response.ok) {
-          alert("Something is wrong with withdrawing");
-          return;
-        }
+			try {
+				const response = await fetch("/api/auth/toggle-newusers", {
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+					},
+					body: JSON.stringify({ isEnabled: newState }),
+				});
 
-        const text = await response.text();
-        alert(text);
-        window.location.reload();
-      } catch (err) {
-        console.error(err);
-        alert("Something is wrong with withdrawing sparkhacks");
-      }
-    });
+				const result = await response.json();
+				console.log(result);
 
-    const decideSparkhacksCallback = async (
-      action: "userAccepted" | "declined"
-    ) => {
-      try {
-        const formData = new FormData();
-        formData.set("action", action);
-        const res = await fetch("/api/auth/decide-sparkhacks", {
-          method: "POST",
-          body: formData,
-        });
+				if (result.success) {
+					alert(`New Sign ups are now ${newState ? "enabled" : "disabled"}`);
+					location.reload();
+				} else {
+					alert("Failed to toggle login state");
+				}
+			} catch (error) {
+				console.error("Error toggling login state:", error);
+				alert("An error occurred while toggling the login state");
+			}
+		});
 
-        if (!res.ok) {
-          alert("Something is wrong with deciding sparkhacks");
-          return;
-        }
+		modalOpenBtn?.addEventListener("click", () => {
+			modal.style.display = "flex";
+		});
+		modalCloseBtn?.addEventListener("click", () => {
+			modal.style.display = "none";
+		});
+		modal.addEventListener("click", () => {
+			modal.style.display = "none";
+		});
+		modalContent?.addEventListener("click", (e) => {
+			e.stopPropagation();
+		});
 
-        window.location.reload();
-      } catch (err) {
-        console.error(err);
-        alert("Something is wrong");
-      }
-    };
+		withdrawForm?.addEventListener("submit", async (e) => {
+			e.preventDefault();
+			try {
+				const response = await fetch("/api/auth/withdraw-sparkhacks", {
+					method: "POST",
+					body: new FormData(withdrawForm),
+				});
 
-    acceptBtn?.addEventListener("click", () =>
-      decideSparkhacksCallback("userAccepted")
-    );
-    withdrawBtn?.addEventListener("click", () =>
-      decideSparkhacksCallback("declined")
-    );
-  </script>
+				if (!response.ok) {
+					alert("Something is wrong with withdrawing");
+					return;
+				}
+
+				const text = await response.text();
+				alert(text);
+				window.location.reload();
+			} catch (err) {
+				console.error(err);
+				alert("Something is wrong with withdrawing sparkhacks");
+			}
+		});
+
+		const decideSparkhacksCallback = async (action: "userAccepted" | "declined") => {
+			try {
+				const formData = new FormData();
+				formData.set("action", action);
+				const res = await fetch("/api/auth/decide-sparkhacks", {
+					method: "POST",
+					body: formData,
+				});
+
+				if (!res.ok) {
+					alert("Something is wrong with deciding sparkhacks");
+					return;
+				}
+
+				window.location.reload();
+			} catch (err) {
+				console.error(err);
+				alert("Something is wrong");
+			}
+		};
+
+		acceptBtn?.addEventListener("click", () => decideSparkhacksCallback("userAccepted"));
+		withdrawBtn?.addEventListener("click", () => decideSparkhacksCallback("declined"));
+	</script>
 </DashboardLayout>
 <style>
-  .user-info {
-    width: 1000px;
-    max-width: 100%;
-    /* margin-top: 70px; */
-    font-size: x-large;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
+	.user-info {
+		width: 1000px;
+		max-width: 100%;
+		/* margin-top: 70px; */
+		font-size: x-large;
+		display: flex;
+		align-items: center;
+		gap: 10px;
+	}
 
-  .user-info > h1 {
-    margin: 0;
-    padding-left: 0;
-  }
-  .dashboard-status {
-    box-sizing: border-box;
-    width: 1000px;
-    max-width: 100%;
-    margin-top: 20px;
-    border-radius: 4px;
-    padding: 20px;
-  }
-  .dashboard-status.waiting,
-  .dashboard-status.waitlist {
-    background-color: #f5e3bd;
-  }
-  .dashboard-status.declined {
-    background-color: #f88378;
-  }
-  .dashboard-status.accepted {
-    background-color: #afd9ae;
-  }
-  .dashboard-status.userAccepted {
-    background-color: #7cba7b;
-  }
-  .dashboard-status.fullyAccepted {
-    background-color: #aefead;
-  }
+	.user-info > h1 {
+		margin: 0;
+		padding-left: 0;
+	}
+	.dashboard-status {
+		box-sizing: border-box;
+		/* width: 1000px; */
+		max-width: 100%;
+		margin-top: 20px;
+		border-radius: 10px;
+		padding: 20px;
+    	background-color: white;
+	}
+	.dashboard-status.waiting,
+	.dashboard-status.waitlist {
+		background-color: #f5e3bd;
+	}
+	.dashboard-status.declined {
+		background-color: #f88378;
+	}
+	.dashboard-status.accepted {
+		background-color: #afd9ae;
+	}
+	.dashboard-status.userAccepted {
+		background-color: #7cba7b;
+	}
+	.dashboard-status.fullyAccepted {
+		background-color: #aefead;
+	}
 
-  .dashboard-app {
-    box-sizing: border-box;
-    width: 1000px;
-    max-width: 100%;
-    margin-top: 20px;
-    padding: 20px;
-    border-radius: 0.75em;
-    border: 4px solid #c0edff;
-    margin-bottom: 20px;
-  }
+	.dashboard-app {
+		box-sizing: border-box;
+		width: 1000px;
+		max-width: 100%;
+		margin-top: 20px;
+		padding: 20px;
+		border-radius: 0.75em;
+		border: 4px solid #c0edff;
+		margin-bottom: 20px;
+	}
 
-  .main-section {
-    display: flex;
-    flex-direction: row;
-    gap: 15px;
-  }
+	.main-section {
+		display: flex;
+		flex-direction: row;
+		gap: 15px;
+	}
 
-  .main-right-section {
-    background-color:#F7F7F7;
-    padding: 30px;
-    border-radius: 15px;
-    width: 100%;
-  }
+	.main-right-section {
+		background-color: #f7f7f7;
+		padding: 30px;
+		border-radius: 15px;
+		width: 100%;
+	}
 
-  .dashButton {
-    background: none;
-    padding: 10px;
-    border-radius: 5px;
-    border: 1px solid black;
-    cursor: pointer;
-  }
+	.dashButton {
+		background: none;
+		padding: 10px;
+		border-radius: 5px;
+		border: 1px solid black;
+		cursor: pointer;
+	}
 
-  #app-btn {
-    margin-top: 16px;
-    width: 100%;
-    padding: 16px 32px;
-    font-size: larger;
-    background-color: #c0edff;
-    /* color: white; */
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-  }
-  #app-btn:hover {
-    filter: brightness(80%);
-  }
+	#app-btn {
+		margin-top: 16px;
+		width: 100%;
+		padding: 16px 32px;
+		font-size: larger;
+		background-color: #c0edff;
+		/* color: white; */
+		border: none;
+		border-radius: 8px;
+		cursor: pointer;
+	}
+	#app-btn:hover {
+		filter: brightness(80%);
+	}
 
-  .decideBtns {
-    margin-top: 10px;
-    display: flex;
-    gap: 10px;
-  }
-  #accept-btn,
-  #withdraw-btn {
-    cursor: pointer;
-    flex: 1;
-    border: none;
-    border-radius: 4px;
-    padding: 16px 16px;
-    font-size: 16px;
-  }
+	.decideBtns {
+		display: flex;
+		justify-content: center;
+		margin-top: 10px;
+		gap: 15%;
+	}
+	#accept-btn,
+	#waitlist-btn,
+	#withdraw-btn {
+		cursor: pointer;
+		/* flex: 1; */
+		border: none;
+		border-radius: 15px;
+		padding: 16px 32px;
+		font-size: 16px;
+		color: white;
+		background-color: #F7F7F7; 
+	}
 
-  #accept-btn {
-    background-color: white;
-  }
+	#accept-btn {
+		background-color: #A9D796;
+	}
 
-  #withdraw-btn {
-    background-color: #ff8a8a;
-  }
+	#waitlist-btn {
+		background-color: #F6C27D;
+	}
 
-  .admin-btn {
-    padding: 8px 16px;
-    background-color: aqua;
-    cursor: pointer;
-    border: none;
-    border-radius: 8px;
-  }
-  .qr-nav-btn {
-    padding: 8px 16px;
-    background-color: yellow;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-  }
+	#withdraw-btn {
+		background-color: #F97979;
+	}
 
-  /* #toggle-newusers-btn{
+	.admin-btn {
+		padding: 8px 16px;
+		background-color: aqua;
+		cursor: pointer;
+		border: none;
+		border-radius: 8px;
+	}
+	.qr-nav-btn {
+		padding: 8px 16px;
+		background-color: yellow;
+		border: none;
+		border-radius: 8px;
+		cursor: pointer;
+	}
+
+	/* #toggle-newusers-btn{
     padding: 8px 16px;
     background-color: grey;
     border: none;
@@ -475,52 +508,52 @@ const newUserState = (await db.collection("Settings").doc("newUserState").get())
     cursor: pointer;
   } */
 
-  #modal-open-btn {
-    display: block;
-    padding: 8px 16px;
-    background-color: #ff8a8a;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-  }
-  .modal-wrapper {
-    position: fixed;
-    top: 0;
-    left: 0;
-    bottom: 0;
-    right: 0;
-    background: rgba(0, 0, 0, 0.6);
-    display: none;
-    align-items: center;
-    justify-content: center;
-  }
-  .modal {
-    width: 600px;
-    max-width: 100%;
-    min-height: 400px;
-    background-color: white;
-    border-radius: 8px;
-    padding: 20px 20px;
-    display: flex;
-    text-align: center;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    border: 6px solid #ff8a8a;
-  }
-  .modal-withdraw-btn {
-    cursor: pointer;
-    background-color: #ff8a8a;
-    border: none;
-    border-radius: 4px;
-    padding: 4px 8px;
-  }
-  .modal-return-btn {
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    padding: 8px 16px;
-    background-color: #aefead;
-    align-self: self-start;
-  }
+	#modal-open-btn {
+		display: block;
+		padding: 8px 16px;
+		background-color: #ff8a8a;
+		border: none;
+		border-radius: 4px;
+		cursor: pointer;
+	}
+	.modal-wrapper {
+		position: fixed;
+		top: 0;
+		left: 0;
+		bottom: 0;
+		right: 0;
+		background: rgba(0, 0, 0, 0.6);
+		display: none;
+		align-items: center;
+		justify-content: center;
+	}
+	.modal {
+		width: 600px;
+		max-width: 100%;
+		min-height: 400px;
+		background-color: white;
+		border-radius: 8px;
+		padding: 20px 20px;
+		display: flex;
+		text-align: center;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		border: 6px solid #ff8a8a;
+	}
+	.modal-withdraw-btn {
+		cursor: pointer;
+		background-color: #ff8a8a;
+		border: none;
+		border-radius: 4px;
+		padding: 4px 8px;
+	}
+	.modal-return-btn {
+		border: none;
+		border-radius: 4px;
+		cursor: pointer;
+		padding: 8px 16px;
+		background-color: #aefead;
+		align-self: self-start;
+	}
 </style>

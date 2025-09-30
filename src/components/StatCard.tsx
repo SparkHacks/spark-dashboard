@@ -11,9 +11,10 @@ export default function StatCard ({type, total, color}: {
 }) {
     
     return (
-    <div>
-        <h1>{type}</h1>
-        <h2>{total}</h2>
-          </div>);
+      <div>
+          <h1>{type}</h1>
+          <h2>{total}</h2>
+      </div>
+    );
 
 }
