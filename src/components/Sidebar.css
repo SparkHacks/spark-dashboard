@@ -2,6 +2,24 @@
 
 } */
 
+#sidebar {
+    width: 220px;
+    min-height: 70vh;
+    background-color: #F7F7F7;
+    color: black;
+    flex-direction: column;
+    padding: 20px;
+    border-radius: 10px;
+
+    /* Hides sidebar for mobile
+       TODO: make button to toggle sidebar on mobile
+    */
+    display: none;
+    @media (min-width: 768px) {
+        display: block;
+    }
+}
+
 .sidebar-menu-list {
     list-style: none;
     padding: 0;
