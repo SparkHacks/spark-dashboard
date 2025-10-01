@@ -131,19 +131,19 @@ export default function AdminCode() {
       return
     }
 
-    const data = [...document.querySelectorAll("#form input")].reduce((acc: any, curr: any) => (acc[curr.name] = curr.checked, acc), {})
+    const data = [...document.querySelectorAll("#formUpdated input")].reduce((acc: any, curr: any) => (acc[curr.name] = curr.checked, acc), {})
 
-    const oldData = [...document.querySelectorAll("#formOld1 input")].reduce((acc: any, curr: any) => (acc[curr.id] = curr.checked, acc), {})
+    const oldData = [...document.querySelectorAll("#formCur input")].reduce((acc: any, curr: any) => (acc[curr.id] = curr.checked, acc), {})
 
-    if ((data.d1Cookies === oldData.d1CookiesOld) && (data.d1Dinner === oldData.d1DinnerOld) && (data.d1Snack === oldData.d1SnackOld) && (data.d1Here === oldData.d1HereOld)
-      && (data.d2Breakfast === oldData.d2BreakfastOld) && (data.d2Dinner === oldData.d2DinnerOld) && (data.d2Lunch === oldData.d2LunchOld) && (data.d2Here === oldData.d2HereOld)
+    if ((data.d1Cookies === oldData.d1CookiesCur) && (data.d1Dinner === oldData.d1DinnerCur) && (data.d1Snack === oldData.d1SnackCur) && (data.d1Here === oldData.d1HereCur)
+      && (data.d2Breakfast === oldData.d2BreakfastCur) && (data.d2Dinner === oldData.d2DinnerCur) && (data.d2Lunch === oldData.d2LunchCur) && (data.d2Here === oldData.d2HereCur)
     ) {
       toast.error("No change")
       return
     }
 
     // can get day 2's food when day 2 is checked
-    if ((!oldData.d2HereOld) && (data.d2Breakfast || data.d2Lunch || data.d2Dinner)) {
+    if ((!oldData.d2HereCur) && (data.d2Breakfast || data.d2Lunch || data.d2Dinner)) {
       toast.error("Attempt to check day2's food but havent checkin Day 2 yet. Make sure to checkin to get merch!")
       return
     }
@@ -216,145 +216,163 @@ export default function AdminCode() {
   }, [])
 
   return (
-    <div>
+    <div style={{display: 'flex', flexDirection: 'column', gap: '20px'}}>
+      <div style={{display: "flex", alignItems: "center", width: "100%", justifyContent: "space-between"}}>
+        <h1>QR Scanner</h1>
+        <div style={{ justifyContent: "center",  gap: "10px"}}>
+          <input placeholder="Search Applicant Email" id="applicant-search" ref={inputRef} onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              searchUser()
+            } else if (e.key === "Escape") {
+              handleClearSearch()
+            }
+          }}/>
+        </div>
+      </div>
+      {!!errMsg && <span style={{color: "red", fontWeight: "bold", textAlign: "center"}}>Error: {errMsg}</span>}
       <QrcodePlugin
         fps={10}
         qrbox={250}
         disableFlip={false}
         qrCodeSuccessCallback={getUser}
       />
-      <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px', marginBottom: '20px'}}>
-        <h3 style={{marginBottom: "0px"}}>Manually Search User</h3>
-        <div>
-          <input type='text' placeholder='Enter email' ref={inputRef} />
-          <button onClick={searchUser}>Submit</button>
-          <button onClick={handleClearSearch}>Clear</button>
+      {<div>
+        <h2>Edit Applicant</h2>
+
+        <div id="edit-applicant-container">
+          <div id="applicant-info" style={{backgroundColor: userInfo?.appStatus == "fullyAccepted" ? "var(--applicant-accepted)" : "var(--applicant-rejected)"}}>
+            {!userInfo ? 
+              <span style={{fontStyle: "italic"}}>No applicant selected</span> : 
+              <>
+                <h1>{userInfo?.firstName} {userInfo?.lastName}</h1>
+                <p>{userInfo?.email}</p>
+                <p>{userInfo?.appStatus}</p>
+                <p>Shirt Size {userInfo?.shirtSize}</p>
+              </>
+            }
+          </div>
+          <div id="form">
+            <div className="form-state" id="formCur">
+              <h3>Current</h3>
+              <div className="form-day day1">
+                <input disabled name="d1HereCur" id="d1HereCur" type="checkbox" data-id="d1Here"/>
+                <label htmlFor="d1HereCur">Check-in</label>
+
+                <input disabled name="d1SnackCur" id="d1SnackCur" type="checkbox" data-id="d1Snack"/>
+                <label htmlFor="d1SnackCur">Snack</label>
+
+                <input disabled name="d1DinnerCur" id="d1DinnerCur" type="checkbox" data-id="d1Dinner"/>
+                <label htmlFor="d1DinnerCur">Dinner</label>
+                
+                <input disabled name="d1CookiesCur" id="d1CookiesCur" type="checkbox" data-id="d1Cookies"/>
+                <label htmlFor="d1CookiesCur">Cookies</label>
+              </div>
+              <div className="form-day day2">
+                <input disabled name="d2HereCur" id="d2HereCur" type="checkbox" data-id="d2Here"/>
+                <label htmlFor="d2HereCur">Check-in</label>
+
+                <input disabled name="d2BreakfastCur" id="d2BreakfastCur" type="checkbox" data-id="d2Breakfast"/>
+                <label htmlFor="d2BreakfastCur">Breakfast</label>
+
+                <input disabled name="d2LunchCur" id="d2LunchCur" type="checkbox" data-id="d2Lunch"/>
+                <label htmlFor="d2LunchCur">Lunch</label>
+
+                <input disabled name="d2DinnerCur" id="d2DinnerCur" type="checkbox" data-id="d2Dinner"/>
+                <label htmlFor="d2DinnerCur">Dinner</label>
+              </div>
+            </div>
+
+            <div className="form-state" id="formUpdated">
+              <h3>Updated</h3>
+              <div className="form-day day1">
+                <input name='d1Here' id="d1Here"  type="checkbox" data-id="d1Here"/>
+                <label htmlFor="d1Here">Check-in</label>
+
+                <input name='d1Snack' id="d1Snack"  type="checkbox" data-id="d1Snack"/>
+                <label htmlFor="d1Snack">Snack</label>
+
+                <input name='d1Dinner' id="d1Dinner" type="checkbox" data-id="d1Dinner"/>
+                <label htmlFor="d1Dinner">Dinner</label>
+
+                <input name='d1Cookies' id="d1Cookies" type="checkbox" data-id="d1Cookies"/>
+                <label htmlFor="d1Cookies">Cookies</label>
+              </div>
+              <div className="form-day day2">
+                <input name='d2Here' id="d2Here"  type="checkbox" data-id="d2Here"/>
+                <label htmlFor="d2Here">Check-in</label>
+
+                <input name='d2Breakfast' id="d2Breakfast" type="checkbox" data-id="d2Breakfast"/>
+                <label htmlFor="d2Breakfast">Breakfast</label>
+
+                <input name='d2Lunch' id="d2Lunch" type="checkbox" data-id="d2Lunch"/>
+                <label htmlFor="d2Lunch">Lunch</label>
+
+                <input name='d2Dinner' id="d2Dinner" type="checkbox" data-id="d2Dinner"/>
+                <label htmlFor="d2Dinner">Dinner</label>
+              </div>
+            </div>
+          </div>
+          {/* <h3 style={{marginBottom: "0px"}}>Old Food Data</h3> */}
+          {/* <div id="formOld1" style={{display: 'flex', flexDirection: 'row', gap: '10px'}}>
+            <div style={{display: 'flex', flexDirection: 'column', gap: '5px'}}>
+              <span>Day 1:</span>
+              <div>
+                <input name='d1HereOld' id="d1HereOld"  type="checkbox" data-id="d1Here" disabled />
+                <label htmlFor="d1HereOld">Day 1 Here?</label>
+              </div>
+              <div>
+                <input id="d1SnackOld" disabled type="checkbox" data-id="d1Snack"/>
+                <label htmlFor="d1SnackOld">Ate Snack?</label>
+              </div>
+              <div>
+                <input id="d1DinnerOld" disabled type="checkbox" data-id="d1Dinner"/>
+                <label htmlFor="d1DinnerOld">Ate Dinner?</label>
+              </div>
+              <div>
+                <input id="d1CookiesOld" disabled type="checkbox" data-id="d1Cookies"/>
+                <label htmlFor="d1CookiesOld">Ate Cookies?</label>
+              </div>
+            </div>
+            <div style={{display: 'flex', flexDirection: 'column', gap: '5px', padding: '0 0 10px 0'}}>
+              <span>Day 2:</span>
+              <div>
+                <input name='d2HereOld' id="d2HereOld"  type="checkbox" data-id="d2Here" disabled/>
+                <label htmlFor="d2HereOld">Day 2 Here?</label>
+              </div>
+              <div>
+                <input id="d2BreakfastOld" disabled type="checkbox" data-id="d2Breakfast"/>
+                <label htmlFor="d2BreakfastOld">Ate Breakfast?</label>
+              </div>
+              <div>
+                <input id="d2LunchOld" disabled type="checkbox" data-id="d2Lunch"/>
+                <label htmlFor="d2LunchOld">Ate Lunch?</label>
+              </div>
+              <div>
+                <input id="d2DinnerOld" disabled type="checkbox" data-id="d2Dinner"/>
+                <label htmlFor="d2DinnerOld">Ate Dinner?</label>
+              </div>
+            </div>
+          </div> */}
+          <button id="submit-food-data" onClick={submitFoodData} disabled={userInfo === null}>Save</button>
         </div>
-        {!!errMsg && <span style={{color: "red", fontWeight: "bold", textAlign: "center"}}>Error: {errMsg}</span>}
-      </div>
-      {<div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', gap: '10px'}}>
-        <span>Name: {userInfo?.firstName} {userInfo?.lastName}</span>
-        <span> Status: <span style={{color: userInfo?.appStatus == "fullyAccepted" ? "green" : "red"}}> {userInfo?.appStatus}</span></span>
-        <span>Email: {userInfo?.email}</span>
-        <span>Shirt Size: {userInfo?.shirtSize}</span>
-        <h3 style={{marginBottom: "0px"}}>Current Food Data</h3>
-        <div id='form' style={{display: 'flex', flexDirection: 'row', gap: '10px'}}>
-          <div style={{display: 'flex', flexDirection: 'column', gap: '5px'}}>
-            <span>Day 1:</span>
-            <div>
-              <input disabled name='d1Here' id="d1Here"  type="checkbox" data-id="d1Here"/>
-              <label htmlFor="d1Here">Day 1 Here?</label>
-            </div>
-            <div>
-              <input disabled name='d1Snack' id="d1Snack"  type="checkbox" data-id="d1Snack"/>
-              <label htmlFor="d1Snack">Ate Snack?</label>
-            </div>
-            <div>
-              <input disabled name='d1Dinner' id="d1Dinner" type="checkbox" data-id="d1Dinner"/>
-              <label htmlFor="d1Dinner">Ate Dinner?</label>
-            </div>
-            <div>
-              <input disabled name='d1Cookies' id="d1Cookies" type="checkbox" data-id="d1Cookies"/>
-              <label htmlFor="d1Cookies">Ate Cookies?</label>
-            </div>
-          </div>
-          <div style={{display: 'flex', flexDirection: 'column', gap: '5px'}}>
-            <span>Day 2:</span>
-            <div>
-              <input name='d2Here' id="d2Here"  type="checkbox" data-id="d2Here"/>
-              <label htmlFor="d2Here">Day 2 Here?</label>
-            </div>
-            <div>
-              <input name='d2Breakfast' id="d2Breakfast" type="checkbox" data-id="d2Breakfast"/>
-              <label htmlFor="d2Breakfast">Ate Breakfast?</label>
-            </div>
-            <div>
-              <input name='d2Lunch' id="d2Lunch" type="checkbox" data-id="d2Lunch"/>
-              <label htmlFor="d2Lunch">Ate Lunch?</label>
-            </div>
-            <div>
-              <input name='d2Dinner' id="d2Dinner" type="checkbox" data-id="d2Dinner"/>
-              <label htmlFor="d2Dinner">Ate Dinner?</label>
-            </div>
-          </div>
-        </div>
-        {/* <h3 style={{marginBottom: "0px"}}>Old Food Data</h3> */}
-        {/* <div id="formOld1" style={{display: 'flex', flexDirection: 'row', gap: '10px'}}>
-          <div style={{display: 'flex', flexDirection: 'column', gap: '5px'}}>
-            <span>Day 1:</span>
-            <div>
-              <input name='d1HereOld' id="d1HereOld"  type="checkbox" data-id="d1Here" disabled />
-              <label htmlFor="d1HereOld">Day 1 Here?</label>
-            </div>
-            <div>
-              <input id="d1SnackOld" disabled type="checkbox" data-id="d1Snack"/>
-              <label htmlFor="d1SnackOld">Ate Snack?</label>
-            </div>
-            <div>
-              <input id="d1DinnerOld" disabled type="checkbox" data-id="d1Dinner"/>
-              <label htmlFor="d1DinnerOld">Ate Dinner?</label>
-            </div>
-            <div>
-              <input id="d1CookiesOld" disabled type="checkbox" data-id="d1Cookies"/>
-              <label htmlFor="d1CookiesOld">Ate Cookies?</label>
-            </div>
-          </div>
-          <div style={{display: 'flex', flexDirection: 'column', gap: '5px', padding: '0 0 10px 0'}}>
-            <span>Day 2:</span>
-            <div>
-              <input name='d2HereOld' id="d2HereOld"  type="checkbox" data-id="d2Here" disabled/>
-              <label htmlFor="d2HereOld">Day 2 Here?</label>
-            </div>
-            <div>
-              <input id="d2BreakfastOld" disabled type="checkbox" data-id="d2Breakfast"/>
-              <label htmlFor="d2BreakfastOld">Ate Breakfast?</label>
-            </div>
-            <div>
-              <input id="d2LunchOld" disabled type="checkbox" data-id="d2Lunch"/>
-              <label htmlFor="d2LunchOld">Ate Lunch?</label>
-            </div>
-            <div>
-              <input id="d2DinnerOld" disabled type="checkbox" data-id="d2Dinner"/>
-              <label htmlFor="d2DinnerOld">Ate Dinner?</label>
-            </div>
-          </div>
-        </div> */}
-        <button onClick={submitFoodData} style={{marginTop: "20px", width: "250px", height: "40px", marginBottom: "20px"}} disabled={userInfo === null}>Submit!</button>
       </div>}
-      <section style={{border: "1px solid grey", borderRadius: "4px", marginTop: "10px", padding: "10px", marginLeft: "10px", marginRight: "10px", marginBottom: "20px"}}>
-        <div style={{display: "flex", gap: "20px", justifyContent: "center"}}>
+      <section>
+        <div style={{display: "flex"}}>
           <h2>Summary</h2>
           <button onClick={handleRefresh} style={{padding: "8px 16px", margin: "15px"}}>Refresh</button>
         </div>
-        <div style={{display: "flex", flexDirection: "row", gap: "20px", justifyContent: "center"}}>
-          <div style={{display: "flex", flexDirection: "row", gap: "10px"}}>
-            <div style={{display: "flex", flexDirection: "column", gap: "10px", alignItems: "end"}}>
-              <span><strong>Check-in Day 1:</strong></span>
-              <span><strong>Snack Day 1:</strong></span>
-              <span><strong>Dinner Day 1:</strong></span>
-              <span><strong>Cookies Day 1:</strong></span>
-            </div>
-            <div style={{display: "flex", flexDirection: "column", gap: "10px"}}>
-              <span>{summary.d1Here}</span>
-              <span>{summary.d1Snack}</span>
-              <span>{summary.d1Dinner}</span>
-              <span>{summary.d1Cookies}</span>
-            </div>
-          </div>
-          <div style={{display: "flex", flexDirection: "row", gap: "10px"}}>
-          <div style={{display: "flex", flexDirection: "column", gap: "10px",  alignItems: "end"}}>
-              <span><strong>Check-in Day 2:</strong></span>
-              <span><strong>Breakfast Day 2:</strong></span>
-              <span><strong>Lunch Day 2:</strong></span>
-              <span><strong>Dinner Day 2:</strong></span>
-            </div>
-            <div style={{display: "flex", flexDirection: "column", gap: "10px"}}>
-              <span>{summary.d2Here}</span>
-              <span>{summary.d2Breakfast}</span>
-              <span>{summary.d2Lunch}</span>
-              <span>{summary.d2Dinner}</span>
-            </div>
-          </div>
+        <div id="summary-stats">
+          <h3>Day 1</h3>
+          <div className="summary-item day1">Check-in<span>{summary.d1Here || 0}</span></div>
+          <div className="summary-item day1">Snack<span>{summary.d1Snack || 0}</span></div>
+          <div className="summary-item day1">Dinner<span>{summary.d1Dinner || 0}</span></div>
+          <div className="summary-item day1">Cookies<span>{summary.d1Cookies || 0}</span></div>
+
+          <h3>Day 2</h3>
+          <div className="summary-item day2">Check-in<span>{summary.d2Here || 0}</span></div>
+          <div className="summary-item day2">Breakfast<span>{summary.d2Breakfast || 0}</span></div>
+          <div className="summary-item day2">Lunch<span>{summary.d2Lunch || 0}</span></div>
+          <div className="summary-item day2">Dinner<span>{summary.d2Dinner || 0}</span></div>
         </div>
       </section>
       <ToastContainer />

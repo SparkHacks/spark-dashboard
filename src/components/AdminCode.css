@@ -1,4 +1,207 @@
 :root {
   --toastify-color-info: #12dcd2;
   --toastify-color-success : #8d6db5;
+  --applicant-accepted: #CEF5BE;
+  --applicant-rejected: #F4BDBD;
+  --check-ins-day1: #2D7DD2;
+  --check-ins-day2: #DD6E42;
+}
+
+#edit-applicant-container {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: 1fr;
+  grid-template-rows: 4fr 8fr 1fr;
+  grid-template-areas: 
+    "info"
+    "form"
+    "submit";
+  @media (min-width: 768px) {
+    grid-template-columns: 1fr 3fr;
+    grid-template-rows: 4fr 1fr;
+    grid-template-areas: 
+      "info form"
+      "info submit";
+  }
+}
+
+#applicant-info {
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  gap: 7.5%;
+  grid-area: info;
+}
+
+#applicant-info p, #applicant-info h1, .form-state h3 {
+  margin: 0;
+  padding: 0;
+}
+
+#form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  grid-area: form;
+  @media (min-width: 768px) {
+    flex-direction: row;
+  }
+}
+
+.form-state {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex-grow: 1;
+  border: 1px solid black;
+  border-radius: 10px;
+  padding: 10px;
+  text-align: center;
+}
+
+.form-day {
+  display: flex;
+  flex-direction: row;
+  gap: 5px;
+}
+
+#form input {
+  appearance: none;
+  position: absolute;
+}
+
+#form input + label {
+  cursor: pointer;
+  background-color: white;
+  padding: 10px;
+  border-radius: 10px;
+  transition: background-color 0.3s, border-color 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-grow: 1;
+  width: 0;
+}
+
+#form .day1 input + label {
+  border: 3px solid var(--check-ins-day1);
+}
+
+#form .day1 input:checked + label {
+  background-color: var(--check-ins-day1);
+}
+
+#form .day1 input:enabled + label:hover, #form .day1 input:enabled + label:active {
+  border-color: color-mix(in hsl, var(--check-ins-day1), white 50%);
+}
+
+#form .day1 input:enabled:checked + label:hover, #form .day1 input:enabled:checked + label:active {
+  border-color: color-mix(in hsl, var(--check-ins-day1), black 30%);
+}
+
+#form .day2 input + label {
+  border: 3px solid var(--check-ins-day2);
+}
+
+#form .day2 input:checked + label {
+  background-color: var(--check-ins-day2);
+}
+
+#form .day2 input:enabled + label:hover, #form .day2 input:enabled + label:active {
+  border-color: color-mix(in hsl, var(--check-ins-day2), white 50%);
+}
+
+#form .day2 input:enabled:checked + label:hover, #form .day2 input:enabled:checked + label:active {
+  border-color: color-mix(in hsl, var(--check-ins-day2), black 50%);
+}
+
+#form input:disabled + label {
+  opacity: 0.6;  
+  cursor: not-allowed;
+}
+
+#submit-food-data {
+  grid-area: submit;
+  padding: 0;
+  border: 3px solid black;
+  border-radius: 10px;
+  background-color: white;
+  font-family: inherit;
+  font-weight: bold;
+  font-size: 1em;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25), 0 3px 5px rgba(0, 0, 0, 0.15);
+  transition: box-shadow 0.1s;
+}
+
+#submit-food-data:hover:enabled {
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.25), 0 3px 15px  rgba(0, 0, 0, 0.15);
+}
+
+#submit-food-data:active:enabled {
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.35), 0 3px 15px  rgba(0, 0, 0, 0.25);
+}
+
+#submit-food-data:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+#summary-stats {
+  display: grid;
+  gap: 10px 30px;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: .5fr 1fr 1fr 1fr 1fr;
+  grid-auto-flow: column;
+  @media (min-width: 768px) {
+    grid-template-columns: 1fr 3fr 3fr 3fr 3fr;
+    grid-template-rows: 1fr 1fr;
+    grid-auto-flow: row;
+  }
+}
+
+#summary-stats h3 {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 0; 
+}
+
+#summary-stats .day1 {
+  background-image: linear-gradient(color-mix(in hsl, var(--check-ins-day1), white 20%), var(--check-ins-day1));
+}
+
+#summary-stats .day2 {
+  background-image: linear-gradient(color-mix(in hsl, var(--check-ins-day2), white 20%), var(--check-ins-day2));
+}
+
+.summary-item {
+  border-radius: 10px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.summary-item span {
+  font-size: 1.75em;
+  font-weight: bold;
+}
+
+#applicant-search {
+  border-radius: 30px;
+  min-width: 250px;
+  min-height: 40px;
+  border: none;
+  padding-left: 45px;
+  margin-right: 15px;
+  background-image: url(/search.svg);
+  background-repeat: no-repeat;
+  background-position: 10px 10px;
 }
