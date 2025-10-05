@@ -90,6 +90,10 @@ const uidDataURI = await QRCode.toDataURL(userEmail, {
 
 const newUserState = (await db.collection("Settings").doc("newUserState").get()).data()
 	?.isNewUserEnabled;
+
+const handleAdminPreview = (message: string) => {
+	appStatus = message;
+};
 ---
 
 <DashboardLayout>
@@ -149,72 +153,80 @@ const newUserState = (await db.collection("Settings").doc("newUserState").get())
 						>
 							{newUserState ? "Disable" : "Enable"} newUsers
 						</button>
+
+						<button class="dashButton" id="preview-submitted">
+							Preview Submitted
+						</button>
+						<button class="dashButton" id="preview-invited">
+							Preview Invited
+						</button>
+						<button class="dashButton" id="preview-accepted">
+							Preview Accepted
+						</button>
 						{/* <StatCard type={""} total={0} color={""} client:load/> */}
-            <p style={{width: 'auto'}}>Welcome to your SparkHacks 2026 dashboard! Here, you can submit your application, view your application status, and get the latest updates on SparkHacks news.</p>
+						<p style={{ width: "auto" }}>
+							Welcome to your SparkHacks 2026 dashboard! Here, you can submit your
+							application, view your application status, and get the latest updates on
+							SparkHacks news.
+						</p>
 					</section>
 				)
 			}
-			<section
-				class={`dashboard-status`}
-				style={appStatus !== "" ? "" : "display: none"}
-			>
-        <p></p>
+			<section class={`dashboard-status`} style={appStatus !== "" ? "" : "display: none"}>
+				<p></p>
 				<ApplicationStatus message={appStatus} />
-				<!-- <strong>Application Status: </strong>{getMessage(appStatus as any)}
-    {
-      appStatus === "accepted" && (
-        <>
-          <div>Do you still accept to participate SparkHacks?</div>
-          <div class="decideBtns">
-            <button id="accept-btn">Accept</button>
-            <button id="withdraw-btn">Withdraw</button>
-          </div>
-        </>
-      )
-    }
-    {
-      appStatus === "fullyAccepted" && (
-        <>
-          <button id="modal-open-btn">Withdraw SparkHacks</button>
-        </>
-      )
-    } -->
 			</section>
 
 			<div class="dashboard-status">
-				{ appStatus == "waiting" &&
-				(<p> 
-					<span class="waiting">Pending Review:</span> Our team is currently reviewing your application and will get back to you as soon as possible. Please come back to this dashboard throughout the next week to see your decision and respond.
-				</p>)
+				{
+					appStatus == "waiting" && (
+						<p>
+							<span class="waiting">Pending Review:</span> Our team is currently
+							reviewing your application and will get back to you as soon as possible.
+							Please come back to this dashboard throughout the next week to see your
+							decision and respond.
+						</p>
+					)
 				}
 
-				{ appStatus == "accepted" &&
-				(<p> 
-					<span class="accepted">Invited 🎉:</span> Congratulations! You have been selected to join SparkHacks 2026 this February. To <b>secure</b> your spot, you must respond to your invitation by the end of (date), otherwise you will be placed on the waitlist.
-				</p>)
+				{
+					appStatus == "accepted" && (
+						<p>
+							<span class="accepted">Invited 🎉:</span> Congratulations! You have been
+							selected to join SparkHacks 2026 this February. To <b>secure</b> your
+							spot, you must respond to your invitation by the end of (date),
+							otherwise you will be placed on the waitlist.
+						</p>
+					)
 				}
-
-				<!-- { appStatus == "userAccepted" &&
-					(<p> 
-						<span class="accepted">Accepted 🎉:</span> Congratulations! You have been selected to join SparkHacks 2026 this February.
-					</p>)
-				} -->
 
 				{
 					(appStatus === "fullyAccepted" || appStatus == "userAccepted") && (
-						<div style="display: flex; flex-direction: row; gap: 2rem; justify-content: space-between; ">
+						<div class="hacker-info-container">
 							<div style="">
-								<p><span class="fullyAccepted">You’re in 🍿:</span> Welcome to SparkHacks 2026! You’re officially a Hacker.</p>
-								<p><b>Things to Know:</b></p>
+								<p>
+									<span class="fullyAccepted">You’re in 🍿:</span> Welcome to
+									SparkHacks 2026! You’re officially a Hacker.
+								</p>
+								<p>
+									<b>Things to Know:</b>
+								</p>
 								<ol>
-									<li>You must check in on Day 1 to be admitted into Day 2. Otherwise, your spot will be given to a student on the waitlist.</li>
+									<li>
+										You must check in on Day 1 to be admitted into Day 2.
+										Otherwise, your spot will be given to a student on the
+										waitlist.
+									</li>
 									<li>...</li>
 									<li>...</li>
 									<li>...</li>
 								</ol>
 
-								<p>Can’t make it anymore? Give your spot to a Hacker on the waitlist.</p>
-								<button id="withdraw-btn">Withdraw Application</button>
+								<p>
+									Can’t make it anymore? Give your spot to a Hacker on the
+									waitlist.
+								</p>
+								<button id="withdraw-btn2">Withdraw Application</button>
 							</div>
 
 							<div style="display: flex; justify-content: center; flex-direction: column; align-items: center">
@@ -228,12 +240,14 @@ const newUserState = (await db.collection("Settings").doc("newUserState").get())
 					)
 				}
 			</div>
-			{appStatus == "accepted" &&
-				(<div class="decideBtns">
-					<button id="accept-btn">Accept</button>
-					<button id="waitlist-btn">Join Waitlist</button>
-					<button id="withdraw-btn">Decline</button>
-				</div>)
+			{
+				appStatus == "accepted" && (
+					<div class="decideBtns">
+						<button id="accept-btn">Accept</button>
+						<button id="waitlist-btn">Join Waitlist</button>
+						<button id="withdraw-btn">Decline</button>
+					</div>
+				)
 			}
 
 			{
@@ -267,9 +281,17 @@ const newUserState = (await db.collection("Settings").doc("newUserState").get())
 		</div>
 	</div>
 	<script>
+		const previewSubmittedView = document.getElementById(
+			"preview-submitted"
+		) as HTMLButtonElement;
+		const previewInvitedView = document.getElementById("preview-invited") as HTMLButtonElement;
+		const previewAcceptedView = document.getElementById(
+			"preview-accepted"
+		) as HTMLButtonElement;
 		const toggleNewUsers = document.getElementById("toggle-newusers-btn") as HTMLButtonElement;
 		const acceptBtn = document.getElementById("accept-btn") as HTMLButtonElement;
 		const withdrawBtn = document.getElementById("withdraw-btn") as HTMLButtonElement;
+		const withdrawBtn2 = document.getElementById("withdraw-btn2") as HTMLButtonElement;
 
 		const modal = document.getElementsByClassName("modal-wrapper")[0] as HTMLElement;
 		const modalContent = document.getElementsByClassName("modal")[0] as HTMLElement;
@@ -364,8 +386,10 @@ const newUserState = (await db.collection("Settings").doc("newUserState").get())
 
 		acceptBtn?.addEventListener("click", () => decideSparkhacksCallback("userAccepted"));
 		withdrawBtn?.addEventListener("click", () => decideSparkhacksCallback("declined"));
+		withdrawBtn2?.addEventListener("click", () => decideSparkhacksCallback("declined"));
 	</script>
 </DashboardLayout>
+
 <style>
 	.user-info {
 		width: 1000px;
@@ -388,7 +412,7 @@ const newUserState = (await db.collection("Settings").doc("newUserState").get())
 		margin-top: 20px;
 		border-radius: 10px;
 		padding: 20px;
-    	background-color: white;
+		background-color: white;
 	}
 	.dashboard-status.waiting,
 	.dashboard-status.waitlist {
@@ -462,7 +486,8 @@ const newUserState = (await db.collection("Settings").doc("newUserState").get())
 	}
 	#accept-btn,
 	#waitlist-btn,
-	#withdraw-btn {
+	#withdraw-btn,
+	#withdraw-btn2 {
 		cursor: pointer;
 		/* flex: 1; */
 		border: none;
@@ -470,19 +495,20 @@ const newUserState = (await db.collection("Settings").doc("newUserState").get())
 		padding: 16px 32px;
 		font-size: 16px;
 		color: white;
-		background-color: #F7F7F7; 
+		background-color: #f7f7f7;
 	}
 
 	#accept-btn {
-		background-color: #A9D796;
+		background-color: #a9d796;
 	}
 
 	#waitlist-btn {
-		background-color: #F6C27D;
+		background-color: #f6c27d;
 	}
 
-	#withdraw-btn {
-		background-color: #F97979;
+	#withdraw-btn,
+	#withdraw-btn2 {
+		background-color: #f97979;
 	}
 
 	.admin-btn {
@@ -555,5 +581,11 @@ const newUserState = (await db.collection("Settings").doc("newUserState").get())
 		padding: 8px 16px;
 		background-color: #aefead;
 		align-self: self-start;
+	}
+
+	.hacker-info-container {
+		display: grid;
+		grid-gap: 2rem;
+		grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
 	}
 </style>
