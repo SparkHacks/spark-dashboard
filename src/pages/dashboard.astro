@@ -91,9 +91,6 @@ const uidDataURI = await QRCode.toDataURL(userEmail, {
 const newUserState = (await db.collection("Settings").doc("newUserState").get()).data()
 	?.isNewUserEnabled;
 
-const handleAdminPreview = (message: string) => {
-	appStatus = message;
-};
 ---
 
 <DashboardLayout>
@@ -154,15 +151,6 @@ const handleAdminPreview = (message: string) => {
 							{newUserState ? "Disable" : "Enable"} newUsers
 						</button>
 
-						<button class="dashButton" id="preview-submitted">
-							Preview Submitted
-						</button>
-						<button class="dashButton" id="preview-invited">
-							Preview Invited
-						</button>
-						<button class="dashButton" id="preview-accepted">
-							Preview Accepted
-						</button>
 						{/* <StatCard type={""} total={0} color={""} client:load/> */}
 						<p style={{ width: "auto" }}>
 							Welcome to your SparkHacks 2026 dashboard! Here, you can submit your
