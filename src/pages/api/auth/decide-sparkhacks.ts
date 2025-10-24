@@ -47,7 +47,7 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
     if (!docSnap.exists) {
       return new Response("Invalid action", {status: 400})
     }
-    if (docSnap.data()?.appStatus !== "accepted") {
+    if (docSnap.data()?.appStatus !== "accepted" && docSnap.data()?.appStatus !== "userAccepted" && docSnap.data()?.appStatus !== "fullyAccepted") {
       return new Response("Invalid action: user not accepted", {status: 400})
     }
 
