@@ -5,7 +5,9 @@ import { app } from "../../../firebase/server";
 export const GET: APIRoute = async ({request, cookies}) => {
     const auth = getAuth(app)
     let isAdmin = false
-    const idToken = request.headers.get("Authorization")?.split("Bearer ")[1] 
+    const idToken = request.headers.get("Authorization")?.split("Bearer ")[1]
+    const bypassEmailCheck = request.headers.get("X-Bypass-Email-Check") === "true" // REMOVE LATER
+
     // check if token exists
     if (!idToken) {
         return new Response(
@@ -25,6 +27,9 @@ export const GET: APIRoute = async ({request, cookies}) => {
         else if (user.customClaims && user.customClaims.exception === true) { // if the email is exception then does not need to go through email check
           console.log(email, "exception user!")
         }
+        else if (bypassEmailCheck) {                              // REMOVE LATER
+          console.log(email, "bypassing email check (temporary)") // REMOVE LATER
+        }                                                         // REMOVE LATER
         else {
           const emailReg = /^[a-zA-Z0-9._%+-]+@uic\.edu$/
           if (!emailReg.test(email)) {
