@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react"
 import { collection, doc, getCountFromServer, getDoc, getDocs, limit, orderBy, query, startAfter, where, type DocumentData } from "firebase/firestore"
 import { db } from "../firebase/client"
+import { FORMS_COLLECTION } from "../config/constants"
 import StartCard from "./StatCard"
 
 export interface Summary {
@@ -19,13 +20,13 @@ export default function StatCardList() {
     useEffect(() => {
         const fetchData = async () => {
           // fetch summary
-          const totalCount = (await getCountFromServer(collection(db, "Forms"))).data().count
-          const fullyAcceptedCount = (await getCountFromServer(query(collection(db, "Forms"), where("appStatus", "==", "fullyAccepted")))).data().count
-          const userAcceptedCount = (await getCountFromServer(query(collection(db, "Forms"), where("appStatus", "==", "userAccepted")))).data().count
-          const acceptedCount = (await getCountFromServer(query(collection(db, "Forms"), where("appStatus", "==", "accepted")))).data().count
-          const waitlistCount = (await getCountFromServer(query(collection(db, "Forms"), where("appStatus", "==", "waitlist")))).data().count
-          const waitingCount = (await getCountFromServer(query(collection(db, "Forms"), where("appStatus", "==", "waiting")))).data().count
-          const declinedCount = (await getCountFromServer(query(collection(db, "Forms"), where("appStatus", "==", "declined")))).data().count
+          const totalCount = (await getCountFromServer(collection(db, FORMS_COLLECTION))).data().count
+          const fullyAcceptedCount = (await getCountFromServer(query(collection(db, FORMS_COLLECTION), where("appStatus", "==", "fullyAccepted")))).data().count
+          const userAcceptedCount = (await getCountFromServer(query(collection(db, FORMS_COLLECTION), where("appStatus", "==", "userAccepted")))).data().count
+          const acceptedCount = (await getCountFromServer(query(collection(db, FORMS_COLLECTION), where("appStatus", "==", "accepted")))).data().count
+          const waitlistCount = (await getCountFromServer(query(collection(db, FORMS_COLLECTION), where("appStatus", "==", "waitlist")))).data().count
+          const waitingCount = (await getCountFromServer(query(collection(db, FORMS_COLLECTION), where("appStatus", "==", "waiting")))).data().count
+          const declinedCount = (await getCountFromServer(query(collection(db, FORMS_COLLECTION), where("appStatus", "==", "declined")))).data().count
           setSummary({
             total: totalCount,
             fullyAccepted: fullyAcceptedCount,

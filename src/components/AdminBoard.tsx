@@ -4,6 +4,7 @@ import ViewCard from "./components/ViewCard";
 import type { FormViewData } from "../env";
 import { collection, doc, getCountFromServer, getDoc, getDocs, orderBy, query, where, type DocumentData } from "firebase/firestore";
 import { db } from "../firebase/client";
+import { FORMS_COLLECTION } from "../config/constants";
 import "./AdminBoard.css";
 
 export interface Summary {
@@ -158,12 +159,12 @@ export default function AdminBoard() {
 
       // Fetch summary
       const totalCount = (
-        await getCountFromServer(collection(db, "Forms"))
+        await getCountFromServer(collection(db, FORMS_COLLECTION))
       ).data().count;
       const fullyAcceptedCount = (
         await getCountFromServer(
           query(
-            collection(db, "Forms"),
+            collection(db, FORMS_COLLECTION),
             where("appStatus", "==", "fullyAccepted")
           )
         )
@@ -171,29 +172,29 @@ export default function AdminBoard() {
       const userAcceptedCount = (
         await getCountFromServer(
           query(
-            collection(db, "Forms"),
+            collection(db, FORMS_COLLECTION),
             where("appStatus", "==", "userAccepted")
           )
         )
       ).data().count;
       const acceptedCount = (
         await getCountFromServer(
-          query(collection(db, "Forms"), where("appStatus", "==", "accepted"))
+          query(collection(db, FORMS_COLLECTION), where("appStatus", "==", "accepted"))
         )
       ).data().count;
       const waitlistCount = (
         await getCountFromServer(
-          query(collection(db, "Forms"), where("appStatus", "==", "waitlist"))
+          query(collection(db, FORMS_COLLECTION), where("appStatus", "==", "waitlist"))
         )
       ).data().count;
       const waitingCount = (
         await getCountFromServer(
-          query(collection(db, "Forms"), where("appStatus", "==", "waiting"))
+          query(collection(db, FORMS_COLLECTION), where("appStatus", "==", "waiting"))
         )
       ).data().count;
       const declinedCount = (
         await getCountFromServer(
-          query(collection(db, "Forms"), where("appStatus", "==", "declined"))
+          query(collection(db, FORMS_COLLECTION), where("appStatus", "==", "declined"))
         )
       ).data().count;
 
@@ -209,9 +210,9 @@ export default function AdminBoard() {
 
       const q =
         mode === "everything"
-          ? query(collection(db, "Forms"), orderBy("createdAt"))
+          ? query(collection(db, FORMS_COLLECTION), orderBy("createdAt"))
           : query(
-              collection(db, "Forms"),
+              collection(db, FORMS_COLLECTION),
               where("appStatus", "==", mode),
               orderBy("createdAt")
             );

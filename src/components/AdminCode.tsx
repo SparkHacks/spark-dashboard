@@ -2,6 +2,7 @@ import { Html5QrcodeScanner } from 'html5-qrcode';
 import { useEffect, useRef, useState } from 'react';
 import { collection, doc, getCountFromServer, getDoc, query, where} from "firebase/firestore"
 import { db } from "../firebase/client"
+import { FORMS_COLLECTION } from "../config/constants"
 import { toast, ToastContainer } from 'react-toastify';
 import "./AdminCode.css"
 
@@ -78,7 +79,7 @@ export default function AdminCode() {
   const getUser = async (code: string) => {
     try {
       if(code === emailRef.current) return
-      const docRef = doc(db, "Forms", code)
+      const docRef = doc(db, FORMS_COLLECTION, code)
       const docSnap = await getDoc(docRef)
       
       if (!docSnap.exists()) {
@@ -242,19 +243,19 @@ export default function AdminCode() {
           <div style={{display: 'flex', flexDirection: 'column', gap: '5px'}}>
             <span>Day 1:</span>
             <div>
-              <input disabled name='d1Here' id="d1Here"  type="checkbox" data-id="d1Here"/>
+              <input name='d1Here' id="d1Here"  type="checkbox" data-id="d1Here"/>
               <label htmlFor="d1Here">Day 1 Here?</label>
             </div>
             <div>
-              <input disabled name='d1Snack' id="d1Snack"  type="checkbox" data-id="d1Snack"/>
+              <input name='d1Snack' id="d1Snack"  type="checkbox" data-id="d1Snack"/>
               <label htmlFor="d1Snack">Ate Snack?</label>
             </div>
             <div>
-              <input disabled name='d1Dinner' id="d1Dinner" type="checkbox" data-id="d1Dinner"/>
+              <input name='d1Dinner' id="d1Dinner" type="checkbox" data-id="d1Dinner"/>
               <label htmlFor="d1Dinner">Ate Dinner?</label>
             </div>
             <div>
-              <input disabled name='d1Cookies' id="d1Cookies" type="checkbox" data-id="d1Cookies"/>
+              <input name='d1Cookies' id="d1Cookies" type="checkbox" data-id="d1Cookies"/>
               <label htmlFor="d1Cookies">Ate Cookies?</label>
             </div>
           </div>
@@ -363,15 +364,15 @@ export default function AdminCode() {
 }
 
 const getSummaryStats = async () => {
-  const d1Here = (await getCountFromServer(query(collection(db, "Forms"), where("d1Here", "==", true)))).data().count
-  const d1Snack = (await getCountFromServer(query(collection(db, "Forms"), where("d1Snack", "==", true)))).data().count
-  const d1Dinner = (await getCountFromServer(query(collection(db, "Forms"), where("d1Dinner", "==", true)))).data().count
-  const d1Cookies = (await getCountFromServer(query(collection(db, "Forms"), where("d1Cookies", "==", true)))).data().count
+  const d1Here = (await getCountFromServer(query(collection(db, FORMS_COLLECTION), where("d1Here", "==", true)))).data().count
+  const d1Snack = (await getCountFromServer(query(collection(db, FORMS_COLLECTION), where("d1Snack", "==", true)))).data().count
+  const d1Dinner = (await getCountFromServer(query(collection(db, FORMS_COLLECTION), where("d1Dinner", "==", true)))).data().count
+  const d1Cookies = (await getCountFromServer(query(collection(db, FORMS_COLLECTION), where("d1Cookies", "==", true)))).data().count
 
-  const d2Here = (await getCountFromServer(query(collection(db, "Forms"), where("d2Here", "==", true)))).data().count
-  const d2Breakfast = (await getCountFromServer(query(collection(db, "Forms"), where("d2Breakfast", "==", true)))).data().count
-  const d2Lunch = (await getCountFromServer(query(collection(db, "Forms"), where("d2Lunch", "==", true)))).data().count
-  const d2Dinner = (await getCountFromServer(query(collection(db, "Forms"), where("d2Dinner", "==", true)))).data().count
+  const d2Here = (await getCountFromServer(query(collection(db, FORMS_COLLECTION), where("d2Here", "==", true)))).data().count
+  const d2Breakfast = (await getCountFromServer(query(collection(db, FORMS_COLLECTION), where("d2Breakfast", "==", true)))).data().count
+  const d2Lunch = (await getCountFromServer(query(collection(db, FORMS_COLLECTION), where("d2Lunch", "==", true)))).data().count
+  const d2Dinner = (await getCountFromServer(query(collection(db, FORMS_COLLECTION), where("d2Dinner", "==", true)))).data().count
 
   return {
     d1Here,

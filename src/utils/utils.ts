@@ -1,9 +1,8 @@
 import { db } from "../firebase/server"
 import { questions } from "./questions"
 import type { FormSubmissionData } from "../env"
-
-// Collection name for form submissions - change this for each year
-export const FORMS_COLLECTION = "Form_26"
+import { FORMS_COLLECTION } from "../config/constants"
+export { FORMS_COLLECTION }
 
 export const displayFormData = (
   email: string | undefined,
