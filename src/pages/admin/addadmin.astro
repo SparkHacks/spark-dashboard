@@ -46,6 +46,43 @@ try {
     <Sidebar />
     <div class="app-section">
       <h1>Is Real Database: {isRealDatabase}</h1>
+
+      <h1>Manage User Roles</h1>
+      <form id="role-form">
+        <input
+          class="email-input"
+          name="email"
+          type="email"
+          placeholder="Type a registered email"
+          required
+        />
+        <div class="role-options">
+          <label class="role-label">
+            <input type="radio" name="role" value="admin" required />
+            <span class="role-badge" style="background-color: lightcoral;">Admin</span>
+          </label>
+          <label class="role-label">
+            <input type="radio" name="role" value="qrScanner" required />
+            <span class="role-badge" style="background-color: lightseagreen;">QR Scanner</span>
+          </label>
+          <label class="role-label">
+            <input type="radio" name="role" value="webDev" required />
+            <span class="role-badge" style="background-color: lightgreen;">Web Dev</span>
+          </label>
+          <label class="role-label">
+            <input type="radio" name="role" value="director" required />
+            <span class="role-badge" style="background-color: lightblue;">Director</span>
+          </label>
+        </div>
+        <div class="action-buttons">
+          <input type="radio" id="add-role" name="action" value="add" required />
+          <label for="add-role">Add Role</label>
+          <input type="radio" id="remove-role" name="action" value="remove" required />
+          <label for="remove-role">Remove Role</label>
+          <button type="submit">Submit</button>
+        </div>
+      </form>
+
       <h1>Register New User</h1>
       <button id="register-btn">Sign in with google</button>
       <h1>Admin users</h1>
@@ -162,6 +199,9 @@ try {
         import { signInWithPopup } from "firebase/auth";
         import { auth, provider } from "../../firebase/client";
 
+        const roleForm = document.getElementById(
+          "role-form",
+        ) as HTMLFormElement;
         const adminForm = document.getElementById(
           "admin-form",
         ) as HTMLFormElement;
@@ -171,6 +211,29 @@ try {
         const btn = document.getElementById(
           "register-btn",
         ) as HTMLButtonElement;
+
+        roleForm?.addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const formData = new FormData(roleForm);
+          try {
+            const res = await fetch("/api/modify-roles", {
+              method: "POST",
+              body: formData,
+            });
+            const msg = await res.text();
+            if (!res.ok) {
+              alert(`Error modifying role: ${msg}`);
+              return;
+            }
+
+            alert(msg);
+            window.location.reload();
+          } catch (err) {
+            console.error(err);
+            alert("Something went wrong with modifying the role");
+          }
+        });
+
         btn.addEventListener("click", async () => {
           try {
             const userCredential = await signInWithPopup(auth, provider);
@@ -278,5 +341,45 @@ try {
     border-radius: 8px;
     color: black;
     width: fit-content;
+  }
+
+  #role-form {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  .role-options {
+    display: flex;
+    gap: 15px;
+    margin: 15px 0;
+    flex-wrap: wrap;
+  }
+
+  .role-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+  }
+
+  .role-badge {
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-weight: 500;
+    transition: opacity 0.2s;
+  }
+
+  .role-label input[type="radio"]:not(:checked) + .role-badge {
+    opacity: 0.5;
+  }
+
+  .action-buttons {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 15px;
   }
 </style>
