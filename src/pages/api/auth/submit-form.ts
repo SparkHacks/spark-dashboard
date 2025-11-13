@@ -1,5 +1,5 @@
 import type { APIRoute } from "astro";
-import { displayFormData, sendFormToFirestore, validateFormData } from "../../../utils/utils.ts";
+import { displayFormData, sendFormToFirestore, validateFormData, FORMS_COLLECTION } from "../../../utils/utils.ts";
 import { FieldValue } from "firebase-admin/firestore";
 import { getAuth } from "firebase-admin/auth";
 import { app, db } from "../../../firebase/server.ts";
@@ -42,7 +42,7 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
 
   // check if user already submit it: TODO
   try {
-    const docSnap = await db.collection("Forms").doc(email).get()
+    const docSnap = await db.collection(FORMS_COLLECTION).doc(email).get()
     if (docSnap.exists) {
       console.error(`User ${email} already submit form`)
       return new Response("Form already submitted", {status: 400})

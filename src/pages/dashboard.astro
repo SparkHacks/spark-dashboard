@@ -9,6 +9,7 @@ import Badge from "../components/components/Badge.astro";
 
 import getRoleFlags from "../scripts/getRoles.ts";
 import type { RoleFlags } from "../scripts/getRoles.ts";
+import { FORMS_COLLECTION } from "../utils/utils";
 
 // information that will be displayed in dashboard page
 let userUID;
@@ -85,7 +86,7 @@ try {
 
   // check if the user already register the application:
   const docSnap = await db
-    .collection("Forms")
+    .collection(FORMS_COLLECTION)
     .doc(decodedCookie.email as string)
     .get();
   if (docSnap.exists) {

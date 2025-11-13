@@ -1,6 +1,7 @@
 import type { APIRoute } from "astro";
 import { getAuth } from "firebase-admin/auth";
 import { app, db } from "../../../firebase/server";
+import { FORMS_COLLECTION } from "../../../utils/utils";
 
 export const POST: APIRoute = async ({ request, cookies, redirect }) => {
 
@@ -43,7 +44,7 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
     }
     
     // disallow action when current appStatus is not "accepted" or there is no form
-    const docSnap = await db.collection("Forms").doc(email).get()
+    const docSnap = await db.collection(FORMS_COLLECTION).doc(email).get()
     if (!docSnap.exists) {
       return new Response("Invalid action", {status: 400})
     }
@@ -52,7 +53,7 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
     }
 
     // action
-    const res = await db.collection("Forms").doc(email).update({
+    const res = await db.collection(FORMS_COLLECTION).doc(email).update({
       appStatus: action
     })
     

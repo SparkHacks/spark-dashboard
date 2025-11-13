@@ -2,6 +2,9 @@ import { db } from "../firebase/server"
 import { questions } from "./questions"
 import type { FormSubmissionData } from "../env"
 
+// Collection name for form submissions - change this for each year
+export const FORMS_COLLECTION = "Form_26"
+
 export const displayFormData = (
   email: string | undefined,
   firstName: string  | undefined,
@@ -194,5 +197,5 @@ export const sendFormToGoogleSheet = async (formSubmissionData: FormSubmissionDa
 
 // send form to firestore
 export const sendFormToFirestore = async (formSubmissionData: FormSubmissionData) => {
-  await db.collection("Forms").doc(formSubmissionData.email).set(formSubmissionData)
+  await db.collection(FORMS_COLLECTION).doc(formSubmissionData.email).set(formSubmissionData)
 }
