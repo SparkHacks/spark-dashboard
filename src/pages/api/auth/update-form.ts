@@ -1,6 +1,7 @@
 import type { APIRoute } from "astro";
 import { getAuth } from "firebase-admin/auth";
 import { app, db } from "../../../firebase/server";
+import { FORMS_COLLECTION } from "../../../utils/utils";
 
 export const POST: APIRoute = async ({ request, cookies, redirect }) => {
   
@@ -52,7 +53,7 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
     }
 
     // try to update
-    const res = await db.collection("Forms").doc(email).update({
+    const res = await db.collection(FORMS_COLLECTION).doc(email).update({
       appStatus: updateAction
     })
     console.log(res)

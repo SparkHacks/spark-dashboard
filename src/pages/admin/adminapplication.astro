@@ -5,7 +5,8 @@ import { app, db } from "../../firebase/server";
 import { getAuth } from "firebase-admin/auth";
 import type { DocumentData } from "firebase-admin/firestore";
 import type { FormViewData } from "../../env";
-import Sidebar from "../../components/Sidebar"
+import Sidebar from "../../components/Sidebar";
+import { FORMS_COLLECTION } from "../../utils/utils";
 
 let userEmail = "";
 let registered = false
@@ -36,7 +37,7 @@ try {
 
 
   // if already registered then do not render submit button
-  const docSnap = await db.collection("Forms").doc(decodedCookie.email as string).get()
+  const docSnap = await db.collection(FORMS_COLLECTION).doc(decodedCookie.email as string).get()
   if (docSnap.exists) {
     const data = docSnap.data() as DocumentData
     registered = true
