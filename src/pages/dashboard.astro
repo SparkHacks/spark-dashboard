@@ -3,7 +3,6 @@ import DashboardLayout from "../layouts/DashboardLayout.astro";
 import { app, db } from "../firebase/server";
 import { getAuth } from "firebase-admin/auth";
 import QRCode from "qrcode";
-import Sidebar from "../components/Sidebar";
 import StatCard from "../components/StatCard";
 import Badge from "../components/components/Badge.astro";
 
@@ -110,7 +109,7 @@ const uidDataURI = await QRCode.toDataURL(userEmail, {
 const newUserState = (await db.collection("Settings").doc("newUserState").get()).data()?.isNewUserEnabled
 ---
 
-<DashboardLayout>
+<DashboardLayout userName={userName} userEmail={userEmail} currentPath={Astro.url.pathname}>
   <section class="modal-wrapper">
     <div class="modal">
       <button class="modal-return-btn">Return</button>
@@ -133,7 +132,6 @@ const newUserState = (await db.collection("Settings").doc("newUserState").get())
     </div>
   </section>
   <div class="main-section">
-  {roles.isAdmin && <Sidebar/>}
   <div class="main-right-section">
   <section class="user-info">
     
@@ -431,8 +429,7 @@ const newUserState = (await db.collection("Settings").doc("newUserState").get())
 
   .main-section {
     display: flex;
-    flex-direction: row;
-    gap: 15px;
+    flex-direction: column;
   }
 
   .main-right-section {

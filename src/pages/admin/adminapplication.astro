@@ -5,10 +5,11 @@ import { app, db } from "../../firebase/server";
 import { getAuth } from "firebase-admin/auth";
 import type { DocumentData } from "firebase-admin/firestore";
 import type { FormViewData } from "../../env";
-import Sidebar from "../../components/Sidebar";
 import { FORMS_COLLECTION } from "../../utils/utils";
 
 let userEmail = "";
+let userName = "";
+let userPhoto = "";
 let registered = false
 let applicationData: FormViewData | null = null
 
@@ -33,6 +34,8 @@ try {
   }
 
   userEmail = user.email as string;
+  userName = user.displayName || "";
+  userPhoto = user.photoURL || "";
   const newUserState = false
 
 
@@ -72,26 +75,24 @@ try {
 }
 ---
 
-<DashboardLayout>
+<DashboardLayout userName={userName} userEmail={userEmail} currentPath={Astro.url.pathname}>
     <div class="admin-section">
-        <Sidebar/>
         <div class="app-form">
             <AppForm email={userEmail} registered={registered} applicationData={applicationData} isAdmin={true} client:only="react" />
         </div>
-  
-        </div>
-    
+    </div>
 </DashboardLayout>
 
 <style>
 .admin-section {
     display: flex;
+    flex-direction: column;
 }
 
 .app-form {
     border: 5px solid #f7f7f7;
     /* background-color: #f7f7f7; */
-    margin: 0 0 10px 20px;
+    margin: 0;
     border-radius: 10px;
     padding: 15px;
     width: 100%;

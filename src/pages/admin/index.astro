@@ -3,7 +3,6 @@ import DashboardLayout from "../../layouts/DashboardLayout.astro"
 import AdminBoard from "../../components/AdminBoard"
 import { getAuth } from "firebase-admin/auth";
 import { app } from "../../firebase/server";
-import Sidebar from "../../components/Sidebar"
 
 let userEmail = "";
 let userName = ""
@@ -48,19 +47,9 @@ catch (err) {
 
 ---
 
-<DashboardLayout>
+<DashboardLayout userName={userName} userEmail={userEmail} currentPath={Astro.url.pathname}>
   <div class="admin-section">
-
-  
-  <Sidebar/>
-  <!-- <button class="qr-nav-btn" onclick="window.location.assign('/admin/qr')">To QrScanner</button> -->
-  <!-- <section class="user-info">
-    <h1>Welcome Admin, {userName}!</h1>
-    <img src={"/adminUser.svg"} alt="avatar" width="35" height="35" style="border-radius: 9999px;"/>
-  </section> -->
-  <div style="flex: 1; width: 100%;">
     <AdminBoard client:load/>
-  </div>
   </div>
 </DashboardLayout>
 <style>
