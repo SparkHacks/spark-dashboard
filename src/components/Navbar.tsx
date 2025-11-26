@@ -19,11 +19,7 @@ export default function Navbar({ userName, userEmail, currentPath }: NavbarProps
   ];
 
   const isActive = (href: string) => {
-    if (href === "/dashboard") {
-      return currentPath === "/dashboard";
-    }
-
-    return currentPath === href || (href !== "/dashboard" && currentPath.startsWith(href));
+    return currentPath === href;
   };
 
   return (
