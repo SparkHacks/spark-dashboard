@@ -2,6 +2,7 @@ import styles from "./styles/AdminTable.module.css";
 import { useState } from "react";
 import type { FormViewData } from "../../env";
 import type { Summary } from "../AdminBoard";
+import { STATUS_COLORS } from "../AdminBoard";
 
 export default function AdminTable({
   datas,
@@ -82,18 +83,7 @@ function Row({
   globalLoading: boolean;
   setGlobalLoading: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
-  const backgroundColor =
-    data.appStatus === "waitlist"
-      ? "#f5e3bd"
-      : data.appStatus === "declined"
-      ? "#f5bdbd"
-      : data.appStatus === "accepted"
-      ? "#cff5bd"
-      : data.appStatus === "userAccepted"
-      ? "#bdc3f5"
-      : data.appStatus === "fullyAccepted"
-      ? "#72f784"
-      : "";
+  const backgroundColor = STATUS_COLORS[data.appStatus] || STATUS_COLORS.waiting;
 
   const updateForm = async (
     updateAction:
@@ -156,28 +146,6 @@ function Row({
     }
   };
 
-  const handleFullyAccept = () => {
-    data.appStatus !== "fullyAccepted" && updateForm("fullyAccepted");
-  };
-
-  const handleAccept = () => {
-    data.appStatus !== "accepted" &&
-      data.appStatus !== "fullyAccepted" &&
-      updateForm("accepted");
-  };
-
-  const handleDecline = () => {
-    data.appStatus !== "declined" && updateForm("declined");
-  };
-
-  const handleWait = () => {
-    data.appStatus !== "waiting" && updateForm("waiting");
-  };
-
-  const handleWaitlist = () => {
-    data.appStatus !== "waitlist" && updateForm("waitlist");
-  };
-
   const handleView = () => {
     if (!view || view.email !== data.email) {
       setView(data);
@@ -186,69 +154,122 @@ function Row({
     }
   };
 
+  const isExpanded = view?.email === data.email;
+
   return (
     <div
-      className={styles.rowTable}
+      className={styles.rowContainer}
       style={{
         backgroundColor: backgroundColor,
-        border: view?.email === data.email ? "3px solid black" : "",
-        borderRadius: view?.email === data.email ? "8px" : "",
+        borderRadius: "15px",
+        border: isExpanded ? "3px solid black" : "none",
+        marginBottom: "8px",
+        overflow: "hidden",
+        transition: "all 0.3s ease",
       }}
     >
-      <div className={styles.cellId}>
-        <strong>{id}</strong>
+      <div className={styles.rowTable} style={{ fontWeight: 600 }}>
+        <div className={styles.cellId}>
+          <strong>{id}</strong>
+        </div>
+        <div className={styles.cellEmail}>{data.email}</div>
+        <div className={styles.cellName}>
+          {data.firstName} {data.lastName}
+        </div>
+        <div className={styles.cellCreatedAt}>{data.createdAt}</div>
+        <div className={styles.cellAvailability}>{data.availability}</div>
+        <div className={styles.cellStatus}>
+          <select
+            style={{
+              backgroundColor: "EEE1F7",
+              borderRadius: "10px",
+              fontWeight: "bold"
+            }}
+            value={data.appStatus}
+            onChange={(e) => updateForm(e.target.value as any)}
+            disabled={globalLoading}
+            className={styles.statusDropdown}
+          >
+            <option value="waiting">Pending</option>
+            <option value="accepted">Accepted</option>
+            <option value="waitlist">Waitlisted</option>
+            <option value="declined">Declined</option>
+            <option value="userAccepted">Invited</option>
+            <option value="fullyAccepted">Confirmed</option>
+          </select>
+        </div>
+        <div className={styles.cellActions}>
+          <button className={styles.viewBtn} onClick={handleView} style={{fontWeight: "bold"}}>
+            {isExpanded ? "Hide" : "View"}
+          </button>
+        </div>
       </div>
-      <div className={styles.cellEmail}>{data.email}</div>
-      <div className={styles.cellName}>
-        {data.firstName} {data.lastName}
-      </div>
-      <div className={styles.cellCreatedAt}>{data.createdAt}</div>
-      <div className={styles.cellAvailability}>{data.availability}</div>
-      <div className={styles.cellStatus}>{data.appStatus}</div>
-      <div className={styles.cellActions}>
-        <button
-          className={styles.declineBtn}
-          disabled={globalLoading || data.appStatus === "declined"}
-          onClick={handleDecline}
-        >
-          Decline
-        </button>
-        <button
-          className={styles.acceptBtn}
-          disabled={
-            globalLoading ||
-            data.appStatus === "accepted" ||
-            data.appStatus === "fullyAccepted" ||
-            data.appStatus === "userAccepted"
-          }
-          onClick={handleAccept}
-        >
-          Accept
-        </button>
-        <button
-          className={styles.waitlistBtn}
-          disabled={globalLoading || data.appStatus === "waitlist"}
-          onClick={handleWaitlist}
-        >
-          Waitlist
-        </button>
-        <button
-          className={styles.waitBtn}
-          disabled={globalLoading || data.appStatus === "waiting"}
-          onClick={handleWait}
-        >
-          Wait
-        </button>
-        <button
-          className={styles.fullyAcceptBtn}
-          disabled={globalLoading || data.appStatus === "fullyAccepted"}
-          onClick={handleFullyAccept}
-        >
-          Fully Accept
-        </button>
-        <button className={styles.viewBtn} onClick={handleView}>
-          View
-        </button>
+
+      <div
+        className={styles.expandedContent}
+        style={{
+          maxHeight: isExpanded ? "1000px" : "0",
+          opacity: isExpanded ? 1 : 0,
+          transition: "max-height 0.4s ease, opacity 0.3s ease, padding 0.3s ease",
+          padding: isExpanded ? "0px 20px 20px 20px" : "0 20px", 
+        }}
+      >
+        <div className={styles.detailsGrid}>
+          <div className={styles.detailItem}>
+            <strong>Application Status:</strong> {data.appStatus}
+          </div>
+          <div className={styles.detailItem}>
+            <strong>Submitted at:</strong> {data.createdAt}
+          </div>
+          <div className={styles.detailItem}>
+            <strong>Email:</strong> {data.email}
+          </div>
+          <div className={styles.detailItem}>
+            <strong>UIN:</strong> {data.uin}
+          </div>
+          <div className={styles.detailItem}>
+            <strong>Gender:</strong> {data.gender}
+          </div>
+          <div className={styles.detailItem}>
+            <strong>Year:</strong> {data.year}
+          </div>
+          <div className={styles.detailItem}>
+            <strong>Availability:</strong> {data.availability}
+          </div>
+          <div className={styles.detailItem}>
+            <strong>More availability:</strong> {data.moreAvailability}
+          </div>
+          <div className={styles.detailItem}>
+            <strong>Dietary Restriction:</strong>
+            <ul style={{ margin: "5px 0", paddingLeft: "20px" }}>
+              {data.dietaryRestriction?.map((diet, idx) => <li key={idx}>{diet}</li>)}
+            </ul>
+          </div>
+          <div className={styles.detailItem}>
+            <strong>Other Dietary Restriction:</strong> {data.otherDietaryRestriction}
+          </div>
+          <div className={styles.detailItem}>
+            <strong>T-shirt size:</strong> {data.shirtSize}
+          </div>
+          <div className={styles.detailItem}>
+            <strong>Team plan:</strong> {data.teamPlan}
+          </div>
+          <div className={styles.detailItem}>
+            <strong>Pre workshops:</strong>
+            <ul style={{ margin: "5px 0", paddingLeft: "20px" }}>
+              {data.preWorkshops?.map((preW, idx) => <li key={idx}>{preW}</li>)}
+            </ul>
+          </div>
+          <div className={styles.detailItem}>
+            <strong>Job type:</strong> {data.jobType}
+          </div>
+          <div className={styles.detailItem}>
+            <strong>Other Job type:</strong> {data.otherJobType}
+          </div>
+          <div className={styles.detailItem}>
+            <strong>Resume link:</strong> <a href={data.resumeLink} target="_blank" rel="noopener noreferrer" style={{ color: "#0066cc" }}>{data.resumeLink}</a>
+          </div>
+        </div>
       </div>
     </div>
   );
