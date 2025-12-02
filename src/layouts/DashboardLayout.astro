@@ -1,16 +1,24 @@
 ---
 import Layout from "./Layout.astro";
+import Navbar from "../components/Navbar";
+
+interface Props {
+  userName?: string;
+  userEmail?: string;
+  currentPath: string;
+}
+
+const { userName, userEmail, currentPath } = Astro.props;
 ---
 
 <Layout>
   <main id="dashboard">
-    <nav>
-      <div id="logo" style="display: flex; gap: 10px; align-items: center">
-        <!-- <img src="/sparkhacks-logo.svg" alt="logo" width="45" height="45"/> -->
-        <h1>SparkHacks Dashboard</h1>
-      </div>
-      <button id="signout-button">Sign out</button>
-    </nav>
+    <Navbar
+      userName={userName}
+      userEmail={userEmail}
+      currentPath={currentPath}
+      client:load
+    />
     <main id="dashboard-main">
       <slot />
     </main>
@@ -75,19 +83,6 @@ import Layout from "./Layout.astro";
     justify-content: center;
     /* align-items: center; */
   }
-  nav {
-    /* width: 100%; */
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    height: 60px;
-    padding: 20px 40px;
-    box-sizing: border-box;
-    border-radius: 15px;
-    background-color: #F7F7F7;
-    color: black;
-    margin: 15px;
-  }
   #dashboard-main {
     /* width: 100%; */
     flex: 1;
@@ -105,16 +100,5 @@ import Layout from "./Layout.astro";
   }
   #logo {
     cursor: pointer;
-  }
-  #signout-button {
-		cursor: pointer;
-    font-size: large;
-		padding: 8px 16px;
-		border: none;
-		border-radius: 8px;
-  }
-  #signout-button:hover {
-    filter: brightness(80%);
-    text-decoration: underline;
   }
 </style>

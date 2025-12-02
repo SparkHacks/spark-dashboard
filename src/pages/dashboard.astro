@@ -3,7 +3,6 @@ import DashboardLayout from "../layouts/DashboardLayout.astro";
 import { app, db } from "../firebase/server";
 import { getAuth } from "firebase-admin/auth";
 import QRCode from "qrcode";
-import Sidebar from "../components/Sidebar";
 import StatCard from "../components/StatCard";
 import Badge from "../components/components/Badge.astro";
 
@@ -110,7 +109,7 @@ const uidDataURI = await QRCode.toDataURL(userEmail, {
 const newUserState = (await db.collection("Settings").doc("newUserState").get()).data()?.isNewUserEnabled
 ---
 
-<DashboardLayout>
+<DashboardLayout userName={userName} userEmail={userEmail} currentPath={Astro.url.pathname}>
   <section class="modal-wrapper">
     <div class="modal">
       <button class="modal-return-btn">Return</button>
@@ -133,18 +132,9 @@ const newUserState = (await db.collection("Settings").doc("newUserState").get())
     </div>
   </section>
   <div class="main-section">
-  {roles.isAdmin && <Sidebar/>}
   <div class="main-right-section">
   <section class="user-info">
-    
     <h1>Welcome, {userName}!</h1>
-    <!-- <img
-      src={roles.isAdmin ? "/adminUser.svg" : "/regularUser.svg"}
-      alt="avatar"
-      width="35"
-      height="35"
-      style="border-radius: 9999px;"
-    /> -->
   </section>
   {
     roles.isAdmin && (
@@ -378,9 +368,10 @@ const newUserState = (await db.collection("Settings").doc("newUserState").get())
     );
   </script>
 </DashboardLayout>
+
 <style>
   .user-info {
-    width: 1000px;
+    flex: 1;
     max-width: 100%;
     /* margin-top: 70px; */
     font-size: x-large;
@@ -395,7 +386,7 @@ const newUserState = (await db.collection("Settings").doc("newUserState").get())
   }
   .dashboard-status {
     box-sizing: border-box;
-    width: 1000px;
+    flex: 1;
     max-width: 100%;
     margin-top: 20px;
     border-radius: 4px;
@@ -420,7 +411,7 @@ const newUserState = (await db.collection("Settings").doc("newUserState").get())
 
   .dashboard-app {
     box-sizing: border-box;
-    width: 1000px;
+    flex: 1;
     max-width: 100%;
     margin-top: 20px;
     padding: 20px;
@@ -431,8 +422,8 @@ const newUserState = (await db.collection("Settings").doc("newUserState").get())
 
   .main-section {
     display: flex;
-    flex-direction: row;
-    gap: 15px;
+    flex-direction: column;
+    max-width: 100%;
   }
 
   .main-right-section {
@@ -440,6 +431,7 @@ const newUserState = (await db.collection("Settings").doc("newUserState").get())
     padding: 30px;
     border-radius: 15px;
     width: 100%;
+    box-sizing: border-box;
   }
 
   .dashButton {

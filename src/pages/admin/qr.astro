@@ -3,7 +3,6 @@ import DashboardLayout from "../../layouts/DashboardLayout.astro"
 import { getAuth } from "firebase-admin/auth";
 import { app } from "../../firebase/server";
 import AdminCode from "../../components/AdminCode";
-import Sidebar from "../../components/Sidebar";
 
 import getRoleFlags from "../../scripts/getRoles.ts";
 import type { RoleFlags } from "../../scripts/getRoles.ts";
@@ -58,23 +57,9 @@ catch (err) {
 
 ---
 
-<DashboardLayout>
-  <!-- <button class="admin-nav-btn" style="margin-bottom: 20px;" onclick="window.location.assign('/admin')">To Admin</button> -->
-
-  <!-- <section class="user-info">
-    <h1>Scanning Mode for {userName}!</h1>
-    <img src={"/adminUser.svg"} alt="avatar" width="35" height="35" style="border-radius: 9999px;"/>
-  </section> -->
-
+<DashboardLayout userName={userName} userEmail={userEmail} currentPath={Astro.url.pathname}>
   <div class="admin-section">
-
-  
-  
-  <Sidebar/>
-  <div style="flex: 1; width: 100%;">
-    
     <AdminCode client:load />
-  </div>
   </div>
 </DashboardLayout>
 <style>

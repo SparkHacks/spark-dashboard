@@ -22,69 +22,132 @@
 .headerTable > div {
   font-weight: bold;
 }
+
+.sortableHeader {
+  cursor: pointer;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  transition: background-color 0.2s ease;
+}
+
+.sortableHeader:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+  border-radius: 4px;
+}
 .rowTable {
-  background-color: white;
-  margin-top: 2px;
+  background-color: transparent;
 }
 
 .contentTable {
   max-height: 100%;
   height: 700px;
   overflow-y: scroll;
-  background-color: rgb(174, 199, 244);
+  background-color: #F7F7F7;
+  padding: 8px 0;
+  background-image:
+    repeating-linear-gradient(0deg, #9747FF, #9747FF 10px, transparent 10px, transparent 15px),
+    repeating-linear-gradient(90deg, #9747FF, #9747FF 10px, transparent 10px, transparent 15px),
+    repeating-linear-gradient(180deg, #9747FF, #9747FF 10px, transparent 10px, transparent 15px),
+    repeating-linear-gradient(270deg, #9747FF, #9747FF 10px, transparent 10px, transparent 15px);
+  background-size: 1px 100%, 100% 1px, 1px 100%, 100% 1px;
+  background-position: 0 0, 0 0, 100% 0, 0 100%;
+  background-repeat: no-repeat;
+  padding: 10px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
+
+.contentTable::-webkit-scrollbar {
+  display: none;
+}
+.rowContainer {
+  display: flex;
+  flex-direction: column;
+}
+
 .rowTable:hover {
-  background-color: rgb(203, 229, 255)
+  filter: brightness(0.95);
+}
+
+.expandedContent {
+  overflow: hidden;
+}
+
+.detailsGrid {
+  border-top: solid black 1px;
+  padding-top: 10px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 15px;
+  font-weight: 400;
+}
+
+.detailItem {
+  padding: 4px 0;
+}
+
+.detailItem strong {
+  display: block;
+  margin-bottom: 4px;
+  color: #333;
 }
 .cellId {
   width: 35px
 }
 .cellEmail {
-  width: 150px;
+  flex: 1;
 }
 .cellCreatedAt {
-  width: 200px
+  flex: 1;
 }
 .cellName {
-  width: 150px
+  flex: 1;
 }
 .cellAvailability {
-  width: 300px;
+  width: 140px;
 }
 .cellStatus {
-  width: 70px;
+  width: 150px;
 }
 .cellActions {
-  flex: 1;
+  width: 100px;
   display: flex;
   flex-wrap: wrap;
   justify-content: end;
   gap: 4px;
 }
 
-/* buttons */
+/* Status Dropdown */
+.statusDropdown {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: white;
+  cursor: pointer;
+  font-size: 14px;
+  outline: none;
+}
 
-.declineBtn, .acceptBtn, .waitlistBtn, .waitBtn, .viewBtn, .fullyAcceptBtn {
+.statusDropdown:hover {
+  border-color: #999;
+}
+
+.statusDropdown:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* buttons */
+.viewBtn {
   padding: 8px 16px;
   border: none;
   border-radius: 8px;
   cursor: pointer;
+  background-color: #e0e0e0;
 }
-.declineBtn:disabled, .acceptBtn:disabled, .waitlistBtn:disabled, .waitBtn:disabled, .viewBtn:disabled, .fullyAcceptBtn:disabled {
-  cursor: not-allowed;
-}
-.declineBtn {
-  background-color: #ff8a8a;
-}
-.acceptBtn {
-  background-color: #cbffb3;
-}
-.waitlistBtn {
-  background-color: #fbd583;
-}
-.waitBtn {
-  background-color: #c1c1c1;
-}
-.fullyAcceptBtn {
-  background-color: #4eff66;
+
+.viewBtn:hover {
+  background-color: #d0d0d0;
 }
