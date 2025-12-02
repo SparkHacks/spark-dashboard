@@ -59,7 +59,7 @@ catch (err) {
 
 <DashboardLayout userName={userName} userEmail={userEmail} currentPath={Astro.url.pathname}>
   <div class="main-section">
-    <div class="main-right-section">
+    <div class="main-right-section" style={{justifyContent: 'center'}}>
       <AdminCode client:load />
     </div>
   </div>
@@ -78,5 +78,7 @@ catch (err) {
     width: 100%;
     min-height: 500px;
     box-sizing: border-box;
+    display: flex;
+    justify-content: center;
   }
 </style>

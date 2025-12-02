@@ -217,7 +217,7 @@ export default function AdminCode() {
   }, [])
 
   return (
-    <div>
+    <div style={{maxWidth: '700px'}}>
       <QrcodePlugin
         fps={10}
         qrbox={250}
@@ -226,56 +226,109 @@ export default function AdminCode() {
       />
       <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px', marginBottom: '20px'}}>
         <h3 style={{marginBottom: "0px"}}>Manually Search User</h3>
-        <div>
-          <input type='text' placeholder='Enter email' ref={inputRef} />
-          <button onClick={searchUser}>Submit</button>
-          <button onClick={handleClearSearch}>Clear</button>
+        <div style={{display: 'flex', gap: '8px'}}>
+          <input
+            type='text'
+            placeholder='Enter email'
+            ref={inputRef}
+            style={{
+              padding: '10px 14px',
+              fontSize: '14px',
+              border: '2px solid #ddd',
+              borderRadius: '8px',
+              outline: 'none',
+              transition: 'border-color 0.2s',
+              width: '250px'
+            }}
+            onFocus={(e) => e.target.style.borderColor = '#8d6db5'}
+            onBlur={(e) => e.target.style.borderColor = '#ddd'}
+          />
+          <button
+            onClick={searchUser}
+            style={{
+              padding: '10px 20px',
+              fontSize: '14px',
+              fontWeight: '600',
+              backgroundColor: '#8d6db5',
+              color: 'white',
+              border: 'none',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              transition: 'background-color 0.2s',
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#7a5da0'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#8d6db5'}
+          >
+            Submit
+          </button>
+          <button
+            onClick={handleClearSearch}
+            style={{
+              padding: '10px 20px',
+              fontSize: '14px',
+              fontWeight: '600',
+              backgroundColor: '#6c757d',
+              color: 'white',
+              border: 'none',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              transition: 'background-color 0.2s',
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#5a6268'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#6c757d'}
+          >
+            Clear
+          </button>
         </div>
         {!!errMsg && <span style={{color: "red", fontWeight: "bold", textAlign: "center"}}>Error: {errMsg}</span>}
       </div>
       {<div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', gap: '10px'}}>
-        <span>Name: {userInfo?.firstName} {userInfo?.lastName}</span>
-        <span> Status: <span style={{color: userInfo?.appStatus == "fullyAccepted" ? "green" : "red"}}> {userInfo?.appStatus}</span></span>
-        <span>Email: {userInfo?.email}</span>
-        <span>Shirt Size: {userInfo?.shirtSize}</span>
-        <h3 style={{marginBottom: "0px"}}>Current Food Data</h3>
-        <div id='form' style={{display: 'flex', flexDirection: 'row', gap: '10px'}}>
-          <div style={{display: 'flex', flexDirection: 'column', gap: '5px'}}>
-            <span>Day 1:</span>
-            <div>
-              <input name='d1Here' id="d1Here"  type="checkbox" data-id="d1Here"/>
-              <label htmlFor="d1Here">Day 1 Here?</label>
+        
+        <div style={{width: '100%', display: 'flex', flexDirection: 'column'}}>
+          <span><strong>Name: </strong>{userInfo?.firstName} {userInfo?.lastName}</span>
+          <span><strong>Status </strong> <span style={{color: userInfo?.appStatus == "fullyAccepted" ? "green" : "red"}}> {userInfo?.appStatus}</span></span>
+          <span><strong>Email: </strong>{userInfo?.email}</span>
+          <span><strong>Shirt Size: </strong> {userInfo?.shirtSize}</span>
+        </div>
+        
+        <h3 style={{marginBottom: "0px"}}>User Check-In</h3>
+        <div id='form' style={{display: 'flex', flexDirection: 'row', gap: '20px'}}>
+          <div style={{display: 'flex', flexDirection: 'column', gap: '8px'}}>
+            <span style={{fontWeight: '700', fontSize: '16px', marginBottom: '4px'}}>Day 1:</span>
+            <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+              <input name='d1Here' id="d1Here" type="checkbox" data-id="d1Here" style={{width: '18px', height: '18px', cursor: 'pointer', accentColor: '#8d6db5'}}/>
+              <label htmlFor="d1Here" style={{cursor: 'pointer', fontSize: '14px'}}>Check-In</label>
             </div>
-            <div>
-              <input name='d1Snack' id="d1Snack"  type="checkbox" data-id="d1Snack"/>
-              <label htmlFor="d1Snack">Ate Snack?</label>
+            <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+              <input name='d1Snack' id="d1Snack" type="checkbox" data-id="d1Snack" style={{width: '18px', height: '18px', cursor: 'pointer', accentColor: '#8d6db5'}}/>
+              <label htmlFor="d1Snack" style={{cursor: 'pointer', fontSize: '14px'}}>Snacks</label>
             </div>
-            <div>
-              <input name='d1Dinner' id="d1Dinner" type="checkbox" data-id="d1Dinner"/>
-              <label htmlFor="d1Dinner">Ate Dinner?</label>
+            <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+              <input name='d1Dinner' id="d1Dinner" type="checkbox" data-id="d1Dinner" style={{width: '18px', height: '18px', cursor: 'pointer', accentColor: '#8d6db5'}}/>
+              <label htmlFor="d1Dinner" style={{cursor: 'pointer', fontSize: '14px'}}>Dinner</label>
             </div>
-            <div>
-              <input name='d1Cookies' id="d1Cookies" type="checkbox" data-id="d1Cookies"/>
-              <label htmlFor="d1Cookies">Ate Cookies?</label>
+            <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+              <input name='d1Cookies' id="d1Cookies" type="checkbox" data-id="d1Cookies" style={{width: '18px', height: '18px', cursor: 'pointer', accentColor: '#8d6db5'}}/>
+              <label htmlFor="d1Cookies" style={{cursor: 'pointer', fontSize: '14px'}}>Cookies</label>
             </div>
           </div>
-          <div style={{display: 'flex', flexDirection: 'column', gap: '5px'}}>
-            <span>Day 2:</span>
-            <div>
-              <input name='d2Here' id="d2Here"  type="checkbox" data-id="d2Here"/>
-              <label htmlFor="d2Here">Day 2 Here?</label>
+          <div style={{display: 'flex', flexDirection: 'column', gap: '8px'}}>
+            <span style={{fontWeight: '700', fontSize: '16px', marginBottom: '4px'}}>Day 2:</span>
+            <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+              <input name='d2Here' id="d2Here" type="checkbox" data-id="d2Here" style={{width: '18px', height: '18px', cursor: 'pointer', accentColor: '#8d6db5'}}/>
+              <label htmlFor="d2Here" style={{cursor: 'pointer', fontSize: '14px'}}>Check-In</label>
             </div>
-            <div>
-              <input name='d2Breakfast' id="d2Breakfast" type="checkbox" data-id="d2Breakfast"/>
-              <label htmlFor="d2Breakfast">Ate Breakfast?</label>
+            <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+              <input name='d2Breakfast' id="d2Breakfast" type="checkbox" data-id="d2Breakfast" style={{width: '18px', height: '18px', cursor: 'pointer', accentColor: '#8d6db5'}}/>
+              <label htmlFor="d2Breakfast" style={{cursor: 'pointer', fontSize: '14px'}}>Breakfast</label>
             </div>
-            <div>
-              <input name='d2Lunch' id="d2Lunch" type="checkbox" data-id="d2Lunch"/>
-              <label htmlFor="d2Lunch">Ate Lunch?</label>
+            <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+              <input name='d2Lunch' id="d2Lunch" type="checkbox" data-id="d2Lunch" style={{width: '18px', height: '18px', cursor: 'pointer', accentColor: '#8d6db5'}}/>
+              <label htmlFor="d2Lunch" style={{cursor: 'pointer', fontSize: '14px'}}>Lunch</label>
             </div>
-            <div>
-              <input name='d2Dinner' id="d2Dinner" type="checkbox" data-id="d2Dinner"/>
-              <label htmlFor="d2Dinner">Ate Dinner?</label>
+            <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+              <input name='d2Dinner' id="d2Dinner" type="checkbox" data-id="d2Dinner" style={{width: '18px', height: '18px', cursor: 'pointer', accentColor: '#8d6db5'}}/>
+              <label htmlFor="d2Dinner" style={{cursor: 'pointer', fontSize: '14px'}}>Dinner</label>
             </div>
           </div>
         </div>
@@ -320,7 +373,32 @@ export default function AdminCode() {
             </div>
           </div>
         </div> */}
-        <button onClick={submitFoodData} style={{marginTop: "20px", width: "250px", height: "40px", marginBottom: "20px"}} disabled={userInfo === null}>Submit!</button>
+        <button
+          onClick={submitFoodData}
+          disabled={userInfo === null}
+          style={{
+            marginTop: "20px",
+            width: "250px",
+            height: "45px",
+            marginBottom: "20px",
+            fontSize: '16px',
+            fontWeight: '700',
+            backgroundColor: userInfo === null ? '#cccccc' : '#8d6db5',
+            color: 'white',
+            border: 'none',
+            borderRadius: '8px',
+            cursor: userInfo === null ? 'not-allowed' : 'pointer',
+            transition: 'background-color 0.2s',
+          }}
+          onMouseEnter={(e) => {
+            if (userInfo !== null) e.currentTarget.style.backgroundColor = '#7a5da0'
+          }}
+          onMouseLeave={(e) => {
+            if (userInfo !== null) e.currentTarget.style.backgroundColor = '#8d6db5'
+          }}
+        >
+          Submit!
+        </button>
       </div>}
       <ToastContainer />
     </div>
