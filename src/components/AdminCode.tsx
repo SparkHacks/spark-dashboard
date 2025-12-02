@@ -322,42 +322,6 @@ export default function AdminCode() {
         </div> */}
         <button onClick={submitFoodData} style={{marginTop: "20px", width: "250px", height: "40px", marginBottom: "20px"}} disabled={userInfo === null}>Submit!</button>
       </div>}
-      <section style={{border: "1px solid grey", borderRadius: "4px", marginTop: "10px", padding: "10px", marginLeft: "10px", marginRight: "10px", marginBottom: "20px"}}>
-        <div style={{display: "flex", gap: "20px", justifyContent: "center"}}>
-          <h2>Summary</h2>
-          <button onClick={handleRefresh} style={{padding: "8px 16px", margin: "15px"}}>Refresh</button>
-        </div>
-        <div style={{display: "flex", flexDirection: "row", gap: "20px", justifyContent: "center"}}>
-          <div style={{display: "flex", flexDirection: "row", gap: "10px"}}>
-            <div style={{display: "flex", flexDirection: "column", gap: "10px", alignItems: "end"}}>
-              <span><strong>Check-in Day 1:</strong></span>
-              <span><strong>Snack Day 1:</strong></span>
-              <span><strong>Dinner Day 1:</strong></span>
-              <span><strong>Cookies Day 1:</strong></span>
-            </div>
-            <div style={{display: "flex", flexDirection: "column", gap: "10px"}}>
-              <span>{summary.d1Here}</span>
-              <span>{summary.d1Snack}</span>
-              <span>{summary.d1Dinner}</span>
-              <span>{summary.d1Cookies}</span>
-            </div>
-          </div>
-          <div style={{display: "flex", flexDirection: "row", gap: "10px"}}>
-          <div style={{display: "flex", flexDirection: "column", gap: "10px",  alignItems: "end"}}>
-              <span><strong>Check-in Day 2:</strong></span>
-              <span><strong>Breakfast Day 2:</strong></span>
-              <span><strong>Lunch Day 2:</strong></span>
-              <span><strong>Dinner Day 2:</strong></span>
-            </div>
-            <div style={{display: "flex", flexDirection: "column", gap: "10px"}}>
-              <span>{summary.d2Here}</span>
-              <span>{summary.d2Breakfast}</span>
-              <span>{summary.d2Lunch}</span>
-              <span>{summary.d2Dinner}</span>
-            </div>
-          </div>
-        </div>
-      </section>
       <ToastContainer />
     </div>
   )
