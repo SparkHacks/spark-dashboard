@@ -1,0 +1,255 @@
+.top-navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 60px;
+  padding: 20px 20px;
+  box-sizing: border-box;
+  border-radius: 15px;
+  background-color: #F7F7F7;
+  color: black;
+  margin: 15px;
+}
+
+.navbar-left {
+  flex: 0 0 auto;
+}
+
+.navbar-logo {
+  font-size: 1.5rem;
+  font-weight: bold;
+  text-decoration: none;
+  color: black;
+}
+
+.navbar-logo:hover {
+  text-decoration: none;
+}
+
+.navbar-center {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+
+.navbar-links {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  gap: 30px;
+  align-items: center;
+}
+
+.navbar-links li {
+  margin: 0;
+}
+
+.navbar-links a {
+  text-decoration: none;
+  color: black;
+  font-size: 1rem;
+  transition: opacity 0.2s;
+}
+
+.navbar-links a:hover {
+  opacity: 0.7;
+}
+
+.navbar-links a.active {
+  font-weight: bold;
+}
+
+.navbar-right {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.navbar-profile-pic {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.navbar-user-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.navbar-user-name {
+  font-weight: 600;
+  font-size: 0.95rem;
+  line-height: 1.2;
+}
+
+.navbar-user-email {
+  font-size: 0.8rem;
+  color: #666;
+  line-height: 1.2;
+}
+
+.navbar-signout-btn {
+  cursor: pointer;
+  padding: 8px;
+  border: none;
+  border-radius: 8px;
+  background-color: #e0e0e0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: filter 0.2s;
+}
+
+.navbar-signout-btn:hover {
+  filter: brightness(90%);
+}
+
+.navbar-signout-btn svg {
+  display: block;
+}
+
+/* Hamburger menu button */
+.navbar-hamburger {
+  display: none;
+  flex-direction: column;
+  gap: 4px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  z-index: 1001;
+}
+
+.navbar-hamburger span {
+  width: 25px;
+  height: 3px;
+  background-color: black;
+  border-radius: 2px;
+  transition: all 0.3s ease;
+}
+
+/* Mobile styles */
+@media (max-width: 768px) {
+  .top-navbar {
+    flex-direction: column;
+    padding: 15px 20px;
+    height: auto;
+    position: relative;
+  }
+
+  .navbar-left {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    order: 1;
+  }
+
+  .navbar-hamburger {
+    display: flex;
+    position: static;
+    order: 2;
+  }
+
+  .navbar-center,
+  .navbar-right {
+    width: 100%;
+    background-color: #F7F7F7;
+    margin: 0;
+    border-radius: 10px;
+    overflow: hidden;
+    max-height: 0;
+    opacity: 0;
+    transition: max-height 0.3s ease, opacity 0.3s ease, padding 0.3s ease;
+    padding: 0;
+  }
+
+  .navbar-center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    order: 3;
+  }
+
+  .navbar-center.mobile-open {
+    max-height: 400px;
+    opacity: 1;
+    padding: 15px 20px;
+  }
+
+  .navbar-right {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: center;
+    border-top: 1px solid #ddd;
+    order: 4;
+    margin-top: 0;
+  }
+
+  .navbar-right.mobile-open {
+    max-height: 200px;
+    opacity: 1;
+    padding: 10px 10px 0px 10px;
+  }
+
+  .navbar-links {
+    flex-direction: column;
+    gap: 10px;
+    padding: 0;
+    margin: 0;
+    align-items: center;
+    width: 100%;
+  }
+
+  .navbar-links li {
+    margin: 0;
+    text-align: center;
+  }
+
+  .navbar-links a {
+    display: block;
+    padding: 10px 0;
+  }
+
+  .navbar-profile-pic {
+    order: 1;
+  }
+
+  .navbar-user-info {
+    flex: 0 0 auto;
+    order: 2;
+  }
+
+  .navbar-signout-btn {
+    order: 3;
+  }
+}
+
+/* Tablet styles */
+@media (max-width: 1024px) and (min-width: 769px) {
+  .navbar-center {
+    flex: 1;
+  }
+
+  .navbar-links {
+    gap: 15px;
+  }
+
+  .navbar-links a {
+    font-size: 0.9rem;
+  }
+
+  .navbar-user-name {
+    font-size: 0.85rem;
+  }
+
+  .navbar-user-email {
+    font-size: 0.75rem;
+  }
+}

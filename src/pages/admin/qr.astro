@@ -3,7 +3,6 @@ import DashboardLayout from "../../layouts/DashboardLayout.astro"
 import { getAuth } from "firebase-admin/auth";
 import { app } from "../../firebase/server";
 import AdminCode from "../../components/AdminCode";
-import Sidebar from "../../components/Sidebar";
 
 import getRoleFlags from "../../scripts/getRoles.ts";
 import type { RoleFlags } from "../../scripts/getRoles.ts";
@@ -58,42 +57,28 @@ catch (err) {
 
 ---
 
-<DashboardLayout>
-  <!-- <button class="admin-nav-btn" style="margin-bottom: 20px;" onclick="window.location.assign('/admin')">To Admin</button> -->
-
-  <!-- <section class="user-info">
-    <h1>Scanning Mode for {userName}!</h1>
-    <img src={"/adminUser.svg"} alt="avatar" width="35" height="35" style="border-radius: 9999px;"/>
-  </section> -->
-
-  <div class="admin-section">
-
-  
-  
-  <Sidebar/>
-  <div style="flex: 1; width: 100%;">
-    
-    <AdminCode client:load />
-  </div>
+<DashboardLayout userName={userName} userEmail={userEmail} currentPath={Astro.url.pathname}>
+  <div class="main-section">
+    <div class="main-right-section" style={{justifyContent: 'center'}}>
+      <AdminCode client:load />
+    </div>
   </div>
 </DashboardLayout>
 <style>
-  .admin-section{
+  .main-section {
     display: flex;
-  }
-  .admin-nav-btn {
-    padding: 8px 16px;
-    background-color: yellow;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    margin-top: 10px;
-  }
-  .user-info {
+    flex-direction: column;
     max-width: 100%;
-    font-size: x-large;
+  }
+
+  .main-right-section {
+    background-color: #F7F7F7;
+    padding: 30px;
+    border-radius: 15px;
+    width: 100%;
+    min-height: 500px;
+    box-sizing: border-box;
     display: flex;
-    align-items: center;
-    gap: 10px;
+    justify-content: center;
   }
 </style>

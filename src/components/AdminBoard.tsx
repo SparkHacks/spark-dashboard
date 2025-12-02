@@ -1,10 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import AdminTable from "./components/AdminTable";
-import ViewCard from "./components/ViewCard";
 import type { FormViewData } from "../env";
 import { collection, doc, getCountFromServer, getDoc, getDocs, orderBy, query, where, type DocumentData } from "firebase/firestore";
 import { db } from "../firebase/client";
-import { FORMS_COLLECTION } from "../config/constants";
+import { YEAR_TO_DB } from "../config/constants";
 import "./AdminBoard.css";
 
 export interface Summary {
@@ -27,6 +26,18 @@ export interface AdvancedFilters {
   availability: string[];
 }
 
+export const STATUS_COLORS: Record<string, string> = {
+  accepted: "#cef5be",
+  waitlist: "#f4e3be",
+  waiting: "#ffffff",
+  declined: "#f4bdbd",
+  userAccepted: "#bee2f5",
+  fullyAccepted: "#bfc3f4",
+};
+
+export type SortField = "email" | "name" | "createdAt" | "availability" | "appStatus";
+export type SortDirection = "asc" | "desc" | null;
+
 export default function AdminBoard() {
   const [datas, setDatas] = useState<FormViewData[]>([]); // All data loaded
   const [filteredDatas, setFilteredDatas] = useState<FormViewData[]>([]); // Filtered/Searched data
@@ -46,6 +57,9 @@ export default function AdminBoard() {
     shirtSize: [],
     availability: [],
   });
+  const [sortField, setSortField] = useState<SortField | null>(null);
+  const [sortDirection, setSortDirection] = useState<SortDirection>(null);
+  const [selectedYear, setSelectedYear] = useState<string>(Object.keys(YEAR_TO_DB)[0]);
 
   const isHighlight = (curMode: Mode) =>
     curMode === mode ? { border: "3px solid" } : {};
@@ -113,8 +127,59 @@ export default function AdminBoard() {
       });
     }
 
+    // Apply sorting
+    if (sortField && sortDirection) {
+      filtered.sort((a, b) => {
+        let aValue: any;
+        let bValue: any;
+
+        switch (sortField) {
+          case "email":
+            aValue = a.email?.toLowerCase() || "";
+            bValue = b.email?.toLowerCase() || "";
+            break;
+          case "name":
+            aValue = `${a.firstName} ${a.lastName}`.toLowerCase();
+            bValue = `${b.firstName} ${b.lastName}`.toLowerCase();
+            break;
+          case "createdAt":
+            aValue = new Date(a.createdAt).getTime();
+            bValue = new Date(b.createdAt).getTime();
+            break;
+          case "availability":
+            aValue = a.availability?.toLowerCase() || "";
+            bValue = b.availability?.toLowerCase() || "";
+            break;
+          case "appStatus":
+            aValue = a.appStatus?.toLowerCase() || "";
+            bValue = b.appStatus?.toLowerCase() || "";
+            break;
+        }
+
+        if (aValue < bValue) return sortDirection === "asc" ? -1 : 1;
+        if (aValue > bValue) return sortDirection === "asc" ? 1 : -1;
+        return 0;
+      });
+    }
+
     setFilteredDatas(filtered);
-  }, [datas, searchQuery, searchType, advancedFilters]);
+  }, [datas, searchQuery, searchType, advancedFilters, sortField, sortDirection]);
+
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      // Toggle direction or clear
+      if (sortDirection === "asc") {
+        setSortDirection("desc");
+      } else if (sortDirection === "desc") {
+        setSortField(null);
+        setSortDirection(null);
+      }
+    } else {
+      // New field, start with ascending
+      setSortField(field);
+      setSortDirection("asc");
+    }
+  };
 
   const handleClearFilters = () => {
     setSearchQuery("");
@@ -157,14 +222,16 @@ export default function AdminBoard() {
       setDatas([]);
       setFilteredDatas([]);
 
+      const collectionName = YEAR_TO_DB[selectedYear as keyof typeof YEAR_TO_DB];
+
       // Fetch summary
       const totalCount = (
-        await getCountFromServer(collection(db, FORMS_COLLECTION))
+        await getCountFromServer(collection(db, collectionName))
       ).data().count;
       const fullyAcceptedCount = (
         await getCountFromServer(
           query(
-            collection(db, FORMS_COLLECTION),
+            collection(db, collectionName),
             where("appStatus", "==", "fullyAccepted")
           )
         )
@@ -172,29 +239,29 @@ export default function AdminBoard() {
       const userAcceptedCount = (
         await getCountFromServer(
           query(
-            collection(db, FORMS_COLLECTION),
+            collection(db, collectionName),
             where("appStatus", "==", "userAccepted")
           )
         )
       ).data().count;
       const acceptedCount = (
         await getCountFromServer(
-          query(collection(db, FORMS_COLLECTION), where("appStatus", "==", "accepted"))
+          query(collection(db, collectionName), where("appStatus", "==", "accepted"))
         )
       ).data().count;
       const waitlistCount = (
         await getCountFromServer(
-          query(collection(db, FORMS_COLLECTION), where("appStatus", "==", "waitlist"))
+          query(collection(db, collectionName), where("appStatus", "==", "waitlist"))
         )
       ).data().count;
       const waitingCount = (
         await getCountFromServer(
-          query(collection(db, FORMS_COLLECTION), where("appStatus", "==", "waiting"))
+          query(collection(db, collectionName), where("appStatus", "==", "waiting"))
         )
       ).data().count;
       const declinedCount = (
         await getCountFromServer(
-          query(collection(db, FORMS_COLLECTION), where("appStatus", "==", "declined"))
+          query(collection(db, collectionName), where("appStatus", "==", "declined"))
         )
       ).data().count;
 
@@ -210,9 +277,9 @@ export default function AdminBoard() {
 
       const q =
         mode === "everything"
-          ? query(collection(db, FORMS_COLLECTION), orderBy("createdAt"))
+          ? query(collection(db, collectionName), orderBy("createdAt"))
           : query(
-              collection(db, FORMS_COLLECTION),
+              collection(db, collectionName),
               where("appStatus", "==", mode),
               orderBy("createdAt")
             );
@@ -231,14 +298,13 @@ export default function AdminBoard() {
       console.error(err);
       alert("Something wrong with initial fetch data");
     });
-  }, [mode]);
+  }, [mode, selectedYear]);
 
   return (
     <div
       style={{
         backgroundColor: "#F7F7F7",
-        marginBottom: "10px",
-        marginLeft: "10px",
+        padding: "0px 10px 10px 10px",
         borderRadius: "10px",
       }}
     >
@@ -261,36 +327,78 @@ export default function AdminBoard() {
               flexWrap: "wrap",
             }}
           >
-            <select
-              value={searchType}
-              onChange={(e) => setSearchType(e.target.value as any)}
+            <div
               style={{
-                height: "40px",
-                borderRadius: "5px",
+                display: "flex",
+                alignItems: "center",
+                backgroundColor: "white",
+                borderRadius: "30px",
                 border: "1px solid #ccc",
-                padding: "0 10px",
+                overflow: "hidden",
+                minWidth: "350px",
               }}
             >
-              <option value="all">All Fields</option>
-              <option value="email">Email</option>
-              <option value="name">Name</option>
-              <option value="uin">UIN</option>
-            </select>
-            <input
-              placeholder="Search applicants..."
-              style={{
-                borderRadius: "30px",
-                minWidth: "250px",
-                minHeight: "40px",
-                border: "none",
-                paddingLeft: "45px",
-                backgroundImage: "url(search.svg)",
-                backgroundRepeat: "no-repeat",
-                backgroundPosition: "10px 10px",
-              }}
-              ref={searchInputRef}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
+              <select
+                value={searchType}
+                onChange={(e) => setSearchType(e.target.value as any)}
+                style={{
+                  height: "40px",
+                  border: "none",
+                  padding: "0px 10px",
+                  backgroundColor: "transparent",
+                  outline: "none",
+                  cursor: "pointer",
+                  fontSize: "14px",
+                }}
+              >
+                <option value="all">All Fields</option>
+                <option value="email">Email</option>
+                <option value="name">Name</option>
+                <option value="uin">UIN</option>
+              </select>
+              <div
+                style={{
+                  width: "1px",
+                  height: "24px",
+                  backgroundColor: "#ccc",
+                  margin: "0 8px",
+                }}
+              />
+              <div style={{ position: "relative", flex: 1, display: "flex", alignItems: "center" }}>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  style={{
+                    marginLeft: "8px",
+                    color: "#666",
+                  }}
+                >
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <path d="m21 21-4.35-4.35"></path>
+                </svg>
+                <input
+                  placeholder="Search Applicants"
+                  style={{
+                    border: "none",
+                    outline: "none",
+                    flex: 1,
+                    height: "40px",
+                    paddingLeft: "8px",
+                    paddingRight: "15px",
+                    fontSize: "14px",
+                  }}
+                  ref={searchInputRef}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+            </div>
             {hasActiveFilters && (
               <button
                 onClick={handleClearFilters}
@@ -308,14 +416,32 @@ export default function AdminBoard() {
             <button
               onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
               style={{
-                padding: "10px 15px",
-                borderRadius: "5px",
+                width: "40px",
+                height: "40px",
+                borderRadius: "50%",
                 border: "1px solid #ccc",
                 backgroundColor: showAdvancedFilters ? "#e0e0e0" : "white",
                 cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: "0",
               }}
+              title={showAdvancedFilters ? "Hide Filters" : "Show Filters"}
             >
-              {showAdvancedFilters ? "Hide " : "Show "}Filters
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+              </svg>
             </button>
           </div>
         </div>
@@ -324,13 +450,125 @@ export default function AdminBoard() {
           <div
             style={{
               marginTop: "20px",
-              padding: "15px",
+              padding: "20px",
               backgroundColor: "white",
               borderRadius: "8px",
               border: "1px solid #ddd",
             }}
           >
-            <h3 style={{ marginTop: 0 }}>Advanced Filters</h3>
+            <h3 style={{ marginTop: 0, marginBottom: "15px" }}>Filters</h3>
+
+            {/* Application Status Filter */}
+            <div style={{ marginBottom: "20px" }}>
+              <h4 style={{ marginBottom: "10px", fontSize: "15px", fontWeight: "600" }}>Application Status</h4>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+                <button
+                  onClick={() => setMode("everything")}
+                  style={{
+                    padding: "8px 16px",
+                    borderRadius: "20px",
+                    border: mode === "everything" ? "2px solid #333" : "1px solid #ccc",
+                    backgroundColor: "white",
+                    cursor: "pointer",
+                    fontSize: "14px",
+                    fontWeight: mode === "everything" ? "600" : "400",
+                    transition: "all 0.2s ease",
+                  }}
+                >
+                  Everything
+                </button>
+                <button
+                  onClick={() => setMode("fullyAccepted")}
+                  style={{
+                    padding: "8px 16px",
+                    borderRadius: "20px",
+                    border: mode === "fullyAccepted" ? "2px solid #333" : "1px solid #ccc",
+                    backgroundColor: STATUS_COLORS.fullyAccepted,
+                    cursor: "pointer",
+                    fontSize: "14px",
+                    fontWeight: mode === "fullyAccepted" ? "600" : "400",
+                    transition: "all 0.2s ease",
+                  }}
+                >
+                  Confirmed
+                </button>
+                <button
+                  onClick={() => setMode("userAccepted")}
+                  style={{
+                    padding: "8px 16px",
+                    borderRadius: "20px",
+                    border: mode === "userAccepted" ? "2px solid #333" : "1px solid #ccc",
+                    backgroundColor: STATUS_COLORS.userAccepted,
+                    cursor: "pointer",
+                    fontSize: "14px",
+                    fontWeight: mode === "userAccepted" ? "600" : "400",
+                    transition: "all 0.2s ease",
+                  }}
+                >
+                  Invited
+                </button>
+                <button
+                  onClick={() => setMode("accepted")}
+                  style={{
+                    padding: "8px 16px",
+                    borderRadius: "20px",
+                    border: mode === "accepted" ? "2px solid #333" : "1px solid #ccc",
+                    backgroundColor: STATUS_COLORS.accepted,
+                    cursor: "pointer",
+                    fontSize: "14px",
+                    fontWeight: mode === "accepted" ? "600" : "400",
+                    transition: "all 0.2s ease",
+                  }}
+                >
+                  Accepted
+                </button>
+                <button
+                  onClick={() => setMode("waitlist")}
+                  style={{
+                    padding: "8px 16px",
+                    borderRadius: "20px",
+                    border: mode === "waitlist" ? "2px solid #333" : "1px solid #ccc",
+                    backgroundColor: STATUS_COLORS.waitlist,
+                    cursor: "pointer",
+                    fontSize: "14px",
+                    fontWeight: mode === "waitlist" ? "600" : "400",
+                    transition: "all 0.2s ease",
+                  }}
+                >
+                  Waitlisted
+                </button>
+                <button
+                  onClick={() => setMode("waiting")}
+                  style={{
+                    padding: "8px 16px",
+                    borderRadius: "20px",
+                    border: mode === "waiting" ? "2px solid #333" : "1px solid #ccc",
+                    backgroundColor: STATUS_COLORS.waiting,
+                    cursor: "pointer",
+                    fontSize: "14px",
+                    fontWeight: mode === "waiting" ? "600" : "400",
+                    transition: "all 0.2s ease",
+                  }}
+                >
+                  Pending
+                </button>
+                <button
+                  onClick={() => setMode("declined")}
+                  style={{
+                    padding: "8px 16px",
+                    borderRadius: "20px",
+                    border: mode === "declined" ? "2px solid #333" : "1px solid #ccc",
+                    backgroundColor: STATUS_COLORS.declined,
+                    cursor: "pointer",
+                    fontSize: "14px",
+                    fontWeight: mode === "declined" ? "600" : "400",
+                    transition: "all 0.2s ease",
+                  }}
+                >
+                  Declined
+                </button>
+              </div>
+            </div>
 
             <FilterSection
               title="Year"
@@ -382,106 +620,78 @@ export default function AdminBoard() {
             />
           </div>
         )}
-
-        <div style={{ marginTop: "20px" }}>
-          <h2>Mode: {mode}</h2>
-          <div>
-            <button
-              className="filterButton"
-              style={isHighlight("everything")}
-              onClick={() => setMode("everything")}
-            >
-              Everything
-            </button>
-            <button
-              className="filterButton"
-              style={isHighlight("fullyAccepted")}
-              onClick={() => setMode("fullyAccepted")}
-            >
-              Only FullyAccepted
-            </button>
-            <button
-              className="filterButton"
-              style={isHighlight("userAccepted")}
-              onClick={() => setMode("userAccepted")}
-            >
-              Only UserAccepted
-            </button>
-            <button
-              className="filterButton"
-              style={isHighlight("accepted")}
-              onClick={() => setMode("accepted")}
-            >
-              Only Accepted
-            </button>
-            <button
-              className="filterButton"
-              style={isHighlight("waitlist")}
-              onClick={() => setMode("waitlist")}
-            >
-              Only Waitlist
-            </button>
-            <button
-              className="filterButton"
-              style={isHighlight("waiting")}
-              onClick={() => setMode("waiting")}
-            >
-              Only Waiting
-            </button>
-            <button
-              className="filterButton"
-              style={isHighlight("declined")}
-              onClick={() => setMode("declined")}
-            >
-              Only Declined
-            </button>
-          </div>
-        </div>
       </div>
 
       {summary && (
         <section
           style={{
-            margin: "8px",
-            padding: "8px",
+            padding: "0px 8px",
             borderRadius: "8px",
             boxSizing: "border-box",
           }}
         >
-          <h2>Summary</h2>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: "10px",
+            }}
+          >
+            <h2 style={{ margin: 0 }}>Summary</h2>
+            <select
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(e.target.value)}
+              style={{
+                padding: "8px 12px",
+                borderRadius: "8px",
+                border: "1px solid #ccc",
+                backgroundColor: "white",
+                cursor: "pointer",
+                fontSize: "14px",
+                fontWeight: "600",
+              }}
+            >
+              {Object.keys(YEAR_TO_DB).map((year) => (
+                <option key={year} value={year}>
+                  {year}
+                </option>
+              ))}
+            </select>
+          </div>
           <div
             style={{
               width: "100%",
               display: "flex",
               flexWrap: "wrap",
-              gap: "8px",
+              gap: "20px",
             }}
           >
             <div>
               <strong>Total:</strong> {summary.total}
             </div>
             <div>
-              <Dot backgroundColor="#72f784" /> <strong>fullyAccepted:</strong>{" "}
+              <strong>Confirmed:</strong>{" "}
               {summary.fullyAccepted}
             </div>
             <div>
-              <Dot backgroundColor="#bdc3f5" /> <strong>userAccepted:</strong>{" "}
+              <strong>Invited:</strong>{" "}
               {summary.userAccepted}
             </div>
             <div>
-              <Dot backgroundColor="#cff5bd" /> <strong>accepted:</strong>{" "}
+              <strong>Accepted:</strong>{" "}
               {summary.accepted}
             </div>
             <div>
-              <Dot backgroundColor="#f5e3bd" /> <strong>waitlist:</strong>{" "}
+              <strong>Waitlisted:</strong>{" "}
               {summary.waitlist}
             </div>
             <div>
-              <Dot backgroundColor="#f5bdbd" /> <strong>declined:</strong>{" "}
+              <strong>Declined:</strong>{" "}
               {summary.declined}
             </div>
             <div>
-              <Dot backgroundColor="white" /> <strong>waiting:</strong>{" "}
+              <strong>Pending:</strong>{" "}
               {summary.waiting}
             </div>
           </div>
@@ -501,18 +711,18 @@ export default function AdminBoard() {
         </section>
       )}
 
-      <div style={{ width: "100%", display: "flex" }}>
-        <ViewCard view={view} setView={setView} />
-        <AdminTable
-          datas={filteredDatas}
-          view={view}
-          setView={setView}
-          setDatas={setDatas}
-          setSummary={setSummary}
-          summary={summary}
-          allDatas={datas}
-        />
-      </div>
+      <AdminTable
+        datas={filteredDatas}
+        view={view}
+        setView={setView}
+        setDatas={setDatas}
+        setSummary={setSummary}
+        summary={summary}
+        allDatas={datas}
+        sortField={sortField}
+        sortDirection={sortDirection}
+        onSort={handleSort}
+      />
 
     </div>
   );
@@ -553,21 +763,6 @@ function FilterSection({
         ))}
       </div>
     </div>
-  );
-}
-
-function Dot({ backgroundColor }: { backgroundColor: string }) {
-  return (
-    <div
-      style={{
-        backgroundColor: backgroundColor,
-        width: "15px",
-        height: "15px",
-        display: "inline-block",
-        borderRadius: 9999,
-        border: "1px solid black",
-      }}
-    ></div>
   );
 }
 
