@@ -3,7 +3,7 @@ import AdminTable from "./components/AdminTable";
 import type { FormViewData } from "../env";
 import { collection, doc, getCountFromServer, getDoc, getDocs, orderBy, query, where, type DocumentData } from "firebase/firestore";
 import { db } from "../firebase/client";
-import { FORMS_COLLECTION } from "../config/constants";
+import { YEAR_TO_DB } from "../config/constants";
 import "./AdminBoard.css";
 
 export interface Summary {
@@ -59,6 +59,7 @@ export default function AdminBoard() {
   });
   const [sortField, setSortField] = useState<SortField | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>(null);
+  const [selectedYear, setSelectedYear] = useState<string>(Object.keys(YEAR_TO_DB)[0]);
 
   const isHighlight = (curMode: Mode) =>
     curMode === mode ? { border: "3px solid" } : {};
@@ -221,14 +222,16 @@ export default function AdminBoard() {
       setDatas([]);
       setFilteredDatas([]);
 
+      const collectionName = YEAR_TO_DB[selectedYear as keyof typeof YEAR_TO_DB];
+
       // Fetch summary
       const totalCount = (
-        await getCountFromServer(collection(db, FORMS_COLLECTION))
+        await getCountFromServer(collection(db, collectionName))
       ).data().count;
       const fullyAcceptedCount = (
         await getCountFromServer(
           query(
-            collection(db, FORMS_COLLECTION),
+            collection(db, collectionName),
             where("appStatus", "==", "fullyAccepted")
           )
         )
@@ -236,29 +239,29 @@ export default function AdminBoard() {
       const userAcceptedCount = (
         await getCountFromServer(
           query(
-            collection(db, FORMS_COLLECTION),
+            collection(db, collectionName),
             where("appStatus", "==", "userAccepted")
           )
         )
       ).data().count;
       const acceptedCount = (
         await getCountFromServer(
-          query(collection(db, FORMS_COLLECTION), where("appStatus", "==", "accepted"))
+          query(collection(db, collectionName), where("appStatus", "==", "accepted"))
         )
       ).data().count;
       const waitlistCount = (
         await getCountFromServer(
-          query(collection(db, FORMS_COLLECTION), where("appStatus", "==", "waitlist"))
+          query(collection(db, collectionName), where("appStatus", "==", "waitlist"))
         )
       ).data().count;
       const waitingCount = (
         await getCountFromServer(
-          query(collection(db, FORMS_COLLECTION), where("appStatus", "==", "waiting"))
+          query(collection(db, collectionName), where("appStatus", "==", "waiting"))
         )
       ).data().count;
       const declinedCount = (
         await getCountFromServer(
-          query(collection(db, FORMS_COLLECTION), where("appStatus", "==", "declined"))
+          query(collection(db, collectionName), where("appStatus", "==", "declined"))
         )
       ).data().count;
 
@@ -274,9 +277,9 @@ export default function AdminBoard() {
 
       const q =
         mode === "everything"
-          ? query(collection(db, FORMS_COLLECTION), orderBy("createdAt"))
+          ? query(collection(db, collectionName), orderBy("createdAt"))
           : query(
-              collection(db, FORMS_COLLECTION),
+              collection(db, collectionName),
               where("appStatus", "==", mode),
               orderBy("createdAt")
             );
@@ -295,7 +298,7 @@ export default function AdminBoard() {
       console.error(err);
       alert("Something wrong with initial fetch data");
     });
-  }, [mode]);
+  }, [mode, selectedYear]);
 
   return (
     <div
@@ -627,7 +630,35 @@ export default function AdminBoard() {
             boxSizing: "border-box",
           }}
         >
-          <h2>Summary</h2>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: "10px",
+            }}
+          >
+            <h2 style={{ margin: 0 }}>Summary</h2>
+            <select
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(e.target.value)}
+              style={{
+                padding: "8px 12px",
+                borderRadius: "8px",
+                border: "1px solid #ccc",
+                backgroundColor: "white",
+                cursor: "pointer",
+                fontSize: "14px",
+                fontWeight: "600",
+              }}
+            >
+              {Object.keys(YEAR_TO_DB).map((year) => (
+                <option key={year} value={year}>
+                  {year}
+                </option>
+              ))}
+            </select>
+          </div>
           <div
             style={{
               width: "100%",
