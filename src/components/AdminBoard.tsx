@@ -35,6 +35,9 @@ export const STATUS_COLORS: Record<string, string> = {
   fullyAccepted: "#bfc3f4",
 };
 
+export type SortField = "email" | "name" | "createdAt" | "availability" | "appStatus";
+export type SortDirection = "asc" | "desc" | null;
+
 export default function AdminBoard() {
   const [datas, setDatas] = useState<FormViewData[]>([]); // All data loaded
   const [filteredDatas, setFilteredDatas] = useState<FormViewData[]>([]); // Filtered/Searched data
@@ -54,6 +57,8 @@ export default function AdminBoard() {
     shirtSize: [],
     availability: [],
   });
+  const [sortField, setSortField] = useState<SortField | null>(null);
+  const [sortDirection, setSortDirection] = useState<SortDirection>(null);
 
   const isHighlight = (curMode: Mode) =>
     curMode === mode ? { border: "3px solid" } : {};
@@ -121,8 +126,59 @@ export default function AdminBoard() {
       });
     }
 
+    // Apply sorting
+    if (sortField && sortDirection) {
+      filtered.sort((a, b) => {
+        let aValue: any;
+        let bValue: any;
+
+        switch (sortField) {
+          case "email":
+            aValue = a.email?.toLowerCase() || "";
+            bValue = b.email?.toLowerCase() || "";
+            break;
+          case "name":
+            aValue = `${a.firstName} ${a.lastName}`.toLowerCase();
+            bValue = `${b.firstName} ${b.lastName}`.toLowerCase();
+            break;
+          case "createdAt":
+            aValue = new Date(a.createdAt).getTime();
+            bValue = new Date(b.createdAt).getTime();
+            break;
+          case "availability":
+            aValue = a.availability?.toLowerCase() || "";
+            bValue = b.availability?.toLowerCase() || "";
+            break;
+          case "appStatus":
+            aValue = a.appStatus?.toLowerCase() || "";
+            bValue = b.appStatus?.toLowerCase() || "";
+            break;
+        }
+
+        if (aValue < bValue) return sortDirection === "asc" ? -1 : 1;
+        if (aValue > bValue) return sortDirection === "asc" ? 1 : -1;
+        return 0;
+      });
+    }
+
     setFilteredDatas(filtered);
-  }, [datas, searchQuery, searchType, advancedFilters]);
+  }, [datas, searchQuery, searchType, advancedFilters, sortField, sortDirection]);
+
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      // Toggle direction or clear
+      if (sortDirection === "asc") {
+        setSortDirection("desc");
+      } else if (sortDirection === "desc") {
+        setSortField(null);
+        setSortDirection(null);
+      }
+    } else {
+      // New field, start with ascending
+      setSortField(field);
+      setSortDirection("asc");
+    }
+  };
 
   const handleClearFilters = () => {
     setSearchQuery("");
@@ -632,6 +688,9 @@ export default function AdminBoard() {
         setSummary={setSummary}
         summary={summary}
         allDatas={datas}
+        sortField={sortField}
+        sortDirection={sortDirection}
+        onSort={handleSort}
       />
 
     </div>

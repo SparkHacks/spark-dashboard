@@ -22,6 +22,19 @@
 .headerTable > div {
   font-weight: bold;
 }
+
+.sortableHeader {
+  cursor: pointer;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  transition: background-color 0.2s ease;
+}
+
+.sortableHeader:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+  border-radius: 4px;
+}
 .rowTable {
   background-color: transparent;
 }

@@ -1,7 +1,7 @@
 import styles from "./styles/AdminTable.module.css";
 import { useState } from "react";
 import type { FormViewData } from "../../env";
-import type { Summary } from "../AdminBoard";
+import type { Summary, SortField, SortDirection } from "../AdminBoard";
 import { STATUS_COLORS } from "../AdminBoard";
 
 export default function AdminTable({
@@ -12,6 +12,9 @@ export default function AdminTable({
   setSummary,
   summary,
   allDatas,
+  sortField,
+  sortDirection,
+  onSort,
 }: {
   datas: FormViewData[];
   setDatas: React.Dispatch<React.SetStateAction<FormViewData[]>>;
@@ -20,18 +23,89 @@ export default function AdminTable({
   setSummary: React.Dispatch<React.SetStateAction<Summary | null>>;
   summary: Summary | null;
   allDatas: FormViewData[];
+  sortField: SortField | null;
+  sortDirection: SortDirection;
+  onSort: (field: SortField) => void;
 }) {
   const [globalLoading, setGlobalLoading] = useState(false);
+
+  const SortIcon = ({ field }: { field: SortField }) => {
+    if (sortField !== field) {
+      return (
+        <svg
+          width="12"
+          height="12"
+          viewBox="0 0 12 12"
+          style={{ marginLeft: "4px", opacity: 0.3 }}
+        >
+          <path d="M6 3 L9 6 L3 6 Z" fill="currentColor" />
+          <path d="M6 9 L9 6 L3 6 Z" fill="currentColor" />
+        </svg>
+      );
+    }
+    if (sortDirection === "asc") {
+      return (
+        <svg
+          width="12"
+          height="12"
+          viewBox="0 0 12 12"
+          style={{ marginLeft: "4px" }}
+        >
+          <path d="M6 3 L9 6 L3 6 Z" fill="currentColor" />
+        </svg>
+      );
+    }
+    return (
+      <svg
+        width="12"
+        height="12"
+        viewBox="0 0 12 12"
+        style={{ marginLeft: "4px" }}
+      >
+        <path d="M6 9 L9 6 L3 6 Z" fill="currentColor" />
+      </svg>
+    );
+  };
 
   return (
     <section className={styles.adminTable}>
       <div className={styles.headerTable}>
         <div className={styles.cellId}>#</div>
-        <div className={styles.cellEmail}>Email</div>
-        <div className={styles.cellName}>Name</div>
-        <div className={styles.cellCreatedAt}>Created At</div>
-        <div className={styles.cellAvailability}>Availability</div>
-        <div className={styles.cellStatus}>Status</div>
+        <div
+          className={`${styles.cellEmail} ${styles.sortableHeader}`}
+          onClick={() => onSort("email")}
+        >
+          Email
+          <SortIcon field="email" />
+        </div>
+        <div
+          className={`${styles.cellName} ${styles.sortableHeader}`}
+          onClick={() => onSort("name")}
+        >
+          Name
+          <SortIcon field="name" />
+        </div>
+        <div
+          className={`${styles.cellCreatedAt} ${styles.sortableHeader}`}
+          onClick={() => onSort("createdAt")}
+        >
+          Created At
+          <SortIcon field="createdAt" />
+        </div>
+        <div
+          className={`${styles.cellAvailability} ${styles.sortableHeader}`}
+          onClick={() => onSort("availability")}
+        >
+          Availability
+          <SortIcon field="availability" />
+        </div>
+        <div
+          className={`${styles.cellStatus} ${styles.sortableHeader}`}
+          onClick={() => onSort("appStatus")}
+        >
+          Status
+          <SortIcon field="appStatus" />
+        </div>
         <div className={styles.cellActions}></div>
       </div>
 
