@@ -2,3 +2,80 @@
   --toastify-color-info: #12dcd2;
   --toastify-color-success : #8d6db5;
 }
+
+/* QR Code Scanner - Square Aspect Ratio */
+#qrcodeRegionId {
+  max-width: 400px;
+  margin: 0 auto;
+  border: none !important;
+}
+
+#qrcodeRegionId video {
+  aspect-ratio: 1 / 1 !important;
+  object-fit: cover;
+  width: 100% !important;
+  height: auto !important;
+}
+
+#qrcodeRegionId canvas {
+  aspect-ratio: 1 / 1 !important;
+  width: 100% !important;
+  height: auto !important;
+}
+
+/* Black box for scan region when not scanning */
+#qrcodeRegionId__scan_region {
+  background-color: black !important;
+  aspect-ratio: 1 / 1 !important;
+  min-height: 400px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 15px !important;
+}
+
+/* Hide the scanning icon image */
+#qrcodeRegionId__scan_region img {
+  display: none !important;
+  border-radius: 15px;
+}
+
+#qrcodeRegionId__scan_region video {
+  border-radius: 15px !important;
+}
+
+/* QR Code Scanner Buttons */
+#qrcodeRegionId button,
+#html5-qrcode-button-camera-permission,
+#html5-qrcode-button-camera-start,
+#html5-qrcode-button-camera-stop {
+  background-color: #8d6db5 !important;
+  color: white !important;
+  border: none !important;
+  padding: 12px 24px !important;
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  border-radius: 8px !important;
+  cursor: pointer !important;
+  transition: all 0.3s ease !important;
+  margin: 10px auto !important;
+  min-width: 200px !important;
+}
+
+#qrcodeRegionId button:hover,
+#html5-qrcode-button-camera-permission:hover,
+#html5-qrcode-button-camera-start:hover,
+#html5-qrcode-button-camera-stop:hover {
+  background-color: #7a5c9e !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 4px 8px rgba(141, 109, 181, 0.3) !important;
+}
+
+#qrcodeRegionId button:active,
+#html5-qrcode-button-camera-permission:active,
+#html5-qrcode-button-camera-start:active,
+#html5-qrcode-button-camera-stop:active {
+  transform: translateY(0) !important;
+  box-shadow: 0 2px 4px rgba(141, 109, 181, 0.2) !important;
+}
+
