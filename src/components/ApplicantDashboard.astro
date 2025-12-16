@@ -1,0 +1,461 @@
+---
+interface Props {
+  userName: string;
+  userEmail: string;
+  appStatus: string;
+  submittedDate: string;
+  registered: boolean;
+  newUserState: boolean;
+  uidDataURI: string;
+}
+
+const {
+  userName,
+  userEmail,
+  appStatus,
+  submittedDate,
+  registered,
+  newUserState,
+  uidDataURI,
+} = Astro.props;
+
+const statusMessage = {
+  waiting:
+    "We have received your application and will review it shortly. Please check this website and email for updates.",
+  declined:
+    "Your application has been declined due to your decision or space limit. Please come back next year to re-apply!",
+  waitlist:
+    "Due to limited space, your application has been waitlisted. We will reach out with status updates.",
+  accepted:
+    "You've been accepted! Please check your inbox for next steps in the coming days.",
+  userAccepted:
+    "You accept to participate SparkHacks. Wait for SparkHacks team to officially accept you.",
+  fullyAccepted:
+    "Congratulation 🎉🎉🎉! You are officially a SparkHacks 2026 participant! Check inbox for details about schedules.",
+};
+
+const getMessage = (
+  appStatus:
+    | "waiting"
+    | "declined"
+    | "waitlist"
+    | "accepted"
+    | "userAccepted"
+    | "fullyAccepted"
+) =>
+  statusMessage[appStatus] ||
+  "Unknown result. Please email sparkhacks@uic.edu to reach out our team for support.";
+---
+
+<section class="modal-wrapper" id="withdraw-modal">
+  <div class="modal">
+    <button class="modal-return-btn">Return</button>
+    <img src="/sparkhacks-logo.svg" alt="logo" width="150" height="150" />
+    <h2>Are you sure you want to withdraw SparkHacks 2026?</h2>
+    <p>
+      Type <strong><em>{userEmail}</em></strong> and hit Enter (Or click "withdraw"
+      button) to withdraw yourself from SparkHacks 2026 <strong
+        >(Doing this, you cannot revert your action)</strong
+      >
+    </p>
+    <form id="withdraw-form">
+      <input
+        class="modal-input"
+        placeholder="Enter text"
+        name="withdraw-text"
+        required
+      />
+      <button class="modal-withdraw-btn" type="submit">Withdraw</button>
+    </form>
+  </div>
+</section>
+
+<section class="modal-wrapper" id="qr-modal">
+  <div class="modal qr-modal-content">
+    <button class="modal-close-btn" aria-label="Close modal">X</button>
+    <img
+      id="qr-modal-image"
+      src={uidDataURI}
+      alt="QR Code"
+      style="display: block; width: 100%; height: auto; border: 2px black solid; border-radius: 10px;"
+    />
+  </div>
+</section>
+
+<section class="user-info">
+  <h1>Welcome, {userName}!</h1>
+</section>
+
+<section
+  class={`dashboard-status ${appStatus !== "" ? appStatus : ""}`}
+  style={appStatus !== "" ? "" : "display: none"}
+>
+  <strong>Application Status: </strong>{getMessage(appStatus as any)}
+  {
+    appStatus === "accepted" && (
+      <>
+        <div>Do you still accept to participate SparkHacks?</div>
+        <div class="decideBtns">
+          <button id="accept-btn">Accept</button>
+          <button id="withdraw-btn">Withdraw</button>
+        </div>
+      </>
+    )
+  }
+  {
+    appStatus === "fullyAccepted" && (
+      <>
+        <button id="modal-open-btn">Withdraw SparkHacks</button>
+      </>
+    )
+  }
+</section>
+
+{
+  appStatus === "fullyAccepted" && (
+    <section style="width: 100%; max-width: 100%; border: 6px solid #c0ffd6; margin-top: 20px; box-sizing: border-box; border-radius: .75em; padding: 20px">
+      <h2>QR Code</h2>
+      <div>Use this for check in and get food! ✅</div>
+      <div style="display: flex; justify-content: center;">
+        <img
+          id="qr-code-image"
+          style="display: block; max-width: 100%; height: auto; width: 20rem; border: 2px black solid; border-radius: 10px; cursor: pointer;"
+          src={uidDataURI}
+          alt="Click to enlarge QR code"
+        />
+      </div>
+    </section>
+  )
+}
+
+<section class="dashboard-app">
+  <div
+    style="display: flex; justify-content: space-between; align-items: center"
+  >
+    <h2>Application to SparkHacks</h2>
+    <div><strong>Close at:</strong> Closed</div>
+  </div>
+  {
+    submittedDate !== "" && (
+      <div>
+        <strong>Submitted at:</strong> {submittedDate}
+      </div>
+    )
+  }
+  <button
+    id="app-btn"
+    disabled={newUserState ? false : true}
+    onclick={newUserState ? "window.location.assign('/application')" : ""}
+  >
+    {
+      registered
+        ? "View Application"
+        : newUserState
+          ? "Start Application"
+          : "Application is closed due to reaching capacity"
+    }
+  </button>
+</section>
+
+<script>
+  const acceptBtn = document.getElementById("accept-btn") as HTMLButtonElement;
+  const withdrawBtn = document.getElementById(
+    "withdraw-btn"
+  ) as HTMLButtonElement;
+
+  const withdrawModal = document.getElementById("withdraw-modal") as HTMLElement;
+  const modalContent = withdrawModal?.getElementsByClassName(
+    "modal"
+  )[0] as HTMLElement;
+  const modalOpenBtn = document.getElementById(
+    "modal-open-btn"
+  ) as HTMLButtonElement;
+  const modalCloseBtn = withdrawModal?.getElementsByClassName(
+    "modal-return-btn"
+  )[0] as HTMLElement;
+
+  const withdrawForm = document.getElementById(
+    "withdraw-form"
+  ) as HTMLFormElement;
+
+  modalOpenBtn?.addEventListener("click", () => {
+    withdrawModal.style.display = "flex";
+  });
+  modalCloseBtn?.addEventListener("click", () => {
+    withdrawModal.style.display = "none";
+  });
+  withdrawModal?.addEventListener("click", () => {
+    withdrawModal.style.display = "none";
+  });
+  modalContent?.addEventListener("click", (e) => {
+    e.stopPropagation();
+  });
+
+  // QR Code Modal
+  const qrCodeImage = document.getElementById("qr-code-image") as HTMLImageElement;
+  const qrModal = document.getElementById("qr-modal") as HTMLElement;
+  const qrModalContent = qrModal?.getElementsByClassName("qr-modal-content")[0] as HTMLElement;
+  const qrModalCloseBtn = qrModal?.getElementsByClassName("modal-close-btn")[0] as HTMLElement;
+
+  qrCodeImage?.addEventListener("click", () => {
+    qrModal.style.display = "flex";
+  });
+
+  qrModalCloseBtn?.addEventListener("click", () => {
+    qrModal.style.display = "none";
+  });
+
+  qrModal?.addEventListener("click", () => {
+    qrModal.style.display = "none";
+  });
+
+  qrModalContent?.addEventListener("click", (e) => {
+    e.stopPropagation();
+  });
+
+  withdrawForm?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    try {
+      const response = await fetch("/api/auth/withdraw-sparkhacks", {
+        method: "POST",
+        body: new FormData(withdrawForm),
+      });
+
+      if (!response.ok) {
+        alert("Something is wrong with withdrawing");
+        return;
+      }
+
+      const text = await response.text();
+      alert(text);
+      window.location.reload();
+    } catch (err) {
+      console.error(err);
+      alert("Something is wrong with withdrawing sparkhacks");
+    }
+  });
+
+  const decideSparkhacksCallback = async (
+    action: "userAccepted" | "declined"
+  ) => {
+    try {
+      const formData = new FormData();
+      formData.set("action", action);
+      const res = await fetch("/api/auth/decide-sparkhacks", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!res.ok) {
+        alert("Something is wrong with deciding sparkhacks");
+        return;
+      }
+
+      window.location.reload();
+    } catch (err) {
+      console.error(err);
+      alert("Something is wrong");
+    }
+  };
+
+  acceptBtn?.addEventListener("click", () =>
+    decideSparkhacksCallback("userAccepted")
+  );
+  withdrawBtn?.addEventListener("click", () =>
+    decideSparkhacksCallback("declined")
+  );
+</script>
+
+<style>
+  .user-info {
+    flex: 1;
+    max-width: 100%;
+    font-size: x-large;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .user-info > h1 {
+    margin: 0;
+    padding-left: 0;
+  }
+
+  .dashboard-status {
+    box-sizing: border-box;
+    flex: 1;
+    max-width: 100%;
+    margin-top: 20px;
+    border-radius: 10px;
+    padding: 20px;
+  }
+
+  .dashboard-status.waiting,
+  .dashboard-status.waitlist {
+    border: 4px solid #f4e3be;
+  }
+
+  .dashboard-status.declined {
+    border: 4px solid #f4bdbd;
+  }
+
+  .dashboard-status.accepted {
+    border: 4px solid #cef5be;
+  }
+
+  .dashboard-status.userAccepted {
+    border: 4px solid #bee2f5;
+  }
+
+  .dashboard-status.fullyAccepted {
+    border: 4px solid #bfc3f4;
+  }
+
+  .dashboard-app {
+    box-sizing: border-box;
+    flex: 1;
+    max-width: 100%;
+    margin-top: 20px;
+    padding: 20px;
+    border-radius: 0.75em;
+    border: 4px solid #c0edff;
+    margin-bottom: 20px;
+  }
+
+  #app-btn {
+    margin-top: 16px;
+    width: 100%;
+    padding: 16px 32px;
+    font-size: 16px;
+    font-weight: bold;
+    background-color: #c0edff;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+  }
+
+  .decideBtns {
+    margin-top: 10px;
+    display: flex;
+    gap: 10px;
+  }
+
+  #accept-btn,
+  #withdraw-btn {
+    cursor: pointer;
+    flex: 1;
+    border: none;
+    border-radius: 10px;
+    padding: 16px 16px;
+    font-size: 16px;
+    font-weight: bold;
+  }
+
+  #app-btn:hover,
+  #accept-btn:hover,
+  #withdraw-btn:hover {
+    filter: brightness(90%);
+    transform: scale(1.02);
+    transition: all 0.2s ease;
+  }
+
+  #accept-btn {
+    background-color: #cef5be;
+  }
+
+  #withdraw-btn {
+    background-color: #f4bdbd;
+  }
+
+  #modal-open-btn {
+    display: block;
+    padding: 8px 16px;
+    background-color: #f4bdbd;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+
+  .modal-wrapper {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+
+  .modal {
+    width: 600px;
+    max-width: 100%;
+    min-height: 400px;
+    background-color: white;
+    border-radius: 8px;
+    padding: 20px 20px;
+    display: flex;
+    text-align: center;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border: 6px solid #ff8a8a;
+  }
+
+  .modal-withdraw-btn {
+    cursor: pointer;
+    background-color: #f4bdbd;
+    border: none;
+    border-radius: 4px;
+    padding: 4px 8px;
+  }
+
+  .modal-return-btn {
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    padding: 8px 16px;
+    align-self: self-start;
+  }
+
+  .qr-modal-content {
+    border: 6px solid #c0ffd6;
+    position: relative;
+    padding: 20px;
+    width: 90vw;
+    max-width: 600px;
+    min-height: auto;
+  }
+
+  .modal-close-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: #f4bdbd;
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    font-size: 28px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: #333;
+  }
+
+  .modal-close-btn:hover {
+    background: #ff8a8a;
+    transform: scale(1.1);
+    transition: all 0.2s ease;
+  }
+
+  #qr-code-image:hover {
+    transform: scale(1.02);
+    transition: transform 0.2s ease;
+  }
+</style>
