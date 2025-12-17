@@ -58,27 +58,27 @@ catch (err) {
 ---
 
 <DashboardLayout userName={userName} userEmail={userEmail} currentPath={Astro.url.pathname}>
-  <div class="admin-section">
-    <AdminCode client:load />
+  <div class="main-section">
+    <div class="main-right-section" style={{justifyContent: 'center'}}>
+      <AdminCode client:load />
+    </div>
   </div>
 </DashboardLayout>
 <style>
-  .admin-section{
+  .main-section {
     display: flex;
-  }
-  .admin-nav-btn {
-    padding: 8px 16px;
-    background-color: yellow;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    margin-top: 10px;
-  }
-  .user-info {
+    flex-direction: column;
     max-width: 100%;
-    font-size: x-large;
+  }
+
+  .main-right-section {
+    background-color: #F7F7F7;
+    padding: 30px;
+    border-radius: 15px;
+    width: 100%;
+    min-height: 500px;
+    box-sizing: border-box;
     display: flex;
-    align-items: center;
-    gap: 10px;
+    justify-content: center;
   }
 </style>
