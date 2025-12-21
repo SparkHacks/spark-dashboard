@@ -2,22 +2,51 @@
 import DashboardLayout from "../../layouts/DashboardLayout.astro";
 import { auth } from "../../firebase/server";
 import { app } from "../../firebase/server";
+import { getAuth } from "firebase-admin/auth";
 import AdminCode from "../../components/AdminCode";
-import Sidebar from "../../components/Sidebar";
+
+import getRoleFlags from "../../scripts/getRoles.ts";
+import type { RoleFlags } from "../../scripts/getRoles.ts";
+let roles: RoleFlags = {
+  isAdmin: false,
+  isQrScanner: false,
+  isWebDev: false,
+  isDirector: false,
+};
 
 let adminUsers = null;
 let exceptionUsers = null;
 let regularUsers = null;
+let userEmail = "";
+let userName = "";
+let userPhoto = "";
 
 let isRealDatabase = import.meta.env.REAL_DATABASE === "true" ? "yes" : "no";
 
 try {
+  const authInstance = getAuth(app);
+
+  // Get current user info
+  const sessionCookieObj = Astro.cookies.get("__session");
+  if (sessionCookieObj) {
+    const sessionCookie = sessionCookieObj.value;
+    const decodedCookie = await authInstance.verifySessionCookie(sessionCookie);
+    if (decodedCookie) {
+      const user = await authInstance.getUser(decodedCookie.uid);
+      if (user) {
+        userEmail = user.email as string;
+        userName = user.displayName || "";
+        userPhoto = user.photoURL || "";
+      }
+    }
+  }
+
   const users = await auth.listUsers();
   adminUsers = users.users.filter(
-    (user) => user.customClaims && user.customClaims.admin === true
+    (user) => user.customClaims && user.customClaims.admin === true,
   );
   exceptionUsers = users.users.filter(
-    (user) => user.customClaims && user.customClaims.exception === true
+    (user) => user.customClaims && user.customClaims.exception === true,
   );
   regularUsers = users.users.filter(
     (user) =>
@@ -25,18 +54,54 @@ try {
         user.customClaims &&
         (user.customClaims.admin === true ||
           user.customClaims.exception === true)
-      )
+      ),
   );
 } catch (err) {
   console.error(err);
 }
 ---
 
-<DashboardLayout>
+<DashboardLayout userName={userName} userEmail={userEmail} currentPath={Astro.url.pathname}>
   <div class="admin-section">
-    <Sidebar />
     <div class="app-section">
       <h1>Is Real Database: {isRealDatabase}</h1>
+
+      <h1>Manage User Roles</h1>
+      <form id="role-form">
+        <input
+          class="email-input"
+          name="email"
+          type="email"
+          placeholder="Type a registered email"
+          required
+        />
+        <div class="role-options">
+          <label class="role-label">
+            <input type="radio" name="role" value="admin" required />
+            <span class="role-badge" style="background-color: lightcoral;">Admin</span>
+          </label>
+          <label class="role-label">
+            <input type="radio" name="role" value="qrScanner" required />
+            <span class="role-badge" style="background-color: lightseagreen;">QR Scanner</span>
+          </label>
+          <label class="role-label">
+            <input type="radio" name="role" value="webDev" required />
+            <span class="role-badge" style="background-color: lightgreen;">Web Dev</span>
+          </label>
+          <label class="role-label">
+            <input type="radio" name="role" value="director" required />
+            <span class="role-badge" style="background-color: lightblue;">Director</span>
+          </label>
+        </div>
+        <div class="action-buttons">
+          <input type="radio" id="add-role" name="action" value="add" required />
+          <label for="add-role">Add Role</label>
+          <input type="radio" id="remove-role" name="action" value="remove" required />
+          <label for="remove-role">Remove Role</label>
+          <button type="submit">Submit</button>
+        </div>
+      </form>
+
       <h1>Register New User</h1>
       <button id="register-btn">Sign in with google</button>
       <h1>Admin users</h1>
@@ -56,7 +121,7 @@ try {
       <h1>Exception users</h1>
       <form id="exception-form">
         <input
-            class="email-input"
+          class="email-input"
           name="email"
           type="email"
           placeholder="Type a registered email"
@@ -67,35 +132,127 @@ try {
         <label for="remove">Remove exception role</label>
         <button type="submit">Submit</button>
       </form>
+
       <h1>List of admin users: {adminUsers && `${adminUsers.length}`}</h1>
       <ul>
-        {adminUsers?.map((user) => <li>{user.email}</li>)}
+        {
+          adminUsers?.map((user) => {
+            const roles = getRoleFlags(user);
+            const roleBadges = [
+              { flag: "isAdmin", label: "Admin", color: "lightcoral" },
+              {
+                flag: "isQrScanner",
+                label: "QRScanner",
+                color: "lightseagreen",
+              },
+              { flag: "isWebDev", label: "WebDev", color: "lightgreen" },
+              { flag: "isDirector", label: "Director", color: "lightblue" },
+            ];
+
+            return (
+              <li>
+                {user.email}
+                <span style="margin-left: 10px;">
+                  {roleBadges
+                    .filter((r) => roles[r.flag as keyof RoleFlags])
+                    .map((r) => (
+                      <span
+                        style={`background-color:${r.color};padding:2px 6px;border-radius:4px;margin-left:4px;`}
+                      >
+                        {r.label}
+                      </span>
+                    ))}
+                </span>
+              </li>
+            );
+          })
+        }
       </ul>
+
       <h1>
         List of exception users: {exceptionUsers && `${exceptionUsers.length}`}
       </h1>
       <ul>
-        {exceptionUsers?.map((user) => <li>{user.email}</li>)}
+        {
+          exceptionUsers?.map((user) => {
+            const roles = getRoleFlags(user);
+            const roleBadges = [
+              { flag: "isAdmin", label: "Admin", color: "lightcoral" },
+              {
+                flag: "isQrScanner",
+                label: "QRScanner",
+                color: "lightseagreen",
+              },
+              { flag: "isWebDev", label: "WebDev", color: "lightgreen" },
+              { flag: "isDirector", label: "Director", color: "lightblue" },
+            ];
+
+            return (
+              <li>
+                {user.email}
+                <span style="margin-left: 10px;">
+                  {roleBadges
+                    .filter((r) => roles[r.flag as keyof RoleFlags])
+                    .map((r) => (
+                      <span
+                        style={`background-color:${r.color};padding:2px 6px;border-radius:4px;margin-left:4px;`}
+                      >
+                        {r.label}
+                      </span>
+                    ))}
+                </span>
+              </li>
+            );
+          })
+        }
       </ul>
+
       <h1>
         List of regular users: {regularUsers && `${regularUsers.length}`}
       </h1>
       <ul>
         {regularUsers?.map((user) => <li>{user.email}</li>)}
       </ul>
+
       <script>
         import { signInWithPopup } from "firebase/auth";
         import { auth, provider } from "../../firebase/client";
 
+        const roleForm = document.getElementById(
+          "role-form",
+        ) as HTMLFormElement;
         const adminForm = document.getElementById(
-          "admin-form"
+          "admin-form",
         ) as HTMLFormElement;
         const exceptionForm = document.getElementById(
-          "exception-form"
+          "exception-form",
         ) as HTMLFormElement;
         const btn = document.getElementById(
-          "register-btn"
+          "register-btn",
         ) as HTMLButtonElement;
+
+        roleForm?.addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const formData = new FormData(roleForm);
+          try {
+            const res = await fetch("/api/modify-roles", {
+              method: "POST",
+              body: formData,
+            });
+            const msg = await res.text();
+            if (!res.ok) {
+              alert(`Error modifying role: ${msg}`);
+              return;
+            }
+
+            alert(msg);
+            window.location.reload();
+          } catch (err) {
+            console.error(err);
+            alert("Something went wrong with modifying the role");
+          }
+        });
+
         btn.addEventListener("click", async () => {
           try {
             const userCredential = await signInWithPopup(auth, provider);
@@ -141,7 +298,7 @@ try {
             if (!res.ok) {
               const msg = await res.text();
               alert(
-                `Something is wrong with getting user to exception: ${msg}`
+                `Something is wrong with getting user to exception: ${msg}`,
               );
               return;
             }
@@ -162,7 +319,8 @@ try {
 <style>
   .admin-section {
     display: flex;
-    gap: 20px;
+    flex-direction: column;
+    max-width: 100%;
   }
 
   .app-section {
@@ -173,6 +331,7 @@ try {
     border-radius: 10px;
     padding: 15px;
     width: 100%;
+    box-sizing: border-box;
   }
 
   .email-input {
@@ -203,5 +362,45 @@ try {
     border-radius: 8px;
     color: black;
     width: fit-content;
+  }
+
+  #role-form {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  .role-options {
+    display: flex;
+    gap: 15px;
+    margin: 15px 0;
+    flex-wrap: wrap;
+  }
+
+  .role-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+  }
+
+  .role-badge {
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-weight: 500;
+    transition: opacity 0.2s;
+  }
+
+  .role-label input[type="radio"]:not(:checked) + .role-badge {
+    opacity: 0.5;
+  }
+
+  .action-buttons {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 15px;
   }
 </style>

@@ -1,188 +1,270 @@
-import { useEffect, useRef, useState } from "react"
-import AdminTable from "./components/AdminTable"
-import ViewCard from "./components/ViewCard"
-import type { FormViewData } from "../env"
-import { collection, doc, getCountFromServer, getDoc, getDocs, limit, orderBy, query, startAfter, where, type DocumentData } from "firebase/firestore"
-import { db } from "../firebase/client"
-import "./AdminBoard.css"
-
-export const PAGE_SIZE = 50
+import { useEffect, useRef, useState } from "react";
+import AdminTable from "./components/AdminTable";
+import type { FormViewData } from "../env";
+import { collection, doc, getCountFromServer, getDoc, getDocs, orderBy, query, where, type DocumentData } from "firebase/firestore";
+import { db } from "../firebase/client";
+import { YEAR_TO_DB } from "../config/constants";
+import "./AdminBoard.css";
 
 export interface Summary {
-  total: number,
-  fullyAccepted: number,
-  userAccepted: number,
-  accepted: number,
-  waitlist: number,
-  declined: number,
-  waiting: number,
+  total: number;
+  fullyAccepted: number;
+  userAccepted: number;
+  accepted: number;
+  waitlist: number;
+  waiting: number;
+  declined: number;
 }
 
-export type Mode = "everything" | "fullyAccepted" | "userAccepted" | "accepted" | "waitlist" | "waiting" | "declined"
+export type Mode = "everything" | "fullyAccepted" | "userAccepted" | "accepted" | "waitlist" | "waiting" | "declined";
 
-const buttonStyle = {
-  padding: "10px 20px",
-  fontSize: "16px",
-  borderRadius: "5px",
-  cursor: "pointer",
-  backgroundColor: "white",
-  border: "1px solid black",
+export interface AdvancedFilters {
+  year: string[];
+  gender: string[];
+  dietaryRestriction: string[];
+  shirtSize: string[];
+  availability: string[];
 }
+
+export const STATUS_COLORS: Record<string, string> = {
+  accepted: "#cef5be",
+  waitlist: "#f4e3be",
+  waiting: "#ffffff",
+  declined: "#f4bdbd",
+  userAccepted: "#bee2f5",
+  fullyAccepted: "#bfc3f4",
+};
+
+export type SortField = "email" | "name" | "createdAt" | "availability" | "appStatus";
+export type SortDirection = "asc" | "desc" | null;
 
 export default function AdminBoard() {
+  const [datas, setDatas] = useState<FormViewData[]>([]); // All data loaded
+  const [filteredDatas, setFilteredDatas] = useState<FormViewData[]>([]); // Filtered/Searched data
+  const [view, setView] = useState<FormViewData | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchType, setSearchType] = useState<
+    "all" | "email" | "name" | "uin"
+  >("all");
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const [summary, setSummary] = useState<Summary | null>(null);
+  const [mode, setMode] = useState<Mode>("everything");
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const [advancedFilters, setAdvancedFilters] = useState<AdvancedFilters>({
+    year: [],
+    gender: [],
+    dietaryRestriction: [],
+    shirtSize: [],
+    availability: [],
+  });
+  const [sortField, setSortField] = useState<SortField | null>(null);
+  const [sortDirection, setSortDirection] = useState<SortDirection>(null);
+  const [selectedYear, setSelectedYear] = useState<string>(Object.keys(YEAR_TO_DB)[0]);
 
-  const [datas, setDatas] = useState<FormViewData[]>([])
-  const [page, setPage] = useState(0)
-  const [numMax, setNumMax] = useState(false)
-  const [afterThis, setAfterThis] = useState<any>(null)
-  const [view, setView] = useState<FormViewData | null>(null)
-  const [searchEmail, setSearchEmail] = useState("")
-  const searchInputRef = useRef(null)
-  const [summary, setSummary] = useState<Summary | null>(null)
-  const [mode, setMode] = useState<Mode>("everything")
+  const isHighlight = (curMode: Mode) =>
+    curMode === mode ? { border: "3px solid" } : {};
 
-  const totalPage = (summary)
-    ? (mode === "everything") 
-      ? getTotalPages(summary.total, PAGE_SIZE)
-      : getTotalPages(summary[mode], PAGE_SIZE)
-    : 0
+  // Apply search and advanced filters to loaded data
+  useEffect(() => {
+    let filtered = [...datas];
 
-  const isHighlight = (curMode: Mode) => (curMode === mode)? {border: "3px solid"} : {}  
-  
-  const handleNext = async () => {
-    const newPage = page + 1
-    if (searchEmail !== "") {
-      return
-    }
-    if (numMax) {
-      // console.log("no more doc")
-      if (newPage  * PAGE_SIZE < datas.length) {
-        setPage(newPage)
-      }
-    }
-    else {
-      if (newPage * PAGE_SIZE == datas.length) { // new limit
-        const q = (mode === "everything")
-          ? query(collection(db, "Forms"), orderBy("createdAt"), limit(PAGE_SIZE), startAfter(afterThis))
-          : query(collection(db, "Forms"), where("appStatus", "==", mode), orderBy("createdAt"), limit(PAGE_SIZE), startAfter(afterThis))
-        const qSnap = await getDocs(q)
-        if (qSnap.empty) { // if the next query is empty then we reach limit
-          // console.log("attempting to get new data but there is no new data.")
-          setNumMax(true)
-          return
+    // Apply search
+    if (searchQuery.trim() !== "") {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter((item) => {
+        switch (searchType) {
+          case "email":
+            return item.email?.toLowerCase().includes(query);
+          case "name":
+            return (
+              item.firstName?.toLowerCase().includes(query) ||
+              item.lastName?.toLowerCase().includes(query) ||
+              `${item.firstName} ${item.lastName}`.toLowerCase().includes(query)
+            );
+          case "uin":
+            return item.uin?.toString().includes(query);
+          case "all":
+          default:
+            return (
+              item.email?.toLowerCase().includes(query) ||
+              item.firstName?.toLowerCase().includes(query) ||
+              item.lastName?.toLowerCase().includes(query) ||
+              item.uin?.toString().includes(query)
+            );
         }
-        // console.log(qSnap.docs)
-        const newDatas: FormViewData[] = [...datas]
-        qSnap.forEach((doc) => {
-          const item = convertDocToFormViewData(doc)
-          newDatas.push(item)
-        })
-        // console.log(newDatas)
-        setDatas(newDatas)
-        setPage(newPage)
-        setAfterThis(qSnap.docs[qSnap.docs.length - 1]) // cursor for pagination
-        if (qSnap.docs.length < PAGE_SIZE) { // no more documents after
-          setNumMax(true)
+      });
+    }
+
+    // Apply advanced filters
+    if (advancedFilters.year.length > 0) {
+      filtered = filtered.filter((item) =>
+        advancedFilters.year.includes(item.year)
+      );
+    }
+    if (advancedFilters.gender.length > 0) {
+      filtered = filtered.filter((item) =>
+        advancedFilters.gender.includes(item.gender)
+      );
+    }
+    if (advancedFilters.shirtSize.length > 0) {
+      filtered = filtered.filter((item) =>
+        advancedFilters.shirtSize.includes(item.shirtSize)
+      );
+    }
+    if (advancedFilters.availability.length > 0) {
+      filtered = filtered.filter((item) =>
+        advancedFilters.availability.includes(item.availability)
+      );
+    }
+    if (advancedFilters.dietaryRestriction.length > 0) {
+      filtered = filtered.filter((item) => {
+        const restrictions = Array.isArray(item.dietaryRestriction)
+          ? item.dietaryRestriction
+          : [item.dietaryRestriction];
+        return advancedFilters.dietaryRestriction.some((filter) =>
+          restrictions.includes(filter)
+        );
+      });
+    }
+
+    // Apply sorting
+    if (sortField && sortDirection) {
+      filtered.sort((a, b) => {
+        let aValue: any;
+        let bValue: any;
+
+        switch (sortField) {
+          case "email":
+            aValue = a.email?.toLowerCase() || "";
+            bValue = b.email?.toLowerCase() || "";
+            break;
+          case "name":
+            aValue = `${a.firstName} ${a.lastName}`.toLowerCase();
+            bValue = `${b.firstName} ${b.lastName}`.toLowerCase();
+            break;
+          case "createdAt":
+            aValue = new Date(a.createdAt).getTime();
+            bValue = new Date(b.createdAt).getTime();
+            break;
+          case "availability":
+            aValue = a.availability?.toLowerCase() || "";
+            bValue = b.availability?.toLowerCase() || "";
+            break;
+          case "appStatus":
+            aValue = a.appStatus?.toLowerCase() || "";
+            bValue = b.appStatus?.toLowerCase() || "";
+            break;
         }
-      }
-      else {
-        // console.log("not new data")
-        setPage(newPage)
-      }
-    }
-  }
 
-  const handlePrevious = () => {
-    if (searchEmail !== "") {
-      return
+        if (aValue < bValue) return sortDirection === "asc" ? -1 : 1;
+        if (aValue > bValue) return sortDirection === "asc" ? 1 : -1;
+        return 0;
+      });
     }
-    if (page > 0) {
-      setPage(page - 1)
-    } 
-  }
-  const handleSearch = async () => {
-    if (!searchInputRef.current) return
-    try {
-      let regex = /^[a-zA-Z0-9._%+-]+@uic\.edu$/
-      let regex2 = /^[a-zA-Z0-9._%+-]+@gmail\.com$/
-      if (!regex.test(searchInputRef.current.value) && !regex2.test(searchInputRef.current.value)) {
-        alert("Please enter full uic.edu email or gmail.com email")
-        return
-      }
-      if (searchEmail !== searchInputRef.current.value) {
-        const docSnap = await getDoc(doc(db, "Forms", searchInputRef.current.value))
-        if (!docSnap.exists()) {
-          alert("doc not exist")
-          return
-        }
 
-        setSearchEmail(searchInputRef.current.value)
-        setDatas([convertDocToFormViewData(docSnap)])
-        setAfterThis(null)
-        setPage(0)
-        setNumMax(true)
-        setView(null)
-      }
-    }
-    catch (err) {
-      console.error(err)
-      alert("Something is wrong with search")
-      console.error("something is wrong with search")
-    }
-  }
+    setFilteredDatas(filtered);
+  }, [datas, searchQuery, searchType, advancedFilters, sortField, sortDirection]);
 
-  const handleClearSearch = async () => {
-    if (!searchInputRef.current) return
-    try {
-      searchInputRef.current.value = ""
-      setSearchEmail("")
-      if (searchEmail === "") return
-      const q = (mode === "everything")
-        ? query(collection(db, "Forms"), orderBy("createdAt"), limit(PAGE_SIZE))
-        : query(collection(db, "Forms"), where("appStatus", "==", mode), orderBy("createdAt"), limit(PAGE_SIZE))
-      const qSnap = await getDocs(q)
-      const newDatas: FormViewData[] = []
-      qSnap.forEach((doc) => {
-        const item = convertDocToFormViewData(doc)
-        newDatas.push(item)
-      })
-      setDatas(newDatas)
-      setAfterThis(qSnap.docs[qSnap.docs.length - 1]) // cursor for pagination
-      if (qSnap.docs.length < PAGE_SIZE) { // no more documents after
-        setNumMax(true)
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      // Toggle direction or clear
+      if (sortDirection === "asc") {
+        setSortDirection("desc");
+      } else if (sortDirection === "desc") {
+        setSortField(null);
+        setSortDirection(null);
       }
-      else {
-        setNumMax(false)
-      }
-      setView(null)
-      setPage(0)
+    } else {
+      // New field, start with ascending
+      setSortField(field);
+      setSortDirection("asc");
     }
-    catch (err) {
-      console.error(err)
+  };
+
+  const handleClearFilters = () => {
+    setSearchQuery("");
+    if (searchInputRef.current) {
+      searchInputRef.current.value = "";
     }
-  }
+    setAdvancedFilters({
+      year: [],
+      gender: [],
+      dietaryRestriction: [],
+      shirtSize: [],
+      availability: [],
+    });
+    setSearchType("all");
+  };
+
+  const toggleAdvancedFilter = (
+    category: keyof AdvancedFilters,
+    value: string
+  ) => {
+    setAdvancedFilters((prev) => {
+      const current = prev[category];
+      const updated = current.includes(value)
+        ? current.filter((v) => v !== value)
+        : [...current, value];
+      return { ...prev, [category]: updated };
+    });
+  };
+
+  const hasActiveFilters =
+    searchQuery.trim() !== "" ||
+    Object.values(advancedFilters).some((arr) => arr.length > 0);
 
   useEffect(() => {
     const fetchData = async () => {
-
-      // reset: page -> 0, searchEmail -> "", numMax -> false
-      setPage(0)
-      setNumMax(false)
       if (searchInputRef.current) {
-        searchInputRef.current.value = ""  
+        searchInputRef.current.value = "";
       }
-      setSearchEmail("")
-      setDatas([])
-      setAfterThis(null)
+      setSearchQuery("");
+      setDatas([]);
+      setFilteredDatas([]);
 
-      // fetch summary
-      const totalCount = (await getCountFromServer(collection(db, "Forms"))).data().count
-      const fullyAcceptedCount = (await getCountFromServer(query(collection(db, "Forms"), where("appStatus", "==", "fullyAccepted")))).data().count
-      const userAcceptedCount = (await getCountFromServer(query(collection(db, "Forms"), where("appStatus", "==", "userAccepted")))).data().count
-      const acceptedCount = (await getCountFromServer(query(collection(db, "Forms"), where("appStatus", "==", "accepted")))).data().count
-      const waitlistCount = (await getCountFromServer(query(collection(db, "Forms"), where("appStatus", "==", "waitlist")))).data().count
-      const waitingCount = (await getCountFromServer(query(collection(db, "Forms"), where("appStatus", "==", "waiting")))).data().count
-      const declinedCount = (await getCountFromServer(query(collection(db, "Forms"), where("appStatus", "==", "declined")))).data().count
+      const collectionName = YEAR_TO_DB[selectedYear as keyof typeof YEAR_TO_DB];
+
+      // Fetch summary
+      const totalCount = (
+        await getCountFromServer(collection(db, collectionName))
+      ).data().count;
+      const fullyAcceptedCount = (
+        await getCountFromServer(
+          query(
+            collection(db, collectionName),
+            where("appStatus", "==", "fullyAccepted")
+          )
+        )
+      ).data().count;
+      const userAcceptedCount = (
+        await getCountFromServer(
+          query(
+            collection(db, collectionName),
+            where("appStatus", "==", "userAccepted")
+          )
+        )
+      ).data().count;
+      const acceptedCount = (
+        await getCountFromServer(
+          query(collection(db, collectionName), where("appStatus", "==", "accepted"))
+        )
+      ).data().count;
+      const waitlistCount = (
+        await getCountFromServer(
+          query(collection(db, collectionName), where("appStatus", "==", "waitlist"))
+        )
+      ).data().count;
+      const waitingCount = (
+        await getCountFromServer(
+          query(collection(db, collectionName), where("appStatus", "==", "waiting"))
+        )
+      ).data().count;
+      const declinedCount = (
+        await getCountFromServer(
+          query(collection(db, collectionName), where("appStatus", "==", "declined"))
+        )
+      ).data().count;
+
       setSummary({
         total: totalCount,
         fullyAccepted: fullyAcceptedCount,
@@ -191,117 +273,505 @@ export default function AdminBoard() {
         waitlist: waitlistCount,
         waiting: waitingCount,
         declined: declinedCount,
-      })
+      });
 
-      // fetch first PAGE_SIZE documents
-      const q = (mode === "everything") 
-        ? query(collection(db, "Forms"), orderBy("createdAt"), limit(PAGE_SIZE)) 
-        : query(collection(db, "Forms"), where("appStatus", "==", mode), orderBy("createdAt"), limit(PAGE_SIZE))
-      const qSnap = await getDocs(q)
-      const newDatas: FormViewData[] = []
+      const q =
+        mode === "everything"
+          ? query(collection(db, collectionName), orderBy("createdAt"))
+          : query(
+              collection(db, collectionName),
+              where("appStatus", "==", mode),
+              orderBy("createdAt")
+            );
+
+      const qSnap = await getDocs(q);
+      const newDatas: FormViewData[] = [];
       qSnap.forEach((doc) => {
-        const item = convertDocToFormViewData(doc)
-        newDatas.push(item)
-      })
-      setDatas(newDatas)
-      setAfterThis(qSnap.docs[qSnap.docs.length - 1]) // cursor for pagination
-      if (qSnap.docs.length < PAGE_SIZE) { // no more documents after
-        setNumMax(true)
-      }
-    }
+        const item = convertDocToFormViewData(doc);
+        newDatas.push(item);
+      });
 
-    fetchData().catch(err => {
-      console.error(err)
-      alert("Something wrong with initial fetch data")
-    })
-  }, [mode])
+      setDatas(newDatas);
+    };
+
+    fetchData().catch((err) => {
+      console.error(err);
+      alert("Something wrong with initial fetch data");
+    });
+  }, [mode, selectedYear]);
 
   return (
-    <div style={{backgroundColor: "#F7F7F7", marginBottom: "10px", marginLeft: "10px", borderRadius: "10px"}}>
-      <div style={{textAlign: "left", padding: "10px 10px"}}>
-        <div style={{display: "flex", alignItems: "center", justifyContent:"space-between"}}>
-            <h1>Applicants</h1>
-            <div style={{ justifyContent: "center",  gap: "10px"}}>
-              {/* <label>Search form based on email</label> */}
-              <input placeholder="Search Applicant Email" style={{borderRadius:"30px", minWidth:"250px", minHeight:"40px", border: "none", paddingLeft: "45px", marginRight: "15px", backgroundImage:"url(search.svg)", backgroundRepeat:"no-repeat", backgroundPosition: "10px 10px"}} ref={searchInputRef} onKeyDown={(e) => {
-    if (e.key === "Enter") {
-      handleSearch()
-    }
-  }}/>
-              
+    <div
+      style={{
+        backgroundColor: "#F7F7F7",
+        padding: "0px 10px 10px 10px",
+        borderRadius: "10px",
+      }}
+    >
+      <div style={{ textAlign: "left", padding: "10px 10px" }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            flexWrap: "wrap",
+            gap: "10px",
+          }}
+        >
+          <h1>Applicants</h1>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "10px",
+              flexWrap: "wrap",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                backgroundColor: "white",
+                borderRadius: "30px",
+                border: "1px solid #ccc",
+                overflow: "hidden",
+                minWidth: "350px",
+              }}
+            >
+              <select
+                value={searchType}
+                onChange={(e) => setSearchType(e.target.value as any)}
+                style={{
+                  height: "40px",
+                  border: "none",
+                  padding: "0px 10px",
+                  backgroundColor: "transparent",
+                  outline: "none",
+                  cursor: "pointer",
+                  fontSize: "14px",
+                }}
+              >
+                <option value="all">All Fields</option>
+                <option value="email">Email</option>
+                <option value="name">Name</option>
+                <option value="uin">UIN</option>
+              </select>
+              <div
+                style={{
+                  width: "1px",
+                  height: "24px",
+                  backgroundColor: "#ccc",
+                  margin: "0 8px",
+                }}
+              />
+              <div style={{ position: "relative", flex: 1, display: "flex", alignItems: "center" }}>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  style={{
+                    marginLeft: "8px",
+                    color: "#666",
+                  }}
+                >
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <path d="m21 21-4.35-4.35"></path>
+                </svg>
+                <input
+                  placeholder="Search Applicants"
+                  style={{
+                    border: "none",
+                    outline: "none",
+                    flex: 1,
+                    height: "40px",
+                    paddingLeft: "8px",
+                    paddingRight: "15px",
+                    fontSize: "14px",
+                  }}
+                  ref={searchInputRef}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
             </div>
-        </div>
-        
-        <div>
-          <h2>Mode: {mode}</h2>
-          <div>
-            <button className="filterButton" style={isHighlight("everything")} onClick={() => setMode("everything")}>Everything</button>
-            <button className="filterButton" style={isHighlight("fullyAccepted")} onClick={() => setMode("fullyAccepted")}>Only FullyAccepted</button>
-            <button className="filterButton" style={isHighlight("userAccepted")} onClick={() => setMode("userAccepted")}>Only UserAccepted</button>
-            <button className="filterButton" style={isHighlight("accepted")} onClick={() => setMode("accepted")}>Only Accepted</button>
-            <button className="filterButton" style={isHighlight("waitlist")} onClick={() => setMode("waitlist")}>Only Waitlist</button>
-            <button className="filterButton" style={isHighlight("waiting")} onClick={() => setMode("waiting")}>Only Waiting</button>
-            <button className="filterButton" style={isHighlight("declined")} onClick={() => setMode("declined")}>Only Declined</button>
+            {hasActiveFilters && (
+              <button
+                onClick={handleClearFilters}
+                style={{
+                  padding: "10px 15px",
+                  borderRadius: "5px",
+                  border: "1px solid #ccc",
+                  backgroundColor: "white",
+                  cursor: "pointer",
+                }}
+              >
+                Clear Filters
+              </button>
+            )}
+            <button
+              onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+              style={{
+                width: "40px",
+                height: "40px",
+                borderRadius: "50%",
+                border: "1px solid #ccc",
+                backgroundColor: showAdvancedFilters ? "#e0e0e0" : "white",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: "0",
+              }}
+              title={showAdvancedFilters ? "Hide Filters" : "Show Filters"}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+              </svg>
+            </button>
           </div>
         </div>
-        
+
+        {showAdvancedFilters && (
+          <div
+            style={{
+              marginTop: "20px",
+              padding: "20px",
+              backgroundColor: "white",
+              borderRadius: "8px",
+              border: "1px solid #ddd",
+            }}
+          >
+            <h3 style={{ marginTop: 0, marginBottom: "15px" }}>Filters</h3>
+
+            {/* Application Status Filter */}
+            <div style={{ marginBottom: "20px" }}>
+              <h4 style={{ marginBottom: "10px", fontSize: "15px", fontWeight: "600" }}>Application Status</h4>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+                <button
+                  onClick={() => setMode("everything")}
+                  style={{
+                    padding: "8px 16px",
+                    borderRadius: "20px",
+                    border: mode === "everything" ? "2px solid #333" : "1px solid #ccc",
+                    backgroundColor: "white",
+                    cursor: "pointer",
+                    fontSize: "14px",
+                    fontWeight: mode === "everything" ? "600" : "400",
+                    transition: "all 0.2s ease",
+                  }}
+                >
+                  Everything
+                </button>
+                <button
+                  onClick={() => setMode("fullyAccepted")}
+                  style={{
+                    padding: "8px 16px",
+                    borderRadius: "20px",
+                    border: mode === "fullyAccepted" ? "2px solid #333" : "1px solid #ccc",
+                    backgroundColor: STATUS_COLORS.fullyAccepted,
+                    cursor: "pointer",
+                    fontSize: "14px",
+                    fontWeight: mode === "fullyAccepted" ? "600" : "400",
+                    transition: "all 0.2s ease",
+                  }}
+                >
+                  Confirmed
+                </button>
+                <button
+                  onClick={() => setMode("userAccepted")}
+                  style={{
+                    padding: "8px 16px",
+                    borderRadius: "20px",
+                    border: mode === "userAccepted" ? "2px solid #333" : "1px solid #ccc",
+                    backgroundColor: STATUS_COLORS.userAccepted,
+                    cursor: "pointer",
+                    fontSize: "14px",
+                    fontWeight: mode === "userAccepted" ? "600" : "400",
+                    transition: "all 0.2s ease",
+                  }}
+                >
+                  Invited
+                </button>
+                <button
+                  onClick={() => setMode("accepted")}
+                  style={{
+                    padding: "8px 16px",
+                    borderRadius: "20px",
+                    border: mode === "accepted" ? "2px solid #333" : "1px solid #ccc",
+                    backgroundColor: STATUS_COLORS.accepted,
+                    cursor: "pointer",
+                    fontSize: "14px",
+                    fontWeight: mode === "accepted" ? "600" : "400",
+                    transition: "all 0.2s ease",
+                  }}
+                >
+                  Accepted
+                </button>
+                <button
+                  onClick={() => setMode("waitlist")}
+                  style={{
+                    padding: "8px 16px",
+                    borderRadius: "20px",
+                    border: mode === "waitlist" ? "2px solid #333" : "1px solid #ccc",
+                    backgroundColor: STATUS_COLORS.waitlist,
+                    cursor: "pointer",
+                    fontSize: "14px",
+                    fontWeight: mode === "waitlist" ? "600" : "400",
+                    transition: "all 0.2s ease",
+                  }}
+                >
+                  Waitlisted
+                </button>
+                <button
+                  onClick={() => setMode("waiting")}
+                  style={{
+                    padding: "8px 16px",
+                    borderRadius: "20px",
+                    border: mode === "waiting" ? "2px solid #333" : "1px solid #ccc",
+                    backgroundColor: STATUS_COLORS.waiting,
+                    cursor: "pointer",
+                    fontSize: "14px",
+                    fontWeight: mode === "waiting" ? "600" : "400",
+                    transition: "all 0.2s ease",
+                  }}
+                >
+                  Pending
+                </button>
+                <button
+                  onClick={() => setMode("declined")}
+                  style={{
+                    padding: "8px 16px",
+                    borderRadius: "20px",
+                    border: mode === "declined" ? "2px solid #333" : "1px solid #ccc",
+                    backgroundColor: STATUS_COLORS.declined,
+                    cursor: "pointer",
+                    fontSize: "14px",
+                    fontWeight: mode === "declined" ? "600" : "400",
+                    transition: "all 0.2s ease",
+                  }}
+                >
+                  Declined
+                </button>
+              </div>
+            </div>
+
+            <FilterSection
+              title="Year"
+              options={[
+                "Freshman",
+                "Sophomore",
+                "Junior",
+                "Senior",
+                "Graduate",
+              ]}
+              selected={advancedFilters.year}
+              onToggle={(v) => toggleAdvancedFilter("year", v)}
+            />
+
+            <FilterSection
+              title="Gender"
+              options={["Male", "Female", "Non-binary", "Prefer not to say"]}
+              selected={advancedFilters.gender}
+              onToggle={(v) => toggleAdvancedFilter("gender", v)}
+            />
+
+            <FilterSection
+              title="Availability"
+              options={["Both days", "Saturday only", "Sunday only"]}
+              selected={advancedFilters.availability}
+              onToggle={(v) => toggleAdvancedFilter("availability", v)}
+            />
+
+            <FilterSection
+              title="Shirt Size"
+              options={["XS", "S", "M", "L", "XL", "XXL"]}
+              selected={advancedFilters.shirtSize}
+              onToggle={(v) => toggleAdvancedFilter("shirtSize", v)}
+            />
+
+            <FilterSection
+              title="Dietary Restrictions"
+              options={[
+                "None",
+                "Vegetarian",
+                "Vegan",
+                "Gluten-Free",
+                "Halal",
+                "Kosher",
+                "Lactose Intolerant",
+              ]}
+              selected={advancedFilters.dietaryRestriction}
+              onToggle={(v) => toggleAdvancedFilter("dietaryRestriction", v)}
+            />
+          </div>
+        )}
       </div>
-      {summary &&
-        <section style={{margin: "8px", padding: "8px", borderRadius: "8px", boxSizing: "border-box"}}>
-          <h2>Summary</h2>
-          <div style={{ width: "100%", display: "flex", flexWrap: "wrap", gap: "8px",}}>
-            <div><strong>Total:</strong> {summary.total}</div>
-            <div><Dot backgroundColor="#72f784"/> <strong>fullyAccepted:</strong> {summary.fullyAccepted}</div>
-            <div><Dot backgroundColor="#bdc3f5"/> <strong>userAccepted:</strong> {summary.userAccepted}</div>
-            <div><Dot backgroundColor="#cff5bd"/> <strong>accepted:</strong> {summary.accepted}</div>
-            <div><Dot backgroundColor="#f5e3bd"/> <strong>waitlist:</strong> {summary.waitlist}</div>
-            <div><Dot backgroundColor="#f5bdbd"/> <strong>declined:</strong> {summary.declined}</div>
-            <div><Dot backgroundColor="white"/> <strong>waiting:</strong> {summary.waiting}</div>
+
+      {summary && (
+        <section
+          style={{
+            padding: "0px 8px",
+            borderRadius: "8px",
+            boxSizing: "border-box",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: "10px",
+            }}
+          >
+            <h2 style={{ margin: 0 }}>Summary</h2>
+            <select
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(e.target.value)}
+              style={{
+                padding: "8px 12px",
+                borderRadius: "8px",
+                border: "1px solid #ccc",
+                backgroundColor: "white",
+                cursor: "pointer",
+                fontSize: "14px",
+                fontWeight: "600",
+              }}
+            >
+              {Object.keys(YEAR_TO_DB).map((year) => (
+                <option key={year} value={year}>
+                  {year}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div
+            style={{
+              width: "100%",
+              display: "flex",
+              flexWrap: "wrap",
+              gap: "20px",
+            }}
+          >
+            <div>
+              <strong>Total:</strong> {summary.total}
+            </div>
+            <div>
+              <strong>Confirmed:</strong>{" "}
+              {summary.fullyAccepted}
+            </div>
+            <div>
+              <strong>Invited:</strong>{" "}
+              {summary.userAccepted}
+            </div>
+            <div>
+              <strong>Accepted:</strong>{" "}
+              {summary.accepted}
+            </div>
+            <div>
+              <strong>Waitlisted:</strong>{" "}
+              {summary.waitlist}
+            </div>
+            <div>
+              <strong>Declined:</strong>{" "}
+              {summary.declined}
+            </div>
+            <div>
+              <strong>Pending:</strong>{" "}
+              {summary.waiting}
+            </div>
+          </div>
+          <div
+            style={{
+              marginTop: "10px",
+              display: "flex",
+              gap: "15px",
+              alignItems: "center",
+            }}
+          >
+            <strong>Showing:</strong> {filteredDatas.length} results
+            {hasActiveFilters && (
+              <span>(filtered from {datas.length} loaded)</span>
+            )}
           </div>
         </section>
-      }
-      <div style={{width: "100%", display: "flex"}}>
-        <ViewCard view={view} setView={setView}/>
-        <AdminTable datas={datas} view={view} setView={setView} page={page} setDatas={setDatas} setSummary={setSummary} summary={summary}/> 
-      </div>
-      <div style={{display: "flex", gap: "10px", justifyContent: "center", alignItems: "center"}}>
-          <button 
-            disabled={page === 0 || searchEmail !== ""}
-            onClick={handlePrevious}
-            className="pageButton"
-          >Previous</button>
-          <h2>Page: {page + 1}/{totalPage}</h2>
-          <button
-            disabled={(numMax && ((page + 1) * PAGE_SIZE > datas.length)) || (searchEmail !== "")}
-            onClick={handleNext}
-            className="pageButton"
-          >Next</button>
-        </div>
+      )}
+
+      <AdminTable
+        datas={filteredDatas}
+        view={view}
+        setView={setView}
+        setDatas={setDatas}
+        setSummary={setSummary}
+        summary={summary}
+        allDatas={datas}
+        sortField={sortField}
+        sortDirection={sortDirection}
+        onSort={handleSort}
+      />
+
     </div>
-  )
+  );
 }
 
-
-
-function Dot({backgroundColor}: {
-  backgroundColor: string
+function FilterSection({
+  title,
+  options,
+  selected,
+  onToggle,
+}: {
+  title: string;
+  options: string[];
+  selected: string[];
+  onToggle: (value: string) => void;
 }) {
   return (
-    <div style={{backgroundColor: backgroundColor, width: "15px", height: "15px", display: "inline-block", borderRadius: 9999, border: "1px solid black"}}></div>
-  )
+    <div style={{ marginBottom: "15px" }}>
+      <h4 style={{ marginBottom: "8px" }}>{title}</h4>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+        {options.map((option) => (
+          <button
+            key={option}
+            onClick={() => onToggle(option)}
+            style={{
+              padding: "6px 12px",
+              borderRadius: "5px",
+              border: selected.includes(option)
+                ? "2px solid #4CAF50"
+                : "1px solid #ccc",
+              backgroundColor: selected.includes(option) ? "#e8f5e9" : "white",
+              cursor: "pointer",
+              fontSize: "14px",
+            }}
+          >
+            {option}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
 }
 
-const getTotalPages = (numDocs: number, pageSize: number) => {
-  if (numDocs === 0) return 0
-  if (numDocs % pageSize === 0) return Math.floor(numDocs / pageSize)
-  return Math.floor(numDocs / pageSize) + 1
-}
-
-// convert document data to FormViewData object
-export const convertDocToFormViewData = (doc: DocumentData) => {
-  const docData = doc.data()
+const convertDocToFormViewData = (doc: DocumentData) => {
+  const docData = doc.data();
   const result: FormViewData = {
-    createdAt: docData.createdAt.toDate().toLocaleString("en-US", { timeZone: "America/Chicago"}),
+    createdAt: docData.createdAt
+      .toDate()
+      .toLocaleString("en-US", { timeZone: "America/Chicago" }),
     email: docData.email,
     firstName: docData.firstName,
     lastName: docData.lastName,
@@ -319,6 +789,6 @@ export const convertDocToFormViewData = (doc: DocumentData) => {
     otherJobType: docData.otherJobType,
     resumeLink: docData.resumeLink,
     appStatus: docData.appStatus,
-  }
-  return result
-}
+  };
+  return result;
+};

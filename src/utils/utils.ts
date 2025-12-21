@@ -1,6 +1,8 @@
 import { db } from "../firebase/server"
 import { questions } from "./questions"
 import type { FormSubmissionData } from "../env"
+import { FORMS_COLLECTION } from "../config/constants"
+export { FORMS_COLLECTION }
 
 export const displayFormData = (
   email: string | undefined,
@@ -194,5 +196,5 @@ export const sendFormToGoogleSheet = async (formSubmissionData: FormSubmissionDa
 
 // send form to firestore
 export const sendFormToFirestore = async (formSubmissionData: FormSubmissionData) => {
-  await db.collection("Forms").doc(formSubmissionData.email).set(formSubmissionData)
+  await db.collection(FORMS_COLLECTION).doc(formSubmissionData.email).set(formSubmissionData)
 }

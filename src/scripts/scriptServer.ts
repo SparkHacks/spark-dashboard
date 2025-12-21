@@ -34,3 +34,5 @@ const initApp = () => {
 export const app = activeApps.length === 0 ? initApp() : activeApps[0];
 export const auth = getAuth(app)
 export const db = getFirestore(app)
+
+
