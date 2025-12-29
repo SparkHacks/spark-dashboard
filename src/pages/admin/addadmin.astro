@@ -2,8 +2,8 @@
 import DashboardLayout from "../../layouts/DashboardLayout.astro";
 import { auth } from "../../firebase/server";
 import { app } from "../../firebase/server";
+import { getAuth } from "firebase-admin/auth";
 import AdminCode from "../../components/AdminCode";
-import Sidebar from "../../components/Sidebar";
 
 import getRoleFlags from "../../scripts/getRoles.ts";
 import type { RoleFlags } from "../../scripts/getRoles.ts";
@@ -17,10 +17,30 @@ let roles: RoleFlags = {
 let adminUsers = null;
 let exceptionUsers = null;
 let regularUsers = null;
+let userEmail = "";
+let userName = "";
+let userPhoto = "";
 
 let isRealDatabase = import.meta.env.REAL_DATABASE === "true" ? "yes" : "no";
 
 try {
+  const authInstance = getAuth(app);
+
+  // Get current user info
+  const sessionCookieObj = Astro.cookies.get("__session");
+  if (sessionCookieObj) {
+    const sessionCookie = sessionCookieObj.value;
+    const decodedCookie = await authInstance.verifySessionCookie(sessionCookie);
+    if (decodedCookie) {
+      const user = await authInstance.getUser(decodedCookie.uid);
+      if (user) {
+        userEmail = user.email as string;
+        userName = user.displayName || "";
+        userPhoto = user.photoURL || "";
+      }
+    }
+  }
+
   const users = await auth.listUsers();
   adminUsers = users.users.filter(
     (user) => user.customClaims && user.customClaims.admin === true,
@@ -41,9 +61,8 @@ try {
 }
 ---
 
-<DashboardLayout>
+<DashboardLayout userName={userName} userEmail={userEmail} currentPath={Astro.url.pathname}>
   <div class="admin-section">
-    <Sidebar />
     <div class="app-section">
       <h1>Is Real Database: {isRealDatabase}</h1>
 
@@ -300,7 +319,8 @@ try {
 <style>
   .admin-section {
     display: flex;
-    gap: 20px;
+    flex-direction: column;
+    max-width: 100%;
   }
 
   .app-section {
@@ -311,6 +331,7 @@ try {
     border-radius: 10px;
     padding: 15px;
     width: 100%;
+    box-sizing: border-box;
   }
 
   .email-input {

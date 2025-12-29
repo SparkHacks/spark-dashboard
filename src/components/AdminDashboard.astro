@@ -1,0 +1,22 @@
+---
+import Badge from "./components/Badge.astro";
+import type { RoleFlags } from "../scripts/getRoles.ts";
+
+interface Props {
+  roles: RoleFlags;
+  userName: string;
+}
+
+const { roles, userName } = Astro.props;
+---
+
+<section style="margin-bottom: 15px;">
+  <h1>Welcome, {userName}!</h1>
+  <div style="display: flex; align-items: center; gap: 4px">
+    <p>Roles:</p>
+    {roles.isAdmin && <Badge color="lightcoral">Admin</Badge>}
+    {roles.isQrScanner && <Badge color="lightseagreen">QRScanner</Badge>}
+    {roles.isWebDev && <Badge color="lightgreen">WebDev</Badge>}
+    {roles.isDirector && <Badge color="lightblue">Director</Badge>}
+  </div>
+</section>
