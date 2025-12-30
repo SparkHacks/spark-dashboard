@@ -64,9 +64,69 @@ try {
 <DashboardLayout userName={userName} userEmail={userEmail} currentPath={Astro.url.pathname}>
   <div class="admin-section">
     <div class="app-section">
-      <h1>Is Real Database: {isRealDatabase}</h1>
+      <!-- <h1>Is Real Database: {isRealDatabase}</h1> -->
 
-      <h1>Manage User Roles</h1>
+      
+
+      <!-- <h1>Register New User</h1>
+      <button id="register-btn">Sign in with google</button> -->
+      <h1>Manage Admin</h1>
+      <p><i>For managing and viewing all admin users</i></p>
+      <h3 style={{border: "1px solid black", width: "fit-content", padding: "10px", borderRadius: "20px"}}>{adminUsers && `${adminUsers.length}`} admin users</h3>
+      <ol style={{maxHeight: "300px;", overflow: "scroll;", paddingTop: "20px", border:"1px solid black", borderRadius: "20px"}}>
+        {
+          adminUsers?.map((user) => {
+            const roles = getRoleFlags(user);
+            const roleBadges = [
+              { flag: "isAdmin", label: "Admin", color: "#BFC3F4" },
+              { flag: "isQrScanner", label: "QRScanner", color: "#FFC77E" },
+              { flag: "isWebDev", label: "WebDev", color: "#A9D796" },
+              { flag: "isDirector", label: "Director", color: "#BEE2F5" },
+            ];
+
+            return (
+              <li style={{marginBottom: "15px"}}>
+                <b>{user.displayName}:</b>
+                {user.email}
+                <span style="margin-left: 10px;">
+                  {roleBadges
+                    .filter((r) => roles[r.flag as keyof RoleFlags])
+                    .map((r) => (
+                      <span
+                        style={`background-color:${r.color};padding:7px 6px;border-radius:20px;margin-left:4px;`}
+                      >
+                        {r.label}
+                      </span>
+                    ))}
+                </span>
+                
+              </li>
+            );
+          })
+        }
+      </ol>
+
+      <h2>Update Admin Users</h2>
+      <form id="admin-form">
+        <input
+          class="email-input"
+          name="email"
+          type="email"
+          placeholder="Type an admin email"
+        />
+        <input type="radio" id="add" name="action" value="add" />
+        <label for="add">Assign admin role</label>
+        <input type="radio" id="remove" name="action" value="remove" />
+        <label for="remove">Remove admin role</label>
+        <button type="submit">Submit</button>
+      </form>
+      
+
+      <hr class="custom-line"/>
+
+      <h1>Assign User Roles</h1>
+      <p><i>For managing special roles: Admin, QR Scanner, Web Dev, and Director</i></p>
+
       <form id="role-form">
         <input
           class="email-input"
@@ -78,19 +138,19 @@ try {
         <div class="role-options">
           <label class="role-label">
             <input type="radio" name="role" value="admin" required />
-            <span class="role-badge" style="background-color: lightcoral;">Admin</span>
+            <span class="role-badge" style="background-color: #BFC3F4; border: 1px; border-radius: 20px;">Admin</span>
           </label>
           <label class="role-label">
             <input type="radio" name="role" value="qrScanner" required />
-            <span class="role-badge" style="background-color: lightseagreen;">QR Scanner</span>
+            <span class="role-badge" style="background-color: #FFC77E; border: 1px; border-radius: 20px;">QR Scanner</span>
           </label>
           <label class="role-label">
             <input type="radio" name="role" value="webDev" required />
-            <span class="role-badge" style="background-color: lightgreen;">Web Dev</span>
+            <span class="role-badge" style="background-color: #A9D796; border: 1px; border-radius: 20px;">Web Dev</span>
           </label>
           <label class="role-label">
             <input type="radio" name="role" value="director" required />
-            <span class="role-badge" style="background-color: lightblue;">Director</span>
+            <span class="role-badge" style="background-color: #BEE2F5; border: 1px; border-radius: 20px;">Director</span>
           </label>
         </div>
         <div class="action-buttons">
@@ -102,77 +162,14 @@ try {
         </div>
       </form>
 
-      <h1>Register New User</h1>
-      <button id="register-btn">Sign in with google</button>
-      <h1>Admin users</h1>
-      <form id="admin-form">
-        <input
-          class="email-input"
-          name="email"
-          type="email"
-          placeholder="Type a registered email"
-        />
-        <input type="radio" id="add" name="action" value="add" />
-        <label for="add">Assign admin role</label>
-        <input type="radio" id="remove" name="action" value="remove" />
-        <label for="remove">Remove admin role</label>
-        <button type="submit">Submit</button>
-      </form>
+      <hr class="custom-line"/>
+
       <h1>Exception users</h1>
-      <form id="exception-form">
-        <input
-          class="email-input"
-          name="email"
-          type="email"
-          placeholder="Type a registered email"
-        />
-        <input type="radio" id="add" name="action" value="add" />
-        <label for="add">Assign exception role</label>
-        <input type="radio" id="remove" name="action" value="remove" />
-        <label for="remove">Remove exception role</label>
-        <button type="submit">Submit</button>
-      </form>
+      <p><i>For SparkHacks participants who don't have uic.edu emails</i></p>
 
-      <h1>List of admin users: {adminUsers && `${adminUsers.length}`}</h1>
-      <ul>
-        {
-          adminUsers?.map((user) => {
-            const roles = getRoleFlags(user);
-            const roleBadges = [
-              { flag: "isAdmin", label: "Admin", color: "lightcoral" },
-              {
-                flag: "isQrScanner",
-                label: "QRScanner",
-                color: "lightseagreen",
-              },
-              { flag: "isWebDev", label: "WebDev", color: "lightgreen" },
-              { flag: "isDirector", label: "Director", color: "lightblue" },
-            ];
-
-            return (
-              <li>
-                {user.email}
-                <span style="margin-left: 10px;">
-                  {roleBadges
-                    .filter((r) => roles[r.flag as keyof RoleFlags])
-                    .map((r) => (
-                      <span
-                        style={`background-color:${r.color};padding:2px 6px;border-radius:4px;margin-left:4px;`}
-                      >
-                        {r.label}
-                      </span>
-                    ))}
-                </span>
-              </li>
-            );
-          })
-        }
-      </ul>
-
-      <h1>
-        List of exception users: {exceptionUsers && `${exceptionUsers.length}`}
-      </h1>
-      <ul>
+      <h3 style={{border: "1px solid black", width: "fit-content", padding: "10px", borderRadius: "20px"}}>{exceptionUsers && `${exceptionUsers.length}`} exception user{exceptionUsers && exceptionUsers.length > 1 ? 's' : ''}</h3>
+      
+      <ol style={{maxHeight: "300px;", minHeight: "50px", overflow: "scroll;", paddingTop: "20px", border:"1px solid black", borderRadius: "20px"}}>
         {
           exceptionUsers?.map((user) => {
             const roles = getRoleFlags(user);
@@ -205,14 +202,34 @@ try {
             );
           })
         }
-      </ul>
+      </ol>
+
+      <h2>Update Exception Users</h2>
+      
+      <form id="exception-form">
+        <input
+          class="email-input"
+          name="email"
+          type="email"
+          placeholder="Type a registered email"
+        />
+        <input type="radio" id="add" name="action" value="add" />
+        <label for="add">Assign exception role</label>
+        <input type="radio" id="remove" name="action" value="remove" />
+        <label for="remove">Remove exception role</label>
+        <button type="submit">Submit</button>
+      </form>
+
+      <!-- <hr class="custom-line"/> -->
+
+<!--       
 
       <h1>
         List of regular users: {regularUsers && `${regularUsers.length}`}
       </h1>
-      <ul>
+      <ul id="regular-list">
         {regularUsers?.map((user) => <li>{user.email}</li>)}
-      </ul>
+      </ul> -->
 
       <script>
         import { signInWithPopup } from "firebase/auth";
@@ -317,6 +334,13 @@ try {
 </DashboardLayout>
 
 <style>
+
+  h1 {
+    margin-bottom: 5px;
+  }
+  p {
+    margin-top: 0px;
+  }
   .admin-section {
     display: flex;
     flex-direction: column;
@@ -364,7 +388,7 @@ try {
     width: fit-content;
   }
 
-  #role-form {
+  #role-form, #admin-form, #exception-form {
     background-color: white;
     padding: 20px;
     border-radius: 8px;
@@ -403,4 +427,18 @@ try {
     gap: 10px;
     margin-top: 15px;
   }
+
+  .custom-line {
+    width: 100%;
+    border: .5px solid black;
+    margin-top: 20px;
+  }
+
+  #regular-list {
+    max-height: 500px;
+    overflow: scroll;
+    border: 1px solid black;
+    border-radius: 20px;
+  }
+
 </style>

@@ -69,18 +69,18 @@ export const questions = {
         ]
     },
     preWorkshops: { // checkbox
-        question: "Which of the following Pre-Hack Workshops would you find useful/interesting to attend PRIOR to SparkHacks? These will be held from February 4th-6th, 2025. For more information on these workshops, view https://www.sparkhacks.org/.",
+        question: "Which of the following Pre-Hack Workshops would you find useful/interesting to attend PRIOR to SparkHacks? These will be held from February 3rd-5th, 2026. For more information on these workshops, view https://www.sparkhacks.org/.",
         answer: [
-            "Tuesday: Git Like a Pro",
-            "Wednesday: Overthinking? Just React!",
-            "Thursday: Tango with Django",
+            "Tuesday: Workshop #1",
+            "Wednesday: Workshop #2",
+            "Thursday: Workshop #3",
         ]
     },
     jobType: { // required, other
         question: "If you’d like to be considered for an opportunity with our company partners, select the type of job you are looking for:",
         answer: [
-            "Summer 2025 Internship",
-            "Fall 2025 Internship",
+            "Summer 2026 Internship",
+            "Fall 2026 Internship",
             "Data Analysis New Grad Job",
             "Data Science New Grad Job",
             "Software Engineer New Grad Job",

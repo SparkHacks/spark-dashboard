@@ -45,11 +45,11 @@
   overflow-y: scroll;
   background-color: #F7F7F7;
   padding: 8px 0;
-  background-image:
+  /* background-image:
     repeating-linear-gradient(0deg, #9747FF, #9747FF 10px, transparent 10px, transparent 15px),
     repeating-linear-gradient(90deg, #9747FF, #9747FF 10px, transparent 10px, transparent 15px),
     repeating-linear-gradient(180deg, #9747FF, #9747FF 10px, transparent 10px, transparent 15px),
-    repeating-linear-gradient(270deg, #9747FF, #9747FF 10px, transparent 10px, transparent 15px);
+    repeating-linear-gradient(270deg, #9747FF, #9747FF 10px, transparent 10px, transparent 15px); */
   background-size: 1px 100%, 100% 1px, 1px 100%, 100% 1px;
   background-position: 0 0, 0 0, 100% 0, 0 100%;
   background-repeat: no-repeat;

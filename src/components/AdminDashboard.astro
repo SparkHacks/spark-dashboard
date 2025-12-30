@@ -14,9 +14,9 @@ const { roles, userName } = Astro.props;
   <h1>Welcome, {userName}!</h1>
   <div style="display: flex; align-items: center; gap: 4px">
     <p>Roles:</p>
-    {roles.isAdmin && <Badge color="lightcoral">Admin</Badge>}
-    {roles.isQrScanner && <Badge color="lightseagreen">QRScanner</Badge>}
-    {roles.isWebDev && <Badge color="lightgreen">WebDev</Badge>}
-    {roles.isDirector && <Badge color="lightblue">Director</Badge>}
+    {roles.isAdmin && <Badge color="#BFC3F4">Admin</Badge>}
+    {roles.isQrScanner && <Badge color="#FFC77E">QRScanner</Badge>}
+    {roles.isWebDev && <Badge color="#A9D796">WebDev</Badge>}
+    {roles.isDirector && <Badge color="#BEE2F5">Director</Badge>}
   </div>
 </section>

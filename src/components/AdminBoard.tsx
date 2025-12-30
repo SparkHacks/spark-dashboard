@@ -60,6 +60,9 @@ export default function AdminBoard() {
   const [sortField, setSortField] = useState<SortField | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>(null);
   const [selectedYear, setSelectedYear] = useState<string>(Object.keys(YEAR_TO_DB)[0]);
+  const ITEMS_PER_PAGE = 20;
+  const [currentPage, setCurrentPage] = useState(1);
+
 
   const isHighlight = (curMode: Mode) =>
     curMode === mode ? { border: "3px solid" } : {};
@@ -163,6 +166,7 @@ export default function AdminBoard() {
     }
 
     setFilteredDatas(filtered);
+    setCurrentPage(1);
   }, [datas, searchQuery, searchType, advancedFilters, sortField, sortDirection]);
 
   const handleSort = (field: SortField) => {
@@ -300,6 +304,14 @@ export default function AdminBoard() {
     });
   }, [mode, selectedYear]);
 
+  const totalPages = Math.ceil(filteredDatas.length / ITEMS_PER_PAGE);
+
+  const paginatedDatas = filteredDatas.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+
+
   return (
     <div
       style={{
@@ -364,7 +376,14 @@ export default function AdminBoard() {
                   margin: "0 8px",
                 }}
               />
-              <div style={{ position: "relative", flex: 1, display: "flex", alignItems: "center" }}>
+              <div
+                style={{
+                  position: "relative",
+                  flex: 1,
+                  display: "flex",
+                  alignItems: "center",
+                }}
+              >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="18"
@@ -460,14 +479,25 @@ export default function AdminBoard() {
 
             {/* Application Status Filter */}
             <div style={{ marginBottom: "20px" }}>
-              <h4 style={{ marginBottom: "10px", fontSize: "15px", fontWeight: "600" }}>Application Status</h4>
+              <h4
+                style={{
+                  marginBottom: "10px",
+                  fontSize: "15px",
+                  fontWeight: "600",
+                }}
+              >
+                Application Status
+              </h4>
               <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
                 <button
                   onClick={() => setMode("everything")}
                   style={{
                     padding: "8px 16px",
                     borderRadius: "20px",
-                    border: mode === "everything" ? "2px solid #333" : "1px solid #ccc",
+                    border:
+                      mode === "everything"
+                        ? "2px solid #333"
+                        : "1px solid #ccc",
                     backgroundColor: "white",
                     cursor: "pointer",
                     fontSize: "14px",
@@ -482,7 +512,10 @@ export default function AdminBoard() {
                   style={{
                     padding: "8px 16px",
                     borderRadius: "20px",
-                    border: mode === "fullyAccepted" ? "2px solid #333" : "1px solid #ccc",
+                    border:
+                      mode === "fullyAccepted"
+                        ? "2px solid #333"
+                        : "1px solid #ccc",
                     backgroundColor: STATUS_COLORS.fullyAccepted,
                     cursor: "pointer",
                     fontSize: "14px",
@@ -497,7 +530,10 @@ export default function AdminBoard() {
                   style={{
                     padding: "8px 16px",
                     borderRadius: "20px",
-                    border: mode === "userAccepted" ? "2px solid #333" : "1px solid #ccc",
+                    border:
+                      mode === "userAccepted"
+                        ? "2px solid #333"
+                        : "1px solid #ccc",
                     backgroundColor: STATUS_COLORS.userAccepted,
                     cursor: "pointer",
                     fontSize: "14px",
@@ -512,7 +548,8 @@ export default function AdminBoard() {
                   style={{
                     padding: "8px 16px",
                     borderRadius: "20px",
-                    border: mode === "accepted" ? "2px solid #333" : "1px solid #ccc",
+                    border:
+                      mode === "accepted" ? "2px solid #333" : "1px solid #ccc",
                     backgroundColor: STATUS_COLORS.accepted,
                     cursor: "pointer",
                     fontSize: "14px",
@@ -527,7 +564,8 @@ export default function AdminBoard() {
                   style={{
                     padding: "8px 16px",
                     borderRadius: "20px",
-                    border: mode === "waitlist" ? "2px solid #333" : "1px solid #ccc",
+                    border:
+                      mode === "waitlist" ? "2px solid #333" : "1px solid #ccc",
                     backgroundColor: STATUS_COLORS.waitlist,
                     cursor: "pointer",
                     fontSize: "14px",
@@ -542,7 +580,8 @@ export default function AdminBoard() {
                   style={{
                     padding: "8px 16px",
                     borderRadius: "20px",
-                    border: mode === "waiting" ? "2px solid #333" : "1px solid #ccc",
+                    border:
+                      mode === "waiting" ? "2px solid #333" : "1px solid #ccc",
                     backgroundColor: STATUS_COLORS.waiting,
                     cursor: "pointer",
                     fontSize: "14px",
@@ -557,7 +596,8 @@ export default function AdminBoard() {
                   style={{
                     padding: "8px 16px",
                     borderRadius: "20px",
-                    border: mode === "declined" ? "2px solid #333" : "1px solid #ccc",
+                    border:
+                      mode === "declined" ? "2px solid #333" : "1px solid #ccc",
                     backgroundColor: STATUS_COLORS.declined,
                     cursor: "pointer",
                     fontSize: "14px",
@@ -632,38 +672,10 @@ export default function AdminBoard() {
         >
           <div
             style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginBottom: "10px",
-            }}
-          >
-            <h2 style={{ margin: 0 }}>Summary</h2>
-            <select
-              value={selectedYear}
-              onChange={(e) => setSelectedYear(e.target.value)}
-              style={{
-                padding: "8px 12px",
-                borderRadius: "8px",
-                border: "1px solid #ccc",
-                backgroundColor: "white",
-                cursor: "pointer",
-                fontSize: "14px",
-                fontWeight: "600",
-              }}
-            >
-              {Object.keys(YEAR_TO_DB).map((year) => (
-                <option key={year} value={year}>
-                  {year}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div
-            style={{
               width: "100%",
               display: "flex",
               flexWrap: "wrap",
+              justifyContent: "space-between",
               gap: "20px",
             }}
           >
@@ -671,39 +683,59 @@ export default function AdminBoard() {
               <strong>Total:</strong> {summary.total}
             </div>
             <div>
-              <strong>Confirmed:</strong>{" "}
-              {summary.fullyAccepted}
+              <strong>Confirmed:</strong> {summary.fullyAccepted}
             </div>
             <div>
-              <strong>Invited:</strong>{" "}
-              {summary.userAccepted}
+              <strong>Invited:</strong> {summary.userAccepted}
             </div>
             <div>
-              <strong>Accepted:</strong>{" "}
-              {summary.accepted}
+              <strong>Accepted:</strong> {summary.accepted}
             </div>
             <div>
-              <strong>Waitlisted:</strong>{" "}
-              {summary.waitlist}
+              <strong>Waitlisted:</strong> {summary.waitlist}
             </div>
             <div>
-              <strong>Declined:</strong>{" "}
-              {summary.declined}
+              <strong>Declined:</strong> {summary.declined}
             </div>
             <div>
-              <strong>Pending:</strong>{" "}
-              {summary.waiting}
+              <strong>Pending:</strong> {summary.waiting}
+            </div>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "end",
+              }}
+            >
+              {/* <h2 style={{ margin: 0 }}>Summary</h2> */}
+              <select
+                value={selectedYear}
+                onChange={(e) => setSelectedYear(e.target.value)}
+                style={{
+                  padding: "8px 12px",
+                  borderRadius: "8px",
+                  border: "1px solid #ccc",
+                  backgroundColor: "white",
+                  cursor: "pointer",
+                  fontSize: "14px",
+                  fontWeight: "600",
+                }}
+              >
+                {Object.keys(YEAR_TO_DB).map((year) => (
+                  <option key={year} value={year}>
+                    {year}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
           <div
             style={{
-              marginTop: "10px",
               display: "flex",
               gap: "15px",
               alignItems: "center",
             }}
           >
-            <strong>Showing:</strong> {filteredDatas.length} results
+            <strong>Showing:</strong> {paginatedDatas.length} results
             {hasActiveFilters && (
               <span>(filtered from {datas.length} loaded)</span>
             )}
@@ -712,7 +744,7 @@ export default function AdminBoard() {
       )}
 
       <AdminTable
-        datas={filteredDatas}
+        datas={paginatedDatas}
         view={view}
         setView={setView}
         setDatas={setDatas}
@@ -724,6 +756,53 @@ export default function AdminBoard() {
         onSort={handleSort}
       />
 
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          gap: "10px",
+          marginTop: "15px",
+          alignItems: "center",
+        }}
+      >
+        <button
+          disabled={currentPage === 1}
+          onClick={() => setCurrentPage((p) => p - 1)}
+          style={{
+                    padding: "8px 16px",
+                    borderRadius: "20px",
+                    border: "1px solid #ccc",
+                    backgroundColor: "white",
+                    cursor: "pointer",
+                    fontSize: "14px",
+                    fontWeight: mode === "fullyAccepted" ? "600" : "400",
+                    transition: "all 0.2s ease",
+                  }}
+        >
+          Previous
+        </button>
+
+        <span>
+          Page {currentPage} of {totalPages}
+        </span>
+
+        <button
+          disabled={currentPage === totalPages}
+          onClick={() => setCurrentPage((p) => p + 1)}
+          style={{
+                    padding: "8px 16px",
+                    borderRadius: "20px",
+                    border: "1px solid #ccc",
+                    backgroundColor: "white",
+                    cursor: "pointer",
+                    fontSize: "14px",
+                    fontWeight: mode === "fullyAccepted" ? "600" : "400",
+                    transition: "all 0.2s ease",
+                  }}
+        >
+          Next
+        </button>
+      </div>
     </div>
   );
 }
