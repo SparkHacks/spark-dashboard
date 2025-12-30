@@ -39,7 +39,7 @@ const newUserState = (await db.collection("Settings").doc("newUserState").get())
 
 <Layout>
   <main>
-    <!-- <img src="/sparkhacks-logo.svg" alt="sparkhacks logo" height="200" /> -->
+    <img src="/sparkhacks-logo.svg" alt="sparkhacks logo" height="100" />
     <h1 id="title">SPARKHACKS 2026</h1>
     <span id="subtitle">Sign in with your <b>UIC email</b> to get started</span>
     <div id="errMsg" style="color: red; display: none"></div>
@@ -68,7 +68,7 @@ const newUserState = (await db.collection("Settings").doc("newUserState").get())
     } from "firebase/auth";
 
     const btn = document.getElementById("google-sign-btn") as HTMLButtonElement;
-    const bypassCheckbox = document.getElementById("bypass-checkbox") as HTMLInputElement;
+    // const bypassCheckbox = document.getElementById("bypass-checkbox") as HTMLInputElement;
 
     const isNewUserEnabled = (btn.dataset.message == 'true')
     console.log(isNewUserEnabled)
@@ -101,7 +101,7 @@ const newUserState = (await db.collection("Settings").doc("newUserState").get())
         const res = await fetch("/api/auth/signin", {
           headers: {
             Authorization: `Bearer ${idToken}`,
-            "X-Bypass-Email-Check": bypassCheckbox.checked ? "true" : "false",
+            // "X-Bypass-Email-Check": bypassCheckbox.checked ? "true" : "false",
           },
         });
 
