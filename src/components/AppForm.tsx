@@ -88,7 +88,7 @@ export default function AppForm({ email, registered, applicationData, isAdmin }:
         style={{ marginTop: "10px", marginRight: "10px" }}
       >Return to Dashboard</Button> */}
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "30px 10px" }}>
-        <h1><u>Admin View:</u> SparkHacks 2026 Registration</h1>
+        <h1>SparkHacks 2026 Registration</h1>
         {(applicationData && applicationData.createdAt !== "") && 
           <div>
             Submitted at: {applicationData?.createdAt}
