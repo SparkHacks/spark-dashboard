@@ -1,5 +1,5 @@
 // Collection name for form submissions - change this for each year
-export const FORMS_COLLECTION = "Forms"
+export const FORMS_COLLECTION = "Form_26"
 
 // For Admin Board
 export const YEAR_TO_DB = {
