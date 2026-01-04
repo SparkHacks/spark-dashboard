@@ -45,14 +45,14 @@ const newUserState = (await db.collection("Settings").doc("newUserState").get())
     <div id="errMsg" style="color: red; display: none"></div>
 
     
-    <!-- REMOVE LATER -->
-    <div style="margin: 15px 0;">
+    <!-- BYPASS -->
+    <!-- <div style="margin: 15px 0;">
       <label style="color: black; display: flex; align-items: center; gap: 8px; cursor: pointer;">
         <input type="checkbox" id="bypass-checkbox" style="cursor: pointer;" />
         <span>Allow non-UIC email (temporary)</span>
       </label>
-    </div>
-    <!-- REMOVE LATER -->
+    </div> -->
+    <!-- BYPASS -->
 
 
     <button id="google-sign-btn" data-message={newUserState} class="fill-up-animation"
@@ -68,7 +68,7 @@ const newUserState = (await db.collection("Settings").doc("newUserState").get())
     } from "firebase/auth";
 
     const btn = document.getElementById("google-sign-btn") as HTMLButtonElement;
-    const bypassCheckbox = document.getElementById("bypass-checkbox") as HTMLInputElement;
+    // const bypassCheckbox = document.getElementById("bypass-checkbox") as HTMLInputElement; // BYPASS
 
     const isNewUserEnabled = (btn.dataset.message == 'true')
     console.log(isNewUserEnabled)
@@ -101,7 +101,7 @@ const newUserState = (await db.collection("Settings").doc("newUserState").get())
         const res = await fetch("/api/auth/signin", {
           headers: {
             Authorization: `Bearer ${idToken}`,
-            "X-Bypass-Email-Check": bypassCheckbox.checked ? "true" : "false",
+            // "X-Bypass-Email-Check": bypassCheckbox.checked ? "true" : "false", // BYPASS
           },
         });
 
