@@ -4,6 +4,13 @@ import type { FormViewData } from "../../env";
 import type { Summary, SortField, SortDirection } from "../AdminBoard";
 import { STATUS_COLORS } from "../AdminBoard";
 
+interface RoleFlags {
+  isAdmin: boolean;
+  isQrScanner: boolean;
+  isWebDev: boolean;
+  isDirector: boolean;
+}
+
 export default function AdminTable({
   datas,
   setDatas,
@@ -15,6 +22,7 @@ export default function AdminTable({
   sortField,
   sortDirection,
   onSort,
+  roles,
 }: {
   datas: FormViewData[];
   setDatas: React.Dispatch<React.SetStateAction<FormViewData[]>>;
@@ -26,6 +34,7 @@ export default function AdminTable({
   sortField: SortField | null;
   sortDirection: SortDirection;
   onSort: (field: SortField) => void;
+  roles: RoleFlags;
 }) {
   const [globalLoading, setGlobalLoading] = useState(false);
 
@@ -126,6 +135,7 @@ export default function AdminTable({
               setSummary={setSummary}
               globalLoading={globalLoading}
               setGlobalLoading={setGlobalLoading}
+              roles={roles}
             />
           ))
         )}
@@ -145,6 +155,7 @@ function Row({
   setSummary,
   globalLoading,
   setGlobalLoading,
+  roles,
 }: {
   id: number;
   data: FormViewData;
@@ -156,7 +167,20 @@ function Row({
   summary: Summary | null;
   globalLoading: boolean;
   setGlobalLoading: React.Dispatch<React.SetStateAction<boolean>>;
+  roles: RoleFlags;
 }) {
+
+  const getEffectiveRole = () => {
+    if (roles.isAdmin) return 'admin';
+    if (roles.isDirector) return 'director';
+    if (roles.isWebDev) return 'webDev';
+    if (roles.isQrScanner) return 'qrScanner';
+    return 'none';
+  };
+
+  const effectiveRole = getEffectiveRole();
+  const canChangeStatus = effectiveRole === 'admin' || effectiveRole === 'director';
+
   const backgroundColor = STATUS_COLORS[data.appStatus] || STATUS_COLORS.waiting;
 
   const updateForm = async (
@@ -257,11 +281,13 @@ function Row({
             style={{
               backgroundColor: "EEE1F7",
               borderRadius: "10px",
-              fontWeight: "bold"
+              fontWeight: "bold",
+              cursor: canChangeStatus ? "pointer" : "not-allowed",
+              opacity: canChangeStatus ? 1 : 0.6
             }}
             value={data.appStatus}
             onChange={(e) => updateForm(e.target.value as any)}
-            disabled={globalLoading}
+            disabled={globalLoading || !canChangeStatus}
             className={styles.statusDropdown}
           >
             <option value="waiting">Pending</option>

@@ -1,22 +1,40 @@
 import "./Navbar.css";
 import { useState } from "react";
 
+interface RoleFlags {
+  isAdmin: boolean;
+  isQrScanner: boolean;
+  isWebDev: boolean;
+  isDirector: boolean;
+}
+
 interface NavbarProps {
   userName?: string;
   userEmail?: string;
   currentPath: string;
+  roles: RoleFlags;
 }
 
-export default function Navbar({ userName, userEmail, currentPath }: NavbarProps) {
+export default function Navbar({ userName, userEmail, currentPath, roles }: NavbarProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  const navLinks = [
-    { href: "/dashboard", label: "Dashboard" },
-    { href: "/admin", label: "Applicants" },
-    { href: "/admin/qr", label: "QR Code" },
-    { href: "/admin/addadmin", label: "Add Admin" },
-    { href: "/admin/adminapplication", label: "Application" },
+  // Check if user has any role
+  const hasAnyRole = roles.isAdmin || roles.isQrScanner || roles.isWebDev || roles.isDirector;
+
+  const allNavLinks = [
+    { href: "/dashboard", label: "Dashboard", requiresRole: false },
+    { href: "/application", label: "Application", requiresRole: false },
+    { href: "/admin", label: "Applicants", requiresRole: true, allowedRoles: ['isAdmin', 'isWebDev', 'isDirector'] },
+    { href: "/admin/qr", label: "QR Code", requiresRole: true, allowedRoles: ['isQrScanner', 'isAdmin', 'isWebDev', 'isDirector'] },
+    { href: "/admin/addadmin", label: "Add Admin", requiresRole: true, allowedRoles: ['isAdmin', 'isWebDev', 'isDirector'] }
   ];
+
+  // Filter nav links based on user roles
+  const navLinks = allNavLinks.filter(link => {
+    if (!link.requiresRole) return true;
+    if (!link.allowedRoles) return false;
+    return link.allowedRoles.some(role => roles[role as keyof RoleFlags]);
+  });
 
   const isActive = (href: string) => {
     return currentPath === href;
@@ -28,18 +46,16 @@ export default function Navbar({ userName, userEmail, currentPath }: NavbarProps
         <a href="/dashboard" className="navbar-logo">SparkHacks</a>
 
         <button
-        className="navbar-hamburger"
-        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-        aria-label="Toggle menu"
-      >
-        <span></span>
-        <span></span>
-        <span></span>
-      </button>
-
+          className="navbar-hamburger"
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          aria-label="Toggle menu"
+        >
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
       </div>
 
-      
       <div className={`navbar-center ${isMobileMenuOpen ? "mobile-open" : ""}`}>
         <ul className="navbar-links">
           {navLinks.map((link) => (

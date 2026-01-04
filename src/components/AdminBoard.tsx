@@ -38,7 +38,14 @@ export const STATUS_COLORS: Record<string, string> = {
 export type SortField = "email" | "name" | "createdAt" | "availability" | "appStatus";
 export type SortDirection = "asc" | "desc" | null;
 
-export default function AdminBoard() {
+interface RoleFlags {
+  isAdmin: boolean;
+  isQrScanner: boolean;
+  isWebDev: boolean;
+  isDirector: boolean;
+}
+
+export default function AdminBoard({ roles }: { roles: RoleFlags }) {
   const [datas, setDatas] = useState<FormViewData[]>([]); // All data loaded
   const [filteredDatas, setFilteredDatas] = useState<FormViewData[]>([]); // Filtered/Searched data
   const [view, setView] = useState<FormViewData | null>(null);
@@ -59,7 +66,7 @@ export default function AdminBoard() {
   });
   const [sortField, setSortField] = useState<SortField | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>(null);
-  const [selectedYear, setSelectedYear] = useState<string>(Object.keys(YEAR_TO_DB)[0]);
+  const [selectedYear, setSelectedYear] = useState<string>("2026");
   const ITEMS_PER_PAGE = 20;
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -171,7 +178,6 @@ export default function AdminBoard() {
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
-      // Toggle direction or clear
       if (sortDirection === "asc") {
         setSortDirection("desc");
       } else if (sortDirection === "desc") {
@@ -179,7 +185,6 @@ export default function AdminBoard() {
         setSortDirection(null);
       }
     } else {
-      // New field, start with ascending
       setSortField(field);
       setSortDirection("asc");
     }
@@ -754,6 +759,7 @@ export default function AdminBoard() {
         sortField={sortField}
         sortDirection={sortDirection}
         onSort={handleSort}
+        roles={roles}
       />
 
       <div

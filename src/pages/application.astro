@@ -7,6 +7,7 @@ import type { DocumentData } from "firebase-admin/firestore";
 import type { FormViewData } from "../env";
 import { FORMS_COLLECTION } from "../utils/utils";
 
+let userName = "";
 let userEmail = "";
 let registered = false
 let applicationData: FormViewData | null = null
@@ -41,6 +42,7 @@ try {
   }
   roles = getRoleFlags(user);
 
+  userName = user.displayName || "";
   userEmail = user.email as string;
   const newUserState = (await db.collection("Settings").doc("newUserState").get()).data()?.isNewUserEnabled
 
@@ -81,6 +83,6 @@ try {
 }
 ---
 
-<DashboardLayout>
+<DashboardLayout userName={userName} userEmail={userEmail} currentPath={Astro.url.pathname} roles={roles}>
   <AppForm email={userEmail} registered={registered} applicationData={applicationData} isAdmin={roles.isAdmin} client:only="react" />
 </DashboardLayout>

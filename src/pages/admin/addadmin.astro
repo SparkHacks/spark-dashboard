@@ -17,6 +17,7 @@ let roles: RoleFlags = {
 let adminUsers = null;
 let exceptionUsers = null;
 let regularUsers = null;
+let roleUsers = null;
 let userEmail = "";
 let userName = "";
 let userPhoto = "";
@@ -28,17 +29,30 @@ try {
 
   // Get current user info
   const sessionCookieObj = Astro.cookies.get("__session");
-  if (sessionCookieObj) {
-    const sessionCookie = sessionCookieObj.value;
-    const decodedCookie = await authInstance.verifySessionCookie(sessionCookie);
-    if (decodedCookie) {
-      const user = await authInstance.getUser(decodedCookie.uid);
-      if (user) {
-        userEmail = user.email as string;
-        userName = user.displayName || "";
-        userPhoto = user.photoURL || "";
-      }
-    }
+  if (!sessionCookieObj) {
+    return Astro.redirect("/");
+  }
+  const sessionCookie = sessionCookieObj.value;
+  const decodedCookie = await authInstance.verifySessionCookie(sessionCookie);
+  if (!decodedCookie) {
+    return Astro.redirect("/");
+  }
+  const user = await authInstance.getUser(decodedCookie.uid);
+  if (!user) {
+    return Astro.redirect("/");
+  }
+
+  userEmail = user.email as string;
+  userName = user.displayName || "";
+  userPhoto = user.photoURL || "";
+
+  // Get user roles
+  roles = getRoleFlags(user);
+
+  // Check if user has permission to manage admins (admin, webdev, or director)
+  if (!roles.isAdmin && !roles.isWebDev && !roles.isDirector) {
+    console.error("No permission to manage admins");
+    return Astro.redirect("/dashboard");
   }
 
   const users = await auth.listUsers();
@@ -56,20 +70,37 @@ try {
           user.customClaims.exception === true)
       ),
   );
+
+  roleUsers = users.users.filter(
+    (user) => {
+      if (!user.customClaims) return false;
+      const hasAdminRole = user.customClaims.admin === true;
+      const hasOtherRoles = user.customClaims.qrScanner === true ||
+                           user.customClaims.webDev === true ||
+                           user.customClaims.director === true;
+      return !hasAdminRole && hasOtherRoles;
+    }
+  );
 } catch (err) {
   console.error(err);
 }
+
+const getEffectiveRole = () => {
+  if (roles.isAdmin) return 'admin';
+  if (roles.isDirector) return 'director';
+  if (roles.isWebDev) return 'webDev';
+  if (roles.isQrScanner) return 'qrScanner';
+  return 'none';
+};
+
+const effectiveRole = getEffectiveRole();
+const canModifyRoles = effectiveRole === 'admin' || effectiveRole === 'director' || effectiveRole === 'webDev'; // WebDev+ can modify roles
+const canModifyAdminRole = effectiveRole === 'admin';
 ---
 
-<DashboardLayout userName={userName} userEmail={userEmail} currentPath={Astro.url.pathname}>
+<DashboardLayout userName={userName} userEmail={userEmail} currentPath={Astro.url.pathname} roles={roles}>
   <div class="admin-section">
     <div class="app-section">
-      <!-- <h1>Is Real Database: {isRealDatabase}</h1> -->
-
-      
-
-      <!-- <h1>Register New User</h1>
-      <button id="register-btn">Sign in with google</button> -->
       <h1>Manage Admin</h1>
       <p><i>For managing and viewing all admin users</i></p>
       <h3 style={{border: "1px solid black", width: "fit-content", padding: "10px", borderRadius: "20px"}}>{adminUsers && `${adminUsers.length}`} admin users</h3>
@@ -105,27 +136,51 @@ try {
           })
         }
       </ol>
-
-      <h2>Update Admin Users</h2>
-      <form id="admin-form">
-        <input
-          class="email-input"
-          name="email"
-          type="email"
-          placeholder="Type an admin email"
-        />
-        <input type="radio" id="add" name="action" value="add" />
-        <label for="add">Assign admin role</label>
-        <input type="radio" id="remove" name="action" value="remove" />
-        <label for="remove">Remove admin role</label>
-        <button type="submit">Submit</button>
-      </form>
       
 
       <hr class="custom-line"/>
 
       <h1>Assign User Roles</h1>
       <p><i>For managing special roles: Admin, QR Scanner, Web Dev, and Director</i></p>
+      {!canModifyRoles && (
+        <p style="color: #f97979; font-weight: bold;">⚠️ Only WebDev, Director, and Admin roles can modify user roles</p>
+      )}
+      {canModifyRoles && !canModifyAdminRole && (
+        <p style="color: #f97979; font-weight: bold;">⚠️ Only Admin role can add/remove Admin role</p>
+      )}
+
+      <h3 style={{border: "1px solid black", width: "fit-content", padding: "10px", borderRadius: "20px"}}>{roleUsers && `${roleUsers.length}`} users with roles (non-admin)</h3>
+      <ol style={{maxHeight: "300px;", overflow: "scroll;", paddingTop: "20px", border:"1px solid black", borderRadius: "20px"}}>
+        {
+          roleUsers?.map((user) => {
+            const userRoles = getRoleFlags(user);
+            const roleBadges = [
+              { flag: "isQrScanner", label: "QRScanner", color: "#FFC77E" },
+              { flag: "isWebDev", label: "WebDev", color: "#A9D796" },
+              { flag: "isDirector", label: "Director", color: "#BEE2F5" },
+            ];
+
+            return (
+              <li style={{marginBottom: "15px"}}>
+                <b>{user.displayName}:</b>
+                {user.email}
+                <span style="margin-left: 10px;">
+                  {roleBadges
+                    .filter((r) => userRoles[r.flag as keyof RoleFlags])
+                    .map((r) => (
+                      <span
+                        style={`background-color:${r.color};padding:7px 6px;border-radius:20px;margin-left:4px;`}
+                      >
+                        {r.label}
+                      </span>
+                    ))}
+                </span>
+
+              </li>
+            );
+          })
+        }
+      </ol>
 
       <form id="role-form">
         <input
@@ -134,31 +189,34 @@ try {
           type="email"
           placeholder="Type a registered email"
           required
+          disabled={!canModifyRoles}
         />
         <div class="role-options">
+          {canModifyAdminRole && (
+            <label class="role-label">
+              <input type="radio" name="role" value="admin" required disabled={!canModifyRoles} />
+              <span class="role-badge" style="background-color: #BFC3F4; border: 1px; border-radius: 20px;">Admin</span>
+            </label>
+          )}
           <label class="role-label">
-            <input type="radio" name="role" value="admin" required />
-            <span class="role-badge" style="background-color: #BFC3F4; border: 1px; border-radius: 20px;">Admin</span>
-          </label>
-          <label class="role-label">
-            <input type="radio" name="role" value="qrScanner" required />
+            <input type="radio" name="role" value="qrScanner" required disabled={!canModifyRoles} />
             <span class="role-badge" style="background-color: #FFC77E; border: 1px; border-radius: 20px;">QR Scanner</span>
           </label>
           <label class="role-label">
-            <input type="radio" name="role" value="webDev" required />
+            <input type="radio" name="role" value="webDev" required disabled={!canModifyRoles} />
             <span class="role-badge" style="background-color: #A9D796; border: 1px; border-radius: 20px;">Web Dev</span>
           </label>
           <label class="role-label">
-            <input type="radio" name="role" value="director" required />
+            <input type="radio" name="role" value="director" required disabled={!canModifyRoles} />
             <span class="role-badge" style="background-color: #BEE2F5; border: 1px; border-radius: 20px;">Director</span>
           </label>
         </div>
         <div class="action-buttons">
-          <input type="radio" id="add-role" name="action" value="add" required />
+          <input type="radio" id="add-role" name="action" value="add" required disabled={!canModifyRoles} />
           <label for="add-role">Add Role</label>
-          <input type="radio" id="remove-role" name="action" value="remove" required />
+          <input type="radio" id="remove-role" name="action" value="remove" required disabled={!canModifyRoles} />
           <label for="remove-role">Remove Role</label>
-          <button type="submit">Submit</button>
+          <button type="submit" disabled={!canModifyRoles}>Submit</button>
         </div>
       </form>
 
@@ -205,19 +263,20 @@ try {
       </ol>
 
       <h2>Update Exception Users</h2>
-      
+
       <form id="exception-form">
         <input
           class="email-input"
           name="email"
           type="email"
           placeholder="Type a registered email"
+          disabled={!canModifyAdminRole}
         />
-        <input type="radio" id="add" name="action" value="add" />
+        <input type="radio" id="add" name="action" value="add" disabled={!canModifyAdminRole} />
         <label for="add">Assign exception role</label>
-        <input type="radio" id="remove" name="action" value="remove" />
+        <input type="radio" id="remove" name="action" value="remove" disabled={!canModifyAdminRole} />
         <label for="remove">Remove exception role</label>
-        <button type="submit">Submit</button>
+        <button type="submit" disabled={!canModifyAdminRole}>Submit</button>
       </form>
 
       <!-- <hr class="custom-line"/> -->
@@ -237,9 +296,6 @@ try {
 
         const roleForm = document.getElementById(
           "role-form",
-        ) as HTMLFormElement;
-        const adminForm = document.getElementById(
-          "admin-form",
         ) as HTMLFormElement;
         const exceptionForm = document.getElementById(
           "exception-form",
@@ -279,28 +335,6 @@ try {
           } catch (err) {
             console.error(err);
             alert("Something is wrong with register account");
-          }
-        });
-        adminForm?.addEventListener("submit", async (e) => {
-          e.preventDefault();
-          const formData = new FormData(adminForm);
-          try {
-            const res = await fetch("/api/modify-admin", {
-              method: "POST",
-              body: formData,
-            });
-            if (!res.ok) {
-              const msg = await res.text();
-              alert(`Something is wrong with getting user to admin: ${msg}`);
-              return;
-            }
-
-            const msg = await res.text();
-            alert(msg);
-            window.location.reload();
-          } catch (err) {
-            console.error(err);
-            alert("Something is wrong with getting user to admin");
           }
         });
 

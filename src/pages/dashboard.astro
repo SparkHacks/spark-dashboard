@@ -83,11 +83,11 @@ const uidDataURI = await QRCode.toDataURL(userEmail, {
 const newUserState = (await db.collection("Settings").doc("newUserState").get()).data()?.isNewUserEnabled
 ---
 
-<DashboardLayout userName={userName} userEmail={userEmail} currentPath={Astro.url.pathname}>
+<DashboardLayout userName={userName} userEmail={userEmail} currentPath={Astro.url.pathname} roles={roles}>
   <div class="main-section">
     <div class="main-right-section">
       {
-        roles.isAdmin ? (
+        (roles.isAdmin || roles.isQrScanner || roles.isWebDev || roles.isDirector) ? (
           <AdminDashboard
             roles={roles}
             newUserState={newUserState}

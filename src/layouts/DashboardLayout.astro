@@ -1,14 +1,16 @@
 ---
 import Layout from "./Layout.astro";
 import Navbar from "../components/Navbar";
+import type { RoleFlags } from "../scripts/getRoles.ts";
 
 interface Props {
   userName?: string;
   userEmail?: string;
   currentPath: string;
+  roles: RoleFlags;
 }
 
-const { userName, userEmail, currentPath } = Astro.props;
+const { userName, userEmail, currentPath, roles } = Astro.props;
 ---
 
 <Layout>
@@ -17,6 +19,7 @@ const { userName, userEmail, currentPath } = Astro.props;
       userName={userName}
       userEmail={userEmail}
       currentPath={currentPath}
+      roles={roles}
       client:load
     />
     <main id="dashboard-main">
