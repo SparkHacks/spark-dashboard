@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import AdminTable from "./components/AdminTable";
 import type { FormViewData } from "../env";
-import { collection, doc, getCountFromServer, getDoc, getDocs, orderBy, query, where, type DocumentData } from "firebase/firestore";
+import { collection, getDocs, orderBy, query, type DocumentData } from "firebase/firestore";
 import { db } from "../firebase/client";
 import { YEAR_TO_DB } from "../config/constants";
 import "./AdminBoard.css";
@@ -233,46 +233,25 @@ export default function AdminBoard({ roles }: { roles: RoleFlags }) {
 
       const collectionName = YEAR_TO_DB[selectedYear as keyof typeof YEAR_TO_DB];
 
-      // Fetch summary
-      const totalCount = (
-        await getCountFromServer(collection(db, collectionName))
-      ).data().count;
-      const fullyAcceptedCount = (
-        await getCountFromServer(
-          query(
-            collection(db, collectionName),
-            where("appStatus", "==", "fullyAccepted")
-          )
-        )
-      ).data().count;
-      const userAcceptedCount = (
-        await getCountFromServer(
-          query(
-            collection(db, collectionName),
-            where("appStatus", "==", "userAccepted")
-          )
-        )
-      ).data().count;
-      const acceptedCount = (
-        await getCountFromServer(
-          query(collection(db, collectionName), where("appStatus", "==", "accepted"))
-        )
-      ).data().count;
-      const waitlistCount = (
-        await getCountFromServer(
-          query(collection(db, collectionName), where("appStatus", "==", "waitlist"))
-        )
-      ).data().count;
-      const waitingCount = (
-        await getCountFromServer(
-          query(collection(db, collectionName), where("appStatus", "==", "waiting"))
-        )
-      ).data().count;
-      const declinedCount = (
-        await getCountFromServer(
-          query(collection(db, collectionName), where("appStatus", "==", "declined"))
-        )
-      ).data().count;
+      // Fetch all documents to calculate summary (excluding Test document)
+      const allDocsQuery = query(collection(db, collectionName), orderBy("createdAt"));
+      const allDocsSnap = await getDocs(allDocsQuery);
+
+      const allDatas: FormViewData[] = [];
+      allDocsSnap.forEach((doc) => {
+        // Skip the Test document
+        if (doc.id === "Test") return;
+        const item = convertDocToFormViewData(doc);
+        allDatas.push(item);
+      });
+
+      const totalCount = allDatas.length;
+      const fullyAcceptedCount = allDatas.filter(d => d.appStatus === "fullyAccepted").length;
+      const userAcceptedCount = allDatas.filter(d => d.appStatus === "userAccepted").length;
+      const acceptedCount = allDatas.filter(d => d.appStatus === "accepted").length;
+      const waitlistCount = allDatas.filter(d => d.appStatus === "waitlist").length;
+      const waitingCount = allDatas.filter(d => d.appStatus === "waiting").length;
+      const declinedCount = allDatas.filter(d => d.appStatus === "declined").length;
 
       setSummary({
         total: totalCount,
@@ -284,21 +263,9 @@ export default function AdminBoard({ roles }: { roles: RoleFlags }) {
         declined: declinedCount,
       });
 
-      const q =
-        mode === "everything"
-          ? query(collection(db, collectionName), orderBy("createdAt"))
-          : query(
-              collection(db, collectionName),
-              where("appStatus", "==", mode),
-              orderBy("createdAt")
-            );
-
-      const qSnap = await getDocs(q);
-      const newDatas: FormViewData[] = [];
-      qSnap.forEach((doc) => {
-        const item = convertDocToFormViewData(doc);
-        newDatas.push(item);
-      });
+      const newDatas = mode === "everything"
+        ? allDatas
+        : allDatas.filter(d => d.appStatus === mode);
 
       setDatas(newDatas);
     };
