@@ -85,15 +85,39 @@ const newUserState = (await db.collection("Settings").doc("newUserState").get())
 
 <DashboardLayout userName={userName} userEmail={userEmail} currentPath={Astro.url.pathname} roles={roles}>
   <div class="main-section">
+    {(roles.isAdmin || roles.isWebDev || roles.isDirector) && (
+      <div style="display: flex; justify-content: flex-end; margin-bottom: 10px;">
+        <button id="toggle-view-btn" style="padding: 10px 20px; background-color: #BFC3F4; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">
+          Switch to User View
+        </button>
+      </div>
+    )}
     <div class="main-right-section">
       {
         (roles.isAdmin || roles.isQrScanner || roles.isWebDev || roles.isDirector) ? (
-          <AdminDashboard
-            roles={roles}
-            newUserState={newUserState}
-            userName={userName}
-            appStatus={appStatus}
-          />
+          <>
+            <div id="admin-view">
+              <AdminDashboard
+                roles={roles}
+                newUserState={newUserState}
+                userName={userName}
+                appStatus={appStatus}
+              />
+            </div>
+            {(roles.isAdmin || roles.isWebDev || roles.isDirector) && (
+              <div id="user-view" style="display: none;">
+                <ApplicantDashboard
+                  userName={userName}
+                  userEmail={userEmail}
+                  appStatus={appStatus}
+                  submittedDate={submittedDate}
+                  registered={registered}
+                  newUserState={newUserState}
+                  uidDataURI={uidDataURI}
+                />
+              </div>
+            )}
+          </>
         ) : (
           <ApplicantDashboard
             userName={userName}
@@ -138,6 +162,30 @@ const newUserState = (await db.collection("Settings").doc("newUserState").get())
       } catch (error) {
         console.error('Error toggling login state:', error);
         alert('An error occurred while toggling the login state');
+      }
+    });
+
+    // Toggle between admin and user view
+    const toggleViewBtn = document.getElementById("toggle-view-btn") as HTMLButtonElement;
+    const adminView = document.getElementById("admin-view") as HTMLDivElement;
+    const userView = document.getElementById("user-view") as HTMLDivElement;
+    let isAdminView = true;
+
+    toggleViewBtn?.addEventListener("click", () => {
+      if (isAdminView) {
+        // Switch to user view
+        adminView.style.display = "none";
+        userView.style.display = "block";
+        toggleViewBtn.textContent = "Switch to Admin View";
+        toggleViewBtn.style.backgroundColor = "#A9D796";
+        isAdminView = false;
+      } else {
+        // Switch to admin view
+        adminView.style.display = "block";
+        userView.style.display = "none";
+        toggleViewBtn.textContent = "Switch to User View";
+        toggleViewBtn.style.backgroundColor = "#BFC3F4";
+        isAdminView = true;
       }
     });
   </script>
