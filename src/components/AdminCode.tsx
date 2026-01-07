@@ -217,16 +217,16 @@ export default function AdminCode() {
   }, [])
 
   return (
-    <div style={{maxWidth: '700px'}}>
+    <div style={{maxWidth: '700px', width: '100%', padding: '0 15px', boxSizing: 'border-box'}}>
       <QrcodePlugin
         fps={10}
-        qrbox={250}
+        qrbox={typeof window !== 'undefined' && window.innerWidth < 768 ? 200 : 250}
         disableFlip={false}
         qrCodeSuccessCallback={getUser}
       />
       <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px', marginBottom: '20px'}}>
         <h3 style={{marginBottom: "0px"}}>Manually Search User</h3>
-        <div style={{display: 'flex', gap: '8px'}}>
+        <div style={{display: 'flex', gap: '8px', width: '100%', maxWidth: '500px', flexWrap: 'wrap', justifyContent: 'center'}}>
           <input
             type='text'
             placeholder='Enter email'
@@ -238,7 +238,10 @@ export default function AdminCode() {
               borderRadius: '8px',
               outline: 'none',
               transition: 'border-color 0.2s',
-              width: '250px'
+              width: '100%',
+              maxWidth: '250px',
+              minWidth: '200px',
+              flex: '1 1 auto'
             }}
             onFocus={(e) => e.target.style.borderColor = '#8d6db5'}
             onBlur={(e) => e.target.style.borderColor = '#ddd'}
@@ -255,6 +258,7 @@ export default function AdminCode() {
               borderRadius: '8px',
               cursor: 'pointer',
               transition: 'background-color 0.2s',
+              flex: '0 0 auto'
             }}
             onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#7a5da0'}
             onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#8d6db5'}
@@ -273,6 +277,7 @@ export default function AdminCode() {
               borderRadius: '8px',
               cursor: 'pointer',
               transition: 'background-color 0.2s',
+              flex: '0 0 auto'
             }}
             onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#5a6268'}
             onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#6c757d'}
@@ -292,8 +297,8 @@ export default function AdminCode() {
         </div>
         
         <h3 style={{marginBottom: "0px"}}>User Check-In</h3>
-        <div id='form' style={{display: 'flex', flexDirection: 'row', gap: '20px'}}>
-          <div style={{display: 'flex', flexDirection: 'column', gap: '8px'}}>
+        <div id='form' style={{display: 'flex', flexDirection: 'row', gap: '20px', width: '100%', maxWidth: '500px', flexWrap: 'wrap', justifyContent: 'center'}}>
+          <div style={{display: 'flex', flexDirection: 'column', gap: '8px', flex: '1 1 200px', minWidth: '180px'}}>
             <span style={{fontWeight: '700', fontSize: '16px', marginBottom: '4px'}}>Day 1:</span>
             <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
               <input name='d1Here' id="d1Here" type="checkbox" data-id="d1Here" style={{width: '18px', height: '18px', cursor: 'pointer', accentColor: '#8d6db5'}}/>
@@ -312,7 +317,7 @@ export default function AdminCode() {
               <label htmlFor="d1Cookies" style={{cursor: 'pointer', fontSize: '14px'}}>Cookies</label>
             </div>
           </div>
-          <div style={{display: 'flex', flexDirection: 'column', gap: '8px'}}>
+          <div style={{display: 'flex', flexDirection: 'column', gap: '8px', flex: '1 1 200px', minWidth: '180px'}}>
             <span style={{fontWeight: '700', fontSize: '16px', marginBottom: '4px'}}>Day 2:</span>
             <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
               <input name='d2Here' id="d2Here" type="checkbox" data-id="d2Here" style={{width: '18px', height: '18px', cursor: 'pointer', accentColor: '#8d6db5'}}/>
@@ -378,7 +383,8 @@ export default function AdminCode() {
           disabled={userInfo === null}
           style={{
             marginTop: "20px",
-            width: "250px",
+            width: "100%",
+            maxWidth: "250px",
             height: "45px",
             marginBottom: "20px",
             fontSize: '16px',

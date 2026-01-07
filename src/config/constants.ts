@@ -6,3 +6,5 @@ export const YEAR_TO_DB = {
     "2026": "Form_26",
     "2025": "Forms"
 }
+
+export const NON_UIC_BYPASS = false
