@@ -11,7 +11,7 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
   const newUserState = (await db.collection("Settings").doc("newUserState").get()).data()?.isNewUserEnabled
 
   if (!newUserState)
-    return new Response(`Registration closed`, { status: 403 });
+    return new Response(`Applications are currently closed`, { status: 403 });
 
   const auth = getAuth(app)
 
