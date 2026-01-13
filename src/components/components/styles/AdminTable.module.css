@@ -79,17 +79,17 @@
   padding-top: 10px;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 15px;
+  gap: 2px;
   font-weight: 400;
 }
 
 .detailItem {
-  padding: 4px 0;
+  padding: 2px 0;
 }
 
 .detailItem strong {
-  display: block;
-  margin-bottom: 4px;
+  display: inline;
+  margin-right: 6px;
   color: #333;
 }
 .cellId {

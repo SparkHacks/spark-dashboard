@@ -162,7 +162,7 @@ const getMessage = (
     style="display: flex; justify-content: space-between; align-items: center"
   >
     <h2>Application to SparkHacks</h2>
-    <div><strong>Close at:</strong> Closed</div>
+    <div><strong>Close at:</strong> 1/27/26</div>
   </div>
   {
     submittedDate !== "" && (
@@ -173,15 +173,15 @@ const getMessage = (
   }
   <button
     id="app-btn"
-    disabled={newUserState ? false : true}
-    onclick={newUserState ? "window.location.assign('/application')" : ""}
+    disabled={registered ? false : !newUserState}
+    onclick={registered || newUserState ? "window.location.assign('/application')" : ""}
   >
     {
       registered
         ? "View Application"
         : newUserState
           ? "Start Application"
-          : "Application is closed due to reaching capacity"
+          : "Applications are closed :("
     }
   </button>
 </section>

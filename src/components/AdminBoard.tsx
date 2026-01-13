@@ -47,7 +47,7 @@ export interface AdvancedFilters {
   year: string[];
   gender: string[];
   dietaryRestriction: string[];
-  shirtSize: string[];
+  crewneckSize: string[];
   availability: string[];
 }
 
@@ -86,7 +86,7 @@ export default function AdminBoard({ roles }: { roles: RoleFlags }) {
     year: [],
     gender: [],
     dietaryRestriction: [],
-    shirtSize: [],
+    crewneckSize: [],
     availability: [],
   });
   const [sortField, setSortField] = useState<SortField | null>(null);
@@ -139,9 +139,9 @@ export default function AdminBoard({ roles }: { roles: RoleFlags }) {
         advancedFilters.gender.includes(item.gender)
       );
     }
-    if (advancedFilters.shirtSize.length > 0) {
+    if (advancedFilters.crewneckSize.length > 0) {
       filtered = filtered.filter((item) =>
-        advancedFilters.shirtSize.includes(item.shirtSize)
+        advancedFilters.crewneckSize.includes(item.crewneckSize)
       );
     }
     if (advancedFilters.availability.length > 0) {
@@ -221,7 +221,7 @@ export default function AdminBoard({ roles }: { roles: RoleFlags }) {
       year: [],
       gender: [],
       dietaryRestriction: [],
-      shirtSize: [],
+      crewneckSize: [],
       availability: [],
     });
     setSearchType("all");
@@ -744,16 +744,16 @@ export default function AdminBoard({ roles }: { roles: RoleFlags }) {
 
             <FilterSection
               title="Availability"
-              options={["Both days", "Saturday only", "Sunday only"]}
+              options={["Both days full duration", "Both days not full duration", "Day one only", "Day two only"]}
               selected={advancedFilters.availability}
               onToggle={(v) => toggleAdvancedFilter("availability", v)}
             />
 
             <FilterSection
-              title="Shirt Size"
-              options={["XS", "S", "M", "L", "XL", "XXL"]}
-              selected={advancedFilters.shirtSize}
-              onToggle={(v) => toggleAdvancedFilter("shirtSize", v)}
+              title="Crewneck Size"
+              options={["S", "M", "L", "XL", "XXL"]}
+              selected={advancedFilters.crewneckSize}
+              onToggle={(v) => toggleAdvancedFilter("crewneckSize", v)}
             />
 
             <FilterSection
@@ -1521,12 +1521,37 @@ const convertDocToFormViewData = (doc: DocumentData) => {
     moreAvailability: docData.moreAvailability,
     dietaryRestriction: docData.dietaryRestriction,
     otherDietaryRestriction: docData.otherDietaryRestriction,
-    shirtSize: docData.shirtSize,
+    crewneckSize: docData.crewneckSize || docData.shirtSize, // Fallback for old data
     teamPlan: docData.teamPlan,
     preWorkshops: docData.preWorkshops,
     jobType: docData.jobType,
     otherJobType: docData.otherJobType,
     resumeLink: docData.resumeLink,
+    linkedinUrl: docData.linkedinUrl || "",
+
+    // Logistics & Background
+    pastSparkHacks: docData.pastSparkHacks || "",
+    pastHackathons: docData.pastHackathons || "",
+    pastProjects: docData.pastProjects || "",
+    participationType: docData.participationType || "",
+    hearAbout: docData.hearAbout || [],
+    otherHearAbout: docData.otherHearAbout || "",
+
+    // Interest & Goals
+    whyInterested: docData.whyInterested || "",
+    teamRole: docData.teamRole || "",
+    projectInterest: docData.projectInterest || [],
+    mainGoals: docData.mainGoals || [],
+
+    // Skills
+    skillGit: docData.skillGit || "",
+    skillFigma: docData.skillFigma || "",
+    skillReact: docData.skillReact || "",
+    skillPython: docData.skillPython || "",
+    skillDatabase: docData.skillDatabase || "",
+    skillCICD: docData.skillCICD || "",
+    skillAPIs: docData.skillAPIs || "",
+
     appStatus: docData.appStatus,
   };
   return result;

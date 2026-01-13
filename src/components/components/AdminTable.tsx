@@ -308,22 +308,13 @@ function Row({
       <div
         className={styles.expandedContent}
         style={{
-          maxHeight: isExpanded ? "1000px" : "0",
+          maxHeight: isExpanded ? "2000px" : "0",
           opacity: isExpanded ? 1 : 0,
           transition: "max-height 0.4s ease, opacity 0.3s ease, padding 0.3s ease",
-          padding: isExpanded ? "0px 20px 20px 20px" : "0 20px", 
+          padding: isExpanded ? "0px 20px 20px 20px" : "0 20px",
         }}
       >
         <div className={styles.detailsGrid}>
-          <div className={styles.detailItem}>
-            <strong>Application Status:</strong> {data.appStatus}
-          </div>
-          <div className={styles.detailItem}>
-            <strong>Submitted at:</strong> {data.createdAt}
-          </div>
-          <div className={styles.detailItem}>
-            <strong>Email:</strong> {data.email}
-          </div>
           <div className={styles.detailItem}>
             <strong>UIN:</strong> {data.uin}
           </div>
@@ -333,41 +324,83 @@ function Row({
           <div className={styles.detailItem}>
             <strong>Year:</strong> {data.year}
           </div>
-          <div className={styles.detailItem}>
-            <strong>Availability:</strong> {data.availability}
+
+          <div style={{ gridColumn: "1 / -1", borderTop: "2px dotted #ccc", margin: "12px 0 8px 0" }}></div>
+          <div className={styles.detailItem} style={{ gridColumn: "1 / -1", fontSize: "18px", marginBottom: "4px" }}>
+            <strong>Background</strong>
           </div>
-          <div className={styles.detailItem}>
-            <strong>More availability:</strong> {data.moreAvailability}
+          <div className={styles.detailItem} style={{ gridColumn: "1 / -1", display: "flex", flexWrap: "wrap", gap: "20px" }}>
+            <span><strong>Past SparkHacks:</strong> {data.pastSparkHacks}</span>
+            <span><strong>Past Projects:</strong> {data.pastProjects}</span>
+            <span><strong>Participation:</strong> {data.participationType}</span>
           </div>
-          <div className={styles.detailItem}>
-            <strong>Dietary Restriction:</strong>
-            <ul style={{ margin: "5px 0", paddingLeft: "20px" }}>
-              {data.dietaryRestriction?.map((diet, idx) => <li key={idx}>{diet}</li>)}
-            </ul>
+          <div className={styles.detailItem} style={{ gridColumn: "1 / -1" }}>
+            <strong>Past Hackathons:</strong> {data.pastHackathons || "N/A"}
           </div>
-          <div className={styles.detailItem}>
-            <strong>Other Dietary Restriction:</strong> {data.otherDietaryRestriction}
+          <div className={styles.detailItem} style={{ gridColumn: "1 / -1" }}>
+            <strong>Heard from:</strong> {data.hearAbout?.join(", ")} {data.otherHearAbout && `(${data.otherHearAbout})`}
           </div>
-          <div className={styles.detailItem}>
-            <strong>T-shirt size:</strong> {data.shirtSize}
+
+          <div style={{ gridColumn: "1 / -1", borderTop: "2px dotted #ccc", margin: "12px 0 8px 0" }}></div>
+          <div className={styles.detailItem} style={{ gridColumn: "1 / -1", fontSize: "18px", marginBottom: "4px" }}>
+            <strong>Interest & Goals</strong>
           </div>
-          <div className={styles.detailItem}>
-            <strong>Team plan:</strong> {data.teamPlan}
+          <div className={styles.detailItem} style={{ gridColumn: "1 / -1" }}>
+            <strong>Why interested:</strong> {data.whyInterested || "N/A"}
           </div>
-          <div className={styles.detailItem}>
-            <strong>Pre workshops:</strong>
-            <ul style={{ margin: "5px 0", paddingLeft: "20px" }}>
-              {data.preWorkshops?.map((preW, idx) => <li key={idx}>{preW}</li>)}
-            </ul>
+          <div className={styles.detailItem} style={{ gridColumn: "1 / -1" }}>
+            <strong>Team role:</strong> {data.teamRole || "N/A"}
           </div>
-          <div className={styles.detailItem}>
-            <strong>Job type:</strong> {data.jobType}
+          <div className={styles.detailItem} style={{ gridColumn: "1 / -1", display: "flex", flexWrap: "wrap", gap: "20px" }}>
+            <span><strong>Project interests:</strong> {data.projectInterest?.join(", ")}</span>
+            <span><strong>Main goals:</strong> {data.mainGoals?.join(", ")}</span>
           </div>
-          <div className={styles.detailItem}>
-            <strong>Other Job type:</strong> {data.otherJobType}
+
+          <div style={{ gridColumn: "1 / -1", borderTop: "2px dotted #ccc", margin: "12px 0 8px 0" }}></div>
+          <div className={styles.detailItem} style={{ gridColumn: "1 / -1", fontSize: "18px", marginBottom: "4px" }}>
+            <strong>Skills (1-5)</strong>
           </div>
-          <div className={styles.detailItem}>
-            <strong>Resume link:</strong> <a href={data.resumeLink} target="_blank" rel="noopener noreferrer" style={{ color: "#0066cc" }}>{data.resumeLink}</a>
+          <div className={styles.detailItem} style={{ gridColumn: "1 / -1", display: "flex", flexWrap: "wrap", gap: "20px" }}>
+            <span><strong>Git:</strong> {data.skillGit}</span>
+            <span><strong>Figma:</strong> {data.skillFigma}</span>
+            <span><strong>React:</strong> {data.skillReact}</span>
+            <span><strong>Python:</strong> {data.skillPython}</span>
+            <span><strong>Database:</strong> {data.skillDatabase}</span>
+            <span><strong>CI/CD:</strong> {data.skillCICD}</span>
+            <span><strong>APIs:</strong> {data.skillAPIs}</span>
+          </div>
+
+          <div style={{ gridColumn: "1 / -1", borderTop: "2px dotted #ccc", margin: "12px 0 8px 0" }}></div>
+          <div className={styles.detailItem} style={{ gridColumn: "1 / -1", fontSize: "18px", marginBottom: "4px" }}>
+            <strong>Attendance</strong>
+          </div>
+          <div className={styles.detailItem} style={{ gridColumn: "1 / -1", display: "flex", flexWrap: "wrap", gap: "20px" }}>
+            <span><strong>Availability:</strong> {data.availability}</span>
+            <span><strong>Team:</strong> {data.teamPlan}</span>
+            <span><strong>Diet:</strong> {data.dietaryRestriction?.join(", ")} {data.otherDietaryRestriction && `(${data.otherDietaryRestriction})`}</span>
+            <span><strong>Crewneck:</strong> {data.crewneckSize}</span>
+          </div>
+          {data.moreAvailability && (
+            <div className={styles.detailItem} style={{ gridColumn: "1 / -1" }}>
+              <strong>Availability details:</strong> {data.moreAvailability}
+            </div>
+          )}
+          <div className={styles.detailItem} style={{ gridColumn: "1 / -1" }}>
+            <strong>Workshops:</strong> {data.preWorkshops?.join(", ")}
+          </div>
+
+          <div style={{ gridColumn: "1 / -1", borderTop: "2px dotted #ccc", margin: "12px 0 8px 0" }}></div>
+          <div className={styles.detailItem} style={{ gridColumn: "1 / -1", fontSize: "18px", marginBottom: "4px" }}>
+            <strong>Career</strong>
+          </div>
+          <div className={styles.detailItem} style={{ gridColumn: "1 / -1" }}>
+            <strong>Job type:</strong> {data.jobType} {data.otherJobType && `(${data.otherJobType})`}
+          </div>
+          <div className={styles.detailItem} style={{ gridColumn: "1 / -1" }}>
+            <strong>Resume:</strong> {data.resumeLink ? <a href={data.resumeLink} target="_blank" rel="noopener noreferrer" style={{ color: "#0066cc" }}>{data.resumeLink}</a> : "N/A"}
+          </div>
+          <div className={styles.detailItem} style={{ gridColumn: "1 / -1" }}>
+            <strong>LinkedIn:</strong> {data.linkedinUrl ? <a href={data.linkedinUrl} target="_blank" rel="noopener noreferrer" style={{ color: "#0066cc" }}>{data.linkedinUrl}</a> : "N/A"}
           </div>
         </div>
       </div>
