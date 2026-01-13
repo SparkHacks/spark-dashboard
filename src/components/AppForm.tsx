@@ -119,7 +119,7 @@ export default function AppForm({ email, registered, applicationData, isAdmin }:
             defaultValue={applicationData?.gender || ""}
             groupRadios={questions.gender.answer}
           />
-          <Radios 
+          <Radios
             required={true}
             disabled={registered}
             label="Year"
@@ -127,10 +127,60 @@ export default function AppForm({ email, registered, applicationData, isAdmin }:
             defaultValue={applicationData?.year || ""}
             groupRadios={questions.year.answer}
           />
+
+          <h2>Logistics & Background</h2>
           <Radios
             required={true}
             disabled={registered}
-            label="Which day(s) are you available to attent the hackathon? Priority will be given to those who can attend both days."
+            label={questions.pastSparkHacks.question}
+            name="pastSparkHacks"
+            defaultValue={applicationData?.pastSparkHacks || ""}
+            groupRadios={questions.pastSparkHacks.answer}
+          />
+          <FormControl>
+            <FormLabel>{questions.pastHackathons.question}</FormLabel>
+            <TextField
+              name="pastHackathons"
+              defaultValue={applicationData && applicationData.pastHackathons}
+              placeholder="List hackathons you've attended (Optional)"
+              fullWidth
+              multiline
+              disabled={registered}
+            />
+          </FormControl>
+          <Radios
+            required={true}
+            disabled={registered}
+            label={questions.pastProjects.question}
+            name="pastProjects"
+            defaultValue={applicationData?.pastProjects || ""}
+            groupRadios={questions.pastProjects.answer}
+          />
+          <Radios
+            required={true}
+            disabled={registered}
+            label={questions.participationType.question}
+            name="participationType"
+            defaultValue={applicationData?.participationType || ""}
+            groupRadios={questions.participationType.answer}
+          />
+          <Checkboxes
+            required
+            disabled={registered}
+            label={questions.hearAbout.question}
+            name="hearAbout"
+            defaultValue={applicationData?.hearAbout || []}
+            groupCheckboxes={questions.hearAbout.answer}
+            other={true}
+            otherName={questions.hearAbout.other}
+            otherValue={applicationData?.otherHearAbout || ""}
+          />
+
+          <h2>Availability & Attendance</h2>
+          <Radios
+            required={true}
+            disabled={registered}
+            label="Which day(s) are you available to attend the hackathon? Priority will be given to those who can attend both days."
             name="availability"
             defaultValue={applicationData?.availability || ""}
             groupRadios={questions.availability.answer}
@@ -139,8 +189,134 @@ export default function AppForm({ email, registered, applicationData, isAdmin }:
             <FormLabel>If you want to add more detailed availability please add it here!</FormLabel>
             <TextField name="moreAvailability" defaultValue={applicationData && applicationData.moreAvailability} placeholder="Enter your additional availability (Optional)" fullWidth multiline disabled={registered} />
           </FormControl>
+          <Checkboxes
+            required
+            disabled={registered}
+            label={<>Which of the following Pre-Hack Workshops would you find useful/interesting to attend PRIOR to SparkHacks? (Select all that apply)<br/>For more information on these workshops, view <a href="https://www.sparkhacks.org/">https://www.sparkhacks.org/</a>.</>}
+            name="preWorkshops"
+            defaultValue={applicationData?.preWorkshops || []}
+            groupCheckboxes={questions.preWorkshops.answer}
+          />
 
-          <Checkboxes 
+          <h2>Interest & Goals</h2>
+          <FormControl>
+            <FormLabel>{questions.whyInterested.question}</FormLabel>
+            <TextField
+              name="whyInterested"
+              defaultValue={applicationData && applicationData.whyInterested}
+              placeholder="Tell us why you're interested (Optional)"
+              fullWidth
+              multiline
+              rows={3}
+              disabled={registered}
+            />
+          </FormControl>
+          <FormControl>
+            <FormLabel>{questions.teamRole.question}</FormLabel>
+            <TextField
+              name="teamRole"
+              defaultValue={applicationData && applicationData.teamRole}
+              placeholder="Describe your role and what you'll bring (Optional)"
+              fullWidth
+              multiline
+              rows={3}
+              disabled={registered}
+            />
+          </FormControl>
+          <Checkboxes
+            required
+            disabled={registered}
+            label={questions.projectInterest.question}
+            name="projectInterest"
+            defaultValue={applicationData?.projectInterest || []}
+            groupCheckboxes={questions.projectInterest.answer}
+          />
+          <Checkboxes
+            required
+            disabled={registered}
+            label={questions.mainGoals.question}
+            name="mainGoals"
+            defaultValue={applicationData?.mainGoals || []}
+            groupCheckboxes={questions.mainGoals.answer}
+          />
+
+          <h2>Skills & Experience</h2>
+          <Radios
+            required={true}
+            disabled={registered}
+            label={questions.skillGit.question}
+            name="skillGit"
+            defaultValue={applicationData?.skillGit || ""}
+            groupRadios={questions.skillGit.answer}
+            row={true}
+          />
+          <Radios
+            required={true}
+            disabled={registered}
+            label={questions.skillFigma.question}
+            name="skillFigma"
+            defaultValue={applicationData?.skillFigma || ""}
+            groupRadios={questions.skillFigma.answer}
+            row={true}
+          />
+          <Radios
+            required={true}
+            disabled={registered}
+            label={questions.skillReact.question}
+            name="skillReact"
+            defaultValue={applicationData?.skillReact || ""}
+            groupRadios={questions.skillReact.answer}
+            row={true}
+          />
+          <Radios
+            required={true}
+            disabled={registered}
+            label={questions.skillPython.question}
+            name="skillPython"
+            defaultValue={applicationData?.skillPython || ""}
+            groupRadios={questions.skillPython.answer}
+            row={true}
+          />
+          <Radios
+            required={true}
+            disabled={registered}
+            label={questions.skillDatabase.question}
+            name="skillDatabase"
+            defaultValue={applicationData?.skillDatabase || ""}
+            groupRadios={questions.skillDatabase.answer}
+            row={true}
+          />
+          <Radios
+            required={true}
+            disabled={registered}
+            label={questions.skillCICD.question}
+            name="skillCICD"
+            defaultValue={applicationData?.skillCICD || ""}
+            groupRadios={questions.skillCICD.answer}
+            row={true}
+          />
+          <Radios
+            required={true}
+            disabled={registered}
+            label={questions.skillAPIs.question}
+            name="skillAPIs"
+            defaultValue={applicationData?.skillAPIs || ""}
+            groupRadios={questions.skillAPIs.answer}
+            row={true}
+          />
+
+          <h2>Team</h2>
+          <Radios
+            required
+            disabled={registered}
+            label={<>Do you have a team? If you do not already, no worries, we have you covered! <strong>Note: team size is restricted to 4-5 people.</strong></>}
+            name="teamPlan"
+            defaultValue={applicationData?.teamPlan || ""}
+            groupRadios={questions.teamPlan.answer}
+          />
+
+          <h2>Food & Merch</h2>
+          <Checkboxes
             required
             disabled={registered}
             label="Do you have any dietary restrictions?"
@@ -151,34 +327,17 @@ export default function AppForm({ email, registered, applicationData, isAdmin }:
             otherName={questions.dietaryRestriction.other}
             otherValue={applicationData?.otherDietaryRestriction || ""}
           />
-          
-          <Radios 
+          <Radios
             required
             disabled={registered}
-            label="What is your unisex t-shirt size?"
-            name="shirtSize"
-            defaultValue={applicationData?.shirtSize || ""}
-            groupRadios={questions.shirtSize.answer}
+            label="What is your unisex crewneck size?"
+            name="crewneckSize"
+            defaultValue={applicationData?.crewneckSize || ""}
+            groupRadios={questions.crewneckSize.answer}
           />
 
-          <h2>Hackathon Specific Questions</h2>
-          <Radios 
-            required
-            disabled={registered}
-            label={<>Do you have a team? If you do not already, no worries, we have you covered! <strong>Note: team size is restricted to 4-5 people.</strong></>}
-            name="teamPlan"
-            defaultValue={applicationData?.teamPlan || ""}
-            groupRadios={questions.teamPlan.answer}
-          />
-          <Checkboxes 
-            required
-            disabled={registered}
-            label={<>Which of the following Pre-Hack Workshops would you find useful/interesting to attend PRIOR to SparkHacks? These will be held from February 4th-6th, 2025. (Select all that apply)<br/>For more information on these workshops, view <a href="https://www.sparkhacks.org/">https://www.sparkhacks.org/</a>.</>}
-            name="preWorkshops"
-            defaultValue={applicationData?.preWorkshops || []}
-            groupCheckboxes={questions.preWorkshops.answer}
-          />
-          <Radios 
+          <h2>Career Opportunities</h2>
+          <Radios
             required={true}
             disabled={registered}
             label="If you would like to be considered for an opportunity with our company partners, select the type of job you are looking for:"
@@ -191,11 +350,21 @@ export default function AppForm({ email, registered, applicationData, isAdmin }:
           />
           <FormControl>
             <FormLabel>
-              If you would like to be considered for an opportunity with our company sponsors, add in a shareable link to your resume here. If your resume is on Google Docs or Google Drive, make sure you see "Anyone with the link" after clicking the "Share" button in the top right corner. 
+              If you would like to be considered for an opportunity with our company sponsors, add in a shareable link to your resume here. If your resume is on Google Docs or Google Drive, make sure you see "Anyone with the link" after clicking the "Share" button in the top right corner.
               <br/>
               <img src={"/images/share_perms.png"} alt="Share permissions" style={{width: "500px", maxWidth: "100%"}}/>
             </FormLabel>
             <TextField placeholder="Enter your shareable link (Optional)" defaultValue={applicationData && applicationData.resumeLink} name="resumeLink" disabled={registered} />
+          </FormControl>
+          <FormControl>
+            <FormLabel>{questions.linkedinUrl.question}</FormLabel>
+            <TextField
+              name="linkedinUrl"
+              defaultValue={applicationData && applicationData.linkedinUrl}
+              placeholder="https://linkedin.com/in/yourprofile"
+              fullWidth
+              disabled={registered}
+            />
           </FormControl>
           <div>
             If you have any other questions or comments, please email <a href="mailto:sparkhacks@uic.edu">sparkhacks@uic.edu</a>.
