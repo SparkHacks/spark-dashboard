@@ -7,4 +7,5 @@ export const YEAR_TO_DB = {
     "2025": "Forms"
 }
 
+// To allow non UIC emails for testing
 export const NON_UIC_BYPASS = false

@@ -1,7 +1,7 @@
 import { FormControl, FormControlLabel, FormLabel, Radio, RadioGroup, TextField } from "@mui/material"
 import { useState } from "react"
 
-export default function Radios({ required, disabled, label, name, defaultValue, groupRadios, other = false, otherName = "", otherValue = "" }: {
+export default function Radios({ required, disabled, label, name, defaultValue, groupRadios, other = false, otherName = "", otherValue = "", row = false }: {
   required: boolean,
   disabled: boolean,
   label: any,
@@ -10,7 +10,8 @@ export default function Radios({ required, disabled, label, name, defaultValue, 
   groupRadios: string[],
   other?: boolean,
   otherName?: string,
-  otherValue?: string
+  otherValue?: string,
+  row?: boolean
 }) {
 
   const [otherChecked, setOtherChecked] = useState(false)
@@ -18,7 +19,7 @@ export default function Radios({ required, disabled, label, name, defaultValue, 
   return (
     <FormControl required={required}>
       <FormLabel>{label}</FormLabel>
-      <RadioGroup name={name} defaultValue={defaultValue} style={{ marginLeft: "20px" }}>
+      <RadioGroup name={name} defaultValue={defaultValue} style={{ marginLeft: "20px" }} row={row}>
         {groupRadios.map((radioValue, id) =>
           radioValue !== "Other" &&
           <FormControlLabel
