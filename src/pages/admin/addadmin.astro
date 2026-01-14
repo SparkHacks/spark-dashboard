@@ -3,7 +3,7 @@ import DashboardLayout from "../../layouts/DashboardLayout.astro";
 import { auth } from "../../firebase/server";
 import { app } from "../../firebase/server";
 import { getAuth } from "firebase-admin/auth";
-import AdminCode from "../../components/AdminCode";
+import RoleManager from "../../components/RoleManager";
 
 import getRoleFlags from "../../scripts/getRoles.ts";
 import type { RoleFlags } from "../../scripts/getRoles.ts";
@@ -14,10 +14,7 @@ let roles: RoleFlags = {
   isDirector: false,
 };
 
-let adminUsers = null;
-let exceptionUsers = null;
-let regularUsers = null;
-let roleUsers = null;
+let allUsers: any[] = [];
 let userEmail = "";
 let userName = "";
 let userPhoto = "";
@@ -56,31 +53,12 @@ try {
   }
 
   const users = await auth.listUsers();
-  adminUsers = users.users.filter(
-    (user) => user.customClaims && user.customClaims.admin === true,
-  );
-  exceptionUsers = users.users.filter(
-    (user) => user.customClaims && user.customClaims.exception === true,
-  );
-  regularUsers = users.users.filter(
-    (user) =>
-      !(
-        user.customClaims &&
-        (user.customClaims.admin === true ||
-          user.customClaims.exception === true)
-      ),
-  );
-
-  roleUsers = users.users.filter(
-    (user) => {
-      if (!user.customClaims) return false;
-      const hasAdminRole = user.customClaims.admin === true;
-      const hasOtherRoles = user.customClaims.qrScanner === true ||
-                           user.customClaims.webDev === true ||
-                           user.customClaims.director === true;
-      return !hasAdminRole && hasOtherRoles;
-    }
-  );
+  allUsers = users.users.map(user => ({
+    uid: user.uid,
+    email: user.email || '',
+    displayName: user.displayName || null,
+    customClaims: user.customClaims || null
+  }));
 } catch (err) {
   console.error(err);
 }
@@ -100,281 +78,18 @@ const canModifyAdminRole = effectiveRole === 'admin';
 
 <DashboardLayout userName={userName} userEmail={userEmail} currentPath={Astro.url.pathname} roles={roles}>
   <div class="admin-section">
-    <div class="app-section">
-      <h1>Manage Admin</h1>
-      <p><i>For managing and viewing all admin users</i></p>
-      <h3 style={{border: "1px solid black", width: "fit-content", padding: "10px", borderRadius: "20px"}}>{adminUsers && `${adminUsers.length}`} admin users</h3>
-      <ol style={{maxHeight: "300px;", overflow: "scroll;", paddingTop: "20px", border:"1px solid black", borderRadius: "20px"}}>
-        {
-          adminUsers?.map((user) => {
-            const roles = getRoleFlags(user);
-            const roleBadges = [
-              { flag: "isAdmin", label: "Admin", color: "#BFC3F4" },
-              { flag: "isQrScanner", label: "QRScanner", color: "#FFC77E" },
-              { flag: "isWebDev", label: "WebDev", color: "#A9D796" },
-              { flag: "isDirector", label: "Director", color: "#BEE2F5" },
-            ];
-
-            return (
-              <li style={{marginBottom: "15px"}}>
-                <b>{user.displayName}:</b>
-                {user.email}
-                <span style="margin-left: 10px;">
-                  {roleBadges
-                    .filter((r) => roles[r.flag as keyof RoleFlags])
-                    .map((r) => (
-                      <span
-                        style={`background-color:${r.color};padding:7px 6px;border-radius:20px;margin-left:4px;`}
-                      >
-                        {r.label}
-                      </span>
-                    ))}
-                </span>
-                
-              </li>
-            );
-          })
-        }
-      </ol>
-      
-
-      <hr class="custom-line"/>
-
-      <h1>Assign User Roles</h1>
-      <p><i>For managing special roles: Admin, QR Scanner, Web Dev, and Director</i></p>
-      {!canModifyRoles && (
-        <p style="color: #f97979; font-weight: bold;">⚠️ Only WebDev, Director, and Admin roles can modify user roles</p>
-      )}
-      {canModifyRoles && !canModifyAdminRole && (
-        <p style="color: #f97979; font-weight: bold;">⚠️ Only Admin role can add/remove Admin role</p>
-      )}
-
-      <h3 style={{border: "1px solid black", width: "fit-content", padding: "10px", borderRadius: "20px"}}>{roleUsers && `${roleUsers.length}`} users with roles (non-admin)</h3>
-      <ol style={{maxHeight: "300px;", overflow: "scroll;", paddingTop: "20px", border:"1px solid black", borderRadius: "20px"}}>
-        {
-          roleUsers?.map((user) => {
-            const userRoles = getRoleFlags(user);
-            const roleBadges = [
-              { flag: "isQrScanner", label: "QRScanner", color: "#FFC77E" },
-              { flag: "isWebDev", label: "WebDev", color: "#A9D796" },
-              { flag: "isDirector", label: "Director", color: "#BEE2F5" },
-            ];
-
-            return (
-              <li style={{marginBottom: "15px"}}>
-                <b>{user.displayName}:</b>
-                {user.email}
-                <span style="margin-left: 10px;">
-                  {roleBadges
-                    .filter((r) => userRoles[r.flag as keyof RoleFlags])
-                    .map((r) => (
-                      <span
-                        style={`background-color:${r.color};padding:7px 6px;border-radius:20px;margin-left:4px;`}
-                      >
-                        {r.label}
-                      </span>
-                    ))}
-                </span>
-
-              </li>
-            );
-          })
-        }
-      </ol>
-
-      <form id="role-form">
-        <input
-          class="email-input"
-          name="email"
-          type="email"
-          placeholder="Type a registered email"
-          required
-          disabled={!canModifyRoles}
-        />
-        <div class="role-options">
-          {canModifyAdminRole && (
-            <label class="role-label">
-              <input type="radio" name="role" value="admin" required disabled={!canModifyRoles} />
-              <span class="role-badge" style="background-color: #BFC3F4; border: 1px; border-radius: 20px;">Admin</span>
-            </label>
-          )}
-          <label class="role-label">
-            <input type="radio" name="role" value="qrScanner" required disabled={!canModifyRoles} />
-            <span class="role-badge" style="background-color: #FFC77E; border: 1px; border-radius: 20px;">QR Scanner</span>
-          </label>
-          <label class="role-label">
-            <input type="radio" name="role" value="webDev" required disabled={!canModifyRoles} />
-            <span class="role-badge" style="background-color: #A9D796; border: 1px; border-radius: 20px;">Web Dev</span>
-          </label>
-          <label class="role-label">
-            <input type="radio" name="role" value="director" required disabled={!canModifyRoles} />
-            <span class="role-badge" style="background-color: #BEE2F5; border: 1px; border-radius: 20px;">Director</span>
-          </label>
-        </div>
-        <div class="action-buttons">
-          <input type="radio" id="add-role" name="action" value="add" required disabled={!canModifyRoles} />
-          <label for="add-role">Add Role</label>
-          <input type="radio" id="remove-role" name="action" value="remove" required disabled={!canModifyRoles} />
-          <label for="remove-role">Remove Role</label>
-          <button type="submit" disabled={!canModifyRoles}>Submit</button>
-        </div>
-      </form>
-
-      <hr class="custom-line"/>
-
-      <h1>Exception users</h1>
-      <p><i>For SparkHacks participants who don't have uic.edu emails</i></p>
-
-      <h3 style={{border: "1px solid black", width: "fit-content", padding: "10px", borderRadius: "20px"}}>{exceptionUsers && `${exceptionUsers.length}`} exception user{exceptionUsers && exceptionUsers.length > 1 ? 's' : ''}</h3>
-      
-      <ol style={{maxHeight: "300px;", minHeight: "50px", overflow: "scroll;", paddingTop: "20px", border:"1px solid black", borderRadius: "20px"}}>
-        {
-          exceptionUsers?.map((user) => {
-            const roles = getRoleFlags(user);
-            const roleBadges = [
-              { flag: "isAdmin", label: "Admin", color: "lightcoral" },
-              {
-                flag: "isQrScanner",
-                label: "QRScanner",
-                color: "lightseagreen",
-              },
-              { flag: "isWebDev", label: "WebDev", color: "lightgreen" },
-              { flag: "isDirector", label: "Director", color: "lightblue" },
-            ];
-
-            return (
-              <li>
-                {user.email}
-                <span style="margin-left: 10px;">
-                  {roleBadges
-                    .filter((r) => roles[r.flag as keyof RoleFlags])
-                    .map((r) => (
-                      <span
-                        style={`background-color:${r.color};padding:2px 6px;border-radius:4px;margin-left:4px;`}
-                      >
-                        {r.label}
-                      </span>
-                    ))}
-                </span>
-              </li>
-            );
-          })
-        }
-      </ol>
-
-      <h2>Update Exception Users</h2>
-
-      <form id="exception-form">
-        <input
-          class="email-input"
-          name="email"
-          type="email"
-          placeholder="Type a registered email"
-          disabled={!canModifyAdminRole}
-        />
-        <input type="radio" id="add" name="action" value="add" disabled={!canModifyAdminRole} />
-        <label for="add">Assign exception role</label>
-        <input type="radio" id="remove" name="action" value="remove" disabled={!canModifyAdminRole} />
-        <label for="remove">Remove exception role</label>
-        <button type="submit" disabled={!canModifyAdminRole}>Submit</button>
-      </form>
-
-      <!-- <hr class="custom-line"/> -->
-
-<!--       
-
-      <h1>
-        List of regular users: {regularUsers && `${regularUsers.length}`}
-      </h1>
-      <ul id="regular-list">
-        {regularUsers?.map((user) => <li>{user.email}</li>)}
-      </ul> -->
-
-      <script>
-        import { signInWithPopup } from "firebase/auth";
-        import { auth, provider } from "../../firebase/client";
-
-        const roleForm = document.getElementById(
-          "role-form",
-        ) as HTMLFormElement;
-        const exceptionForm = document.getElementById(
-          "exception-form",
-        ) as HTMLFormElement;
-        const btn = document.getElementById(
-          "register-btn",
-        ) as HTMLButtonElement;
-
-        roleForm?.addEventListener("submit", async (e) => {
-          e.preventDefault();
-          const formData = new FormData(roleForm);
-          try {
-            const res = await fetch("/api/modify-roles", {
-              method: "POST",
-              body: formData,
-            });
-            const msg = await res.text();
-            if (!res.ok) {
-              alert(`Error modifying role: ${msg}`);
-              return;
-            }
-
-            alert(msg);
-            window.location.reload();
-          } catch (err) {
-            console.error(err);
-            alert("Something went wrong with modifying the role");
-          }
-        });
-
-        btn.addEventListener("click", async () => {
-          try {
-            const userCredential = await signInWithPopup(auth, provider);
-            const email = userCredential.user.email;
-            alert(`Successful register new account: ${email}`);
-            window.location.reload();
-          } catch (err) {
-            console.error(err);
-            alert("Something is wrong with register account");
-          }
-        });
-
-        exceptionForm?.addEventListener("submit", async (e) => {
-          e.preventDefault();
-          const formData = new FormData(exceptionForm);
-          try {
-            const res = await fetch("/api/modify-exception", {
-              method: "POST",
-              body: formData,
-            });
-            if (!res.ok) {
-              const msg = await res.text();
-              alert(
-                `Something is wrong with getting user to exception: ${msg}`,
-              );
-              return;
-            }
-
-            const msg = await res.text();
-            alert(msg);
-            window.location.reload();
-          } catch (err) {
-            console.error(err);
-            alert("Something is wrong with getting user to exception");
-          }
-        });
-      </script>
+    <div class="app-section" style="padding: 30px;">
+      <RoleManager
+        users={allUsers}
+        canModifyRoles={canModifyRoles}
+        canModifyAdminRole={canModifyAdminRole}
+        client:load
+      />
     </div>
   </div>
 </DashboardLayout>
 
 <style>
-
-  h1 {
-    margin-bottom: 5px;
-  }
-  p {
-    margin-top: 0px;
-  }
   .admin-section {
     display: flex;
     flex-direction: column;
@@ -382,97 +97,10 @@ const canModifyAdminRole = effectiveRole === 'admin';
   }
 
   .app-section {
-    display: flex;
-    flex-direction: column;
     background-color: #f7f7f7;
-    margin: 0 0 10px 0;
-    border-radius: 10px;
-    padding: 15px;
+    border-radius: 15px;
     width: 100%;
     box-sizing: border-box;
   }
-
-  .email-input {
-    border-radius: 10px;
-    min-width: 250px;
-    min-height: 40px;
-    border: 1px solid gray;
-    padding-left: 20px;
-    margin-right: 15px;
-    background-repeat: no-repeat;
-    background-position: 10px 10px;
-  }
-
-  button {
-    background: none;
-    margin-right: 15px;
-    border-radius: 5px;
-    padding: 10px;
-    cursor: pointer;
-    border: 1px solid black;
-  }
-
-  #register-btn {
-    cursor: pointer;
-    background: none;
-    padding: 10px 40px;
-    border: 1px solid black;
-    border-radius: 8px;
-    color: black;
-    width: fit-content;
-  }
-
-  #role-form, #admin-form, #exception-form {
-    background-color: white;
-    padding: 20px;
-    border-radius: 8px;
-    margin-bottom: 20px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  }
-
-  .role-options {
-    display: flex;
-    gap: 15px;
-    margin: 15px 0;
-    flex-wrap: wrap;
-  }
-
-  .role-label {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    cursor: pointer;
-  }
-
-  .role-badge {
-    padding: 6px 12px;
-    border-radius: 4px;
-    font-weight: 500;
-    transition: opacity 0.2s;
-  }
-
-  .role-label input[type="radio"]:not(:checked) + .role-badge {
-    opacity: 0.5;
-  }
-
-  .action-buttons {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-top: 15px;
-  }
-
-  .custom-line {
-    width: 100%;
-    border: .5px solid black;
-    margin-top: 20px;
-  }
-
-  #regular-list {
-    max-height: 500px;
-    overflow: scroll;
-    border: 1px solid black;
-    border-radius: 20px;
-  }
-
 </style>
+

@@ -26,7 +26,7 @@ export default function Navbar({ userName, userEmail, currentPath, roles }: Navb
     { href: "/application", label: "Application", requiresRole: false },
     { href: "/admin", label: "Applicants", requiresRole: true, allowedRoles: ['isAdmin', 'isWebDev', 'isDirector'] },
     { href: "/admin/qr", label: "QR Code", requiresRole: true, allowedRoles: ['isQrScanner', 'isAdmin', 'isWebDev', 'isDirector'] },
-    { href: "/admin/addadmin", label: "Add Admin", requiresRole: true, allowedRoles: ['isAdmin', 'isWebDev', 'isDirector'] }
+    { href: "/admin/addadmin", label: "Roles", requiresRole: true, allowedRoles: ['isAdmin', 'isWebDev', 'isDirector'] }
   ];
 
   // Filter nav links based on user roles
