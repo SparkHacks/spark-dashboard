@@ -70,12 +70,24 @@ function debounce(cb: Function, delay: number) {
 }
 
 const checkboxInputs = ["d1Snack", "d1Dinner", "d1Cookies", "d1Here", "d2Breakfast", "d2Lunch", "d2Dinner", "d2Here"]
+
+interface ApplicantResult {
+  email: string
+  firstName: string
+  lastName: string
+  uin: string
+}
+
 export default function AdminCode() {
   const [userInfo, setUserInfo] = useState<any | null>(null)
   const [errMsg, setErrMsg] = useState("")
   const [summary, setSummary] = useState<any | null>("")
+  const [autocompleteResults, setAutocompleteResults] = useState<ApplicantResult[]>([])
+  const [showAutocomplete, setShowAutocomplete] = useState(false)
+  const [allApplicants, setAllApplicants] = useState<ApplicantResult[]>([])
   const emailRef = useRef<string | null>(null)
   const inputRef = useRef<HTMLInputElement | null>(null)
+  const autocompleteRef = useRef<HTMLDivElement | null>(null)
   const getUser = async (code: string) => {
     try {
       if(code === emailRef.current) return
@@ -103,18 +115,25 @@ export default function AdminCode() {
   }
 
   function searchUser() {
-    const email = inputRef.current?.value
-    if (!email) {
-      setErrMsg("Empty email")
-      toast.error("Empty email")
+    const input = inputRef.current?.value
+    if (!input) {
+      setErrMsg("Empty input")
+      toast.error("Empty input")
       return
+    }
+
+    let email = input.trim()
+
+    // If no @ symbol, assume it's a UIN and append @uic.edu
+    if (!email.includes('@')) {
+      email = email + '@uic.edu'
     }
 
     let regex = /^[a-zA-Z0-9._%+-]+@uic\.edu$/
     let regex2 = /^[a-zA-Z0-9._%+-]+@gmail\.com$/
     if (!regex.test(email) && !regex2.test(email)) {
-      toast.error("Please enter full uic.edu or gmail.com email")
-      setErrMsg("Please enter full uic.edu or gmail.com email")
+      toast.error("Please enter UIN or full uic.edu/gmail.com email")
+      setErrMsg("Please enter UIN or full uic.edu/gmail.com email")
       return
     }
 
@@ -214,6 +233,77 @@ export default function AdminCode() {
       }
     }
     fetchSummary()
+
+    // Fetch all fullyAccepted applicants for autocomplete
+    const fetchApplicants = async () => {
+      try {
+        const { getDocs, query: fsQuery, collection: fsCollection, where: fsWhere } = await import('firebase/firestore')
+        console.log('Fetching applicants from:', FORMS_COLLECTION)
+        const q = fsQuery(fsCollection(db, FORMS_COLLECTION), fsWhere('appStatus', '==', 'fullyAccepted'))
+        const snapshot = await getDocs(q)
+        const applicants: ApplicantResult[] = []
+        snapshot.forEach((doc) => {
+          const data = doc.data()
+          applicants.push({
+            email: data.email,
+            firstName: data.firstName,
+            lastName: data.lastName,
+            uin: data.uin
+          })
+        })
+        console.log('Loaded applicants:', applicants.length)
+        setAllApplicants(applicants)
+      } catch (err) {
+        console.error('Error fetching applicants:', err)
+      }
+    }
+    fetchApplicants()
+  }, [])
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.toLowerCase().trim()
+    console.log('Input changed, value:', value, 'Total applicants:', allApplicants.length)
+
+    if (value === '') {
+      setShowAutocomplete(false)
+      setAutocompleteResults([])
+      return
+    }
+
+    const filtered = allApplicants.filter((applicant) => {
+      const uinWithoutDomain = applicant.email.split('@')[0].toLowerCase()
+      const fullName = `${applicant.firstName} ${applicant.lastName}`.toLowerCase()
+      const uinString = String(applicant.uin).toLowerCase()
+      return (
+        uinWithoutDomain.startsWith(value) ||
+        uinString.startsWith(value) ||
+        fullName.includes(value)
+      )
+    })
+
+    console.log('Filtered results:', filtered.length, 'Show autocomplete:', true)
+    setAutocompleteResults(filtered)
+    setShowAutocomplete(true) // Always show when typing
+  }
+
+  const handleSelectApplicant = (applicant: ApplicantResult) => {
+    if (inputRef.current) {
+      inputRef.current.value = applicant.email.split('@')[0]
+    }
+    setShowAutocomplete(false)
+    getUser(applicant.email)
+  }
+
+  // Close autocomplete when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (autocompleteRef.current && !autocompleteRef.current.contains(event.target as Node) &&
+          inputRef.current && !inputRef.current.contains(event.target as Node)) {
+        setShowAutocomplete(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
   return (
@@ -229,8 +319,9 @@ export default function AdminCode() {
         <div style={{display: 'flex', gap: '8px', width: '100%', maxWidth: '500px', flexWrap: 'wrap', justifyContent: 'center'}}>
           <input
             type='text'
-            placeholder='Enter email'
+            placeholder='Enter UIN or email'
             ref={inputRef}
+            onChange={handleInputChange}
             style={{
               padding: '10px 14px',
               fontSize: '14px',
@@ -286,6 +377,52 @@ export default function AdminCode() {
           </button>
         </div>
         {!!errMsg && <span style={{color: "red", fontWeight: "bold", textAlign: "center"}}>Error: {errMsg}</span>}
+
+        {/* Autocomplete results box */}
+        {showAutocomplete && (
+          <div
+            ref={autocompleteRef}
+            style={{
+              width: '100%',
+              maxWidth: '500px',
+              backgroundColor: 'white',
+              border: '2px solid #8d6db5',
+              borderRadius: '8px',
+              marginTop: '8px',
+              maxHeight: '300px',
+              overflowY: 'auto',
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)'
+            }}
+          >
+            {autocompleteResults.length > 0 ? (
+              autocompleteResults.map((applicant, index) => (
+                <div
+                  key={applicant.email}
+                  onClick={() => handleSelectApplicant(applicant)}
+                  style={{
+                    padding: '12px 16px',
+                    cursor: 'pointer',
+                    borderBottom: index < autocompleteResults.length - 1 ? '1px solid #e0e0e0' : 'none',
+                    transition: 'background-color 0.15s'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f5f3ff'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
+                >
+                  <div style={{fontWeight: '600', fontSize: '15px', marginBottom: '4px'}}>
+                    {applicant.firstName} {applicant.lastName}
+                  </div>
+                  <div style={{fontSize: '13px', color: '#666'}}>
+                    {applicant.email.split('@')[0]} • UIN: {applicant.uin}
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div style={{padding: '12px 16px', textAlign: 'center', color: '#999'}}>
+                No results found
+              </div>
+            )}
+          </div>
+        )}
       </div>
       {<div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', gap: '10px'}}>
         
