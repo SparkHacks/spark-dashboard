@@ -75,6 +75,7 @@ export const questions = {
             "🛠️ Git Like a Pro | Monday - February 2th @ 4:30pm",
             "⚛️ Overthinking? Just React! | Tuesday - February 3th @ 4:30pm",
             "🍃 Intro to MongoDB | Wednesday - February 4th @ 4:30pm",
+            "🫂 Team Mixer! | Thursday - February 5th @ 4:30pm",
         ]
     },
     jobType: { // required, other
