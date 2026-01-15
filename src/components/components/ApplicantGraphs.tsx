@@ -1,6 +1,6 @@
 import { Pie } from "react-chartjs-2";
 import type { FormViewData } from "../../env";
-import { STATUS_COLORS } from "../AdminBoard";
+import { STATUS_COLORS } from "../constants";
 
 interface ApplicantGraphsProps {
   datas: FormViewData[];

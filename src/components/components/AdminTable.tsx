@@ -2,7 +2,7 @@ import styles from "./styles/AdminTable.module.css";
 import { useState } from "react";
 import type { FormViewData } from "../../env";
 import type { Summary, SortField, SortDirection } from "../AdminBoard";
-import { STATUS_COLORS } from "../AdminBoard";
+import { STATUS_COLORS } from "../constants";
 import { ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
 
 interface RoleFlags {

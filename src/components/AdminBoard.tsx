@@ -5,6 +5,7 @@ import type { FormViewData } from "../env";
 import { collection, getDocs, orderBy, query, type DocumentData } from "firebase/firestore";
 import { db } from "../firebase/client";
 import { YEAR_TO_DB } from "../config/constants";
+import { STATUS_COLORS } from "./constants";
 import "./AdminBoard.css";
 import {
   Chart as ChartJS,
@@ -40,15 +41,6 @@ export interface AdvancedFilters {
   availability: string[];
 }
 
-export const STATUS_COLORS: Record<string, string> = {
-  accepted: "#cef5be",
-  waitlist: "#f4e3be",
-  waiting: "#e8e8e8",
-  declined: "#f4bdbd",
-  userAccepted: "#bee2f5",
-  fullyAccepted: "#bfc3f4",
-};
-
 export type SortField = "email" | "name" | "createdAt" | "availability" | "appStatus";
 export type SortDirection = "asc" | "desc" | null;
 
@@ -78,6 +70,7 @@ export default function AdminBoard({ roles }: { roles: RoleFlags }) {
     crewneckSize: [],
     availability: [],
   });
+  const [showNonUIC, setShowNonUIC] = useState(false);
   const [sortField, setSortField] = useState<SortField | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>(null);
   const [selectedYear, setSelectedYear] = useState<string>("2026");
@@ -149,6 +142,13 @@ export default function AdminBoard({ roles }: { roles: RoleFlags }) {
       });
     }
 
+    // Filter by UIC email
+    if (!showNonUIC) {
+      filtered = filtered.filter((item) =>
+        item.email?.toLowerCase().endsWith("@uic.edu")
+      );
+    }
+
     if (sortField && sortDirection) {
       filtered.sort((a, b) => {
         let aValue: any;
@@ -185,7 +185,7 @@ export default function AdminBoard({ roles }: { roles: RoleFlags }) {
 
     setFilteredDatas(filtered);
     setCurrentPage(1);
-  }, [datas, searchQuery, searchType, advancedFilters, sortField, sortDirection]);
+  }, [datas, searchQuery, searchType, advancedFilters, sortField, sortDirection, showNonUIC]);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -214,6 +214,7 @@ export default function AdminBoard({ roles }: { roles: RoleFlags }) {
       availability: [],
     });
     setSearchType("all");
+    setShowNonUIC(false);
   };
 
   const toggleAdvancedFilter = (
@@ -231,7 +232,8 @@ export default function AdminBoard({ roles }: { roles: RoleFlags }) {
 
   const hasActiveFilters =
     searchQuery.trim() !== "" ||
-    Object.values(advancedFilters).some((arr) => arr.length > 0);
+    Object.values(advancedFilters).some((arr) => arr.length > 0) ||
+    showNonUIC;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -711,6 +713,32 @@ export default function AdminBoard({ roles }: { roles: RoleFlags }) {
               selected={advancedFilters.dietaryRestriction}
               onToggle={(v) => toggleAdvancedFilter("dietaryRestriction", v)}
             />
+
+            {/* Show Non-UIC Checkbox */}
+            <div style={{ marginBottom: "15px" }}>
+              <label
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  cursor: "pointer",
+                  fontSize: "14px",
+                  fontWeight: "500",
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={showNonUIC}
+                  onChange={(e) => setShowNonUIC(e.target.checked)}
+                  style={{
+                    width: "18px",
+                    height: "18px",
+                    cursor: "pointer",
+                  }}
+                />
+                Show Non-UIC Emails
+              </label>
+            </div>
           </div>
         )}
       </div>
