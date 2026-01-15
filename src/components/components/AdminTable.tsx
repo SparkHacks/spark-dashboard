@@ -3,6 +3,7 @@ import { useState } from "react";
 import type { FormViewData } from "../../env";
 import type { Summary, SortField, SortDirection } from "../AdminBoard";
 import { STATUS_COLORS } from "../AdminBoard";
+import { ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
 
 interface RoleFlags {
   isAdmin: boolean;
@@ -40,40 +41,12 @@ export default function AdminTable({
 
   const SortIcon = ({ field }: { field: SortField }) => {
     if (sortField !== field) {
-      return (
-        <svg
-          width="12"
-          height="12"
-          viewBox="0 0 12 12"
-          style={{ marginLeft: "4px", opacity: 0.3 }}
-        >
-          <path d="M6 3 L9 6 L3 6 Z" fill="currentColor" />
-          <path d="M6 9 L9 6 L3 6 Z" fill="currentColor" />
-        </svg>
-      );
+      return <ArrowUpDown size={14} style={{ marginLeft: "4px", opacity: 0.3 }} />;
     }
     if (sortDirection === "asc") {
-      return (
-        <svg
-          width="12"
-          height="12"
-          viewBox="0 0 12 12"
-          style={{ marginLeft: "4px" }}
-        >
-          <path d="M6 3 L9 6 L3 6 Z" fill="currentColor" />
-        </svg>
-      );
+      return <ArrowUp size={14} style={{ marginLeft: "4px" }} />;
     }
-    return (
-      <svg
-        width="12"
-        height="12"
-        viewBox="0 0 12 12"
-        style={{ marginLeft: "4px" }}
-      >
-        <path d="M6 9 L9 6 L3 6 Z" fill="currentColor" />
-      </svg>
-    );
+    return <ArrowDown size={14} style={{ marginLeft: "4px" }} />;
   };
 
   return (
@@ -259,14 +232,14 @@ function Row({
       className={styles.rowContainer}
       style={{
         backgroundColor: backgroundColor,
-        borderRadius: "15px",
-        border: isExpanded ? "3px solid black" : "none",
-        marginBottom: "8px",
+        borderRadius: "8px",
+        border: isExpanded ? "2px solid #8d6db5" : "none",
+        marginBottom: "10px",
         overflow: "hidden",
         transition: "all 0.3s ease",
       }}
     >
-      <div className={styles.rowTable} style={{ fontWeight: 600 }}>
+      <div className={styles.rowTable} style={{ fontWeight: 600, backgroundColor: backgroundColor }}>
         <div className={styles.cellId}>
           <strong>{id}</strong>
         </div>

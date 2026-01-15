@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import AdminTable from "./components/AdminTable";
+import ApplicantGraphs from "./components/ApplicantGraphs";
 import type { FormViewData } from "../env";
 import { collection, getDocs, orderBy, query, type DocumentData } from "firebase/firestore";
 import { db } from "../firebase/client";
@@ -7,28 +8,16 @@ import { YEAR_TO_DB } from "../config/constants";
 import "./AdminBoard.css";
 import {
   Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
+  ArcElement,
   Tooltip,
   Legend,
-  Filler,
-  ArcElement,
 } from "chart.js";
-import { Line, Pie } from "react-chartjs-2";
+import { LayoutGrid, BarChart3, Search, Filter } from "lucide-react";
 
 ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
+  ArcElement,
   Tooltip,
-  Legend,
-  Filler,
-  ArcElement
+  Legend
 );
 
 export interface Summary {
@@ -54,7 +43,7 @@ export interface AdvancedFilters {
 export const STATUS_COLORS: Record<string, string> = {
   accepted: "#cef5be",
   waitlist: "#f4e3be",
-  waiting: "#ffffff",
+  waiting: "#e8e8e8",
   declined: "#f4bdbd",
   userAccepted: "#bee2f5",
   fullyAccepted: "#bfc3f4",
@@ -338,14 +327,15 @@ export default function AdminBoard({ roles }: { roles: RoleFlags }) {
               value={selectedYear}
               onChange={(e) => setSelectedYear(e.target.value)}
               style={{
-                padding: "8px 12px",
+                padding: "12px 16px",
                 borderRadius: "8px",
-                border: "1px solid #ddd",
+                border: "2px solid #ddd",
                 backgroundColor: "white",
                 cursor: "pointer",
                 fontSize: "14px",
                 fontWeight: "600",
                 color: "#666",
+                outline: "none",
               }}
             >
               {Object.keys(YEAR_TO_DB).map((year) => (
@@ -363,7 +353,7 @@ export default function AdminBoard({ roles }: { roles: RoleFlags }) {
                 backgroundColor: "white",
                 borderRadius: "8px",
                 padding: "4px",
-                border: "1px solid #ddd",
+                border: "2px solid #ddd",
               }}
             >
               <button
@@ -383,22 +373,7 @@ export default function AdminBoard({ roles }: { roles: RoleFlags }) {
                 }}
                 title="Table View"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <rect x="3" y="3" width="7" height="7"></rect>
-                  <rect x="14" y="3" width="7" height="7"></rect>
-                  <rect x="14" y="14" width="7" height="7"></rect>
-                  <rect x="3" y="14" width="7" height="7"></rect>
-                </svg>
+                <LayoutGrid size={18} />
                 Table
               </button>
               <button
@@ -418,21 +393,7 @@ export default function AdminBoard({ roles }: { roles: RoleFlags }) {
                 }}
                 title="Graph View"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <line x1="18" y1="20" x2="18" y2="10"></line>
-                  <line x1="12" y1="20" x2="12" y2="4"></line>
-                  <line x1="6" y1="20" x2="6" y2="14"></line>
-                </svg>
+                <BarChart3 size={18} />
                 Graph
               </button>
             </div>
@@ -455,8 +416,8 @@ export default function AdminBoard({ roles }: { roles: RoleFlags }) {
                 display: "flex",
                 alignItems: "center",
                 backgroundColor: "white",
-                borderRadius: "30px",
-                border: "1px solid #ccc",
+                borderRadius: "8px",
+                border: "2px solid #ddd",
                 overflow: "hidden",
                 minWidth: "350px",
                 flex: "1 1 350px",
@@ -466,9 +427,9 @@ export default function AdminBoard({ roles }: { roles: RoleFlags }) {
                 value={searchType}
                 onChange={(e) => setSearchType(e.target.value as any)}
                 style={{
-                  height: "40px",
+                  height: "44px",
                   border: "none",
-                  padding: "0px 10px",
+                  padding: "0px 12px",
                   backgroundColor: "transparent",
                   outline: "none",
                   cursor: "pointer",
@@ -496,31 +457,20 @@ export default function AdminBoard({ roles }: { roles: RoleFlags }) {
                   alignItems: "center",
                 }}
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
+                <Search
+                  size={18}
                   style={{
                     marginLeft: "8px",
                     color: "#666",
                   }}
-                >
-                  <circle cx="11" cy="11" r="8"></circle>
-                  <path d="m21 21-4.35-4.35"></path>
-                </svg>
+                />
                 <input
                   placeholder="Search Applicants"
                   style={{
                     border: "none",
                     outline: "none",
                     flex: 1,
-                    height: "40px",
+                    height: "44px",
                     paddingLeft: "8px",
                     paddingRight: "15px",
                     fontSize: "14px",
@@ -534,11 +484,13 @@ export default function AdminBoard({ roles }: { roles: RoleFlags }) {
               <button
                 onClick={handleClearFilters}
                 style={{
-                  padding: "10px 15px",
-                  borderRadius: "5px",
-                  border: "1px solid #ccc",
+                  padding: "12px 16px",
+                  borderRadius: "8px",
+                  border: "2px solid #ddd",
                   backgroundColor: "white",
                   cursor: "pointer",
+                  fontSize: "14px",
+                  fontWeight: "600",
                 }}
               >
                 Clear Filters
@@ -547,32 +499,21 @@ export default function AdminBoard({ roles }: { roles: RoleFlags }) {
             <button
               onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
               style={{
-                width: "40px",
-                height: "40px",
-                borderRadius: "50%",
-                border: "1px solid #ccc",
-                backgroundColor: showAdvancedFilters ? "#e0e0e0" : "white",
+                width: "44px",
+                height: "44px",
+                borderRadius: "8px",
+                border: "2px solid #ddd",
+                backgroundColor: showAdvancedFilters ? "#8d6db5" : "white",
                 cursor: "pointer",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 padding: "0",
+                color: showAdvancedFilters ? "white" : "#666",
               }}
               title={showAdvancedFilters ? "Hide Filters" : "Show Filters"}
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-              </svg>
+              <Filter size={20} />
             </button>
           </div>
         )}
@@ -895,574 +836,7 @@ export default function AdminBoard({ roles }: { roles: RoleFlags }) {
         </>
       )}
 
-      {viewMode === "graph" && (
-        <div style={{ padding: "0px 0px 20px 0px" }}>
-          {/* Row 1: Applicants Over Time and Status Distribution */}
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(400px, 1fr))",
-              gap: "20px",
-              marginBottom: "20px",
-            }}
-          >
-            {/* Row 1, Col 1: Applicants Over Time */}
-            <div
-              style={{
-                backgroundColor: "white",
-                borderRadius: "8px",
-                padding: "20px",
-                boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-              }}
-            >
-              <h3 style={{ marginTop: 0, marginBottom: "20px", fontSize: "18px" }}>
-                Applicants Over Time
-              </h3>
-              <ApplicantsOverTimeChart datas={datas} />
-            </div>
-
-            {/* Row 1, Col 2: Status Distribution */}
-            <div
-              style={{
-                backgroundColor: "white",
-                borderRadius: "8px",
-                padding: "20px",
-                boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-              }}
-            >
-              <h3 style={{ marginTop: 0, marginBottom: "20px", fontSize: "18px" }}>
-                Status Distribution
-              </h3>
-              <StatusDistributionChart datas={datas} />
-            </div>
-          </div>
-
-          {/* Row 2: Gender and Year Distribution */}
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(400px, 1fr))",
-              gap: "20px",
-            }}
-          >
-            {/* Row 2, Col 1: Gender Distribution */}
-            <div
-              style={{
-                backgroundColor: "white",
-                borderRadius: "8px",
-                padding: "20px",
-                boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-              }}
-            >
-              <h3 style={{ marginTop: 0, marginBottom: "20px", fontSize: "18px" }}>
-                Gender Distribution
-              </h3>
-              <GenderDistributionChart datas={datas} />
-            </div>
-
-            {/* Row 2, Col 2: Year Distribution */}
-            <div
-              style={{
-                backgroundColor: "white",
-                borderRadius: "8px",
-                padding: "20px",
-                boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-              }}
-            >
-              <h3 style={{ marginTop: 0, marginBottom: "20px", fontSize: "18px" }}>
-                Year Distribution
-              </h3>
-              <YearDistributionChart datas={datas} />
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function ApplicantsOverTimeChart({ datas }: { datas: FormViewData[] }) {
-  const [startDate, setStartDate] = useState<string>("");
-  const [endDate, setEndDate] = useState<string>("");
-
-  const dateGroups = datas.reduce((acc, data) => {
-    const dateObj = new Date(data.createdAt);
-    dateObj.setHours(0, 0, 0, 0);
-    const dateKey = dateObj.toISOString().split('T')[0]; // YYYY-MM-DD format
-
-    if (!acc[dateKey]) {
-      acc[dateKey] = {
-        dateObj: new Date(dateKey),
-        count: 0,
-      };
-    }
-    acc[dateKey].count += 1;
-    return acc;
-  }, {} as Record<string, { dateObj: Date; count: number }>);
-
-  const dates = Object.keys(dateGroups).map(d => new Date(d));
-  const dataEarliestDate = dates.length > 0 ? new Date(Math.min(...dates.map(d => d.getTime()))) : new Date();
-  const dataLatestDate = dates.length > 0 ? new Date(Math.max(...dates.map(d => d.getTime()))) : new Date();
-
-  useEffect(() => {
-    if (dates.length > 0) {
-      setStartDate(dataEarliestDate.toISOString().split('T')[0]);
-      setEndDate(dataLatestDate.toISOString().split('T')[0]);
-    }
-  }, [datas.length]);
-
-  if (datas.length === 0) {
-    return (
-      <div
-        style={{
-          height: "300px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          color: "#999",
-        }}
-      >
-        No data available
-      </div>
-    );
-  }
-
-  const earliestDate = startDate ? new Date(startDate) : dataEarliestDate;
-  const latestDate = endDate ? new Date(endDate) : dataLatestDate;
-
-  const allDays: Array<{ dateObj: Date; count: number }> = [];
-  const currentDate = new Date(earliestDate);
-
-  while (currentDate <= latestDate) {
-    const dateKey = currentDate.toISOString().split('T')[0];
-    allDays.push({
-      dateObj: new Date(currentDate),
-      count: dateGroups[dateKey]?.count || 0,
-    });
-    currentDate.setDate(currentDate.getDate() + 1);
-  }
-
-  let cumulative = 0;
-  const cumulativeData = allDays.map((item) => {
-    cumulative += item.count;
-    const dateLabel = item.dateObj.toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-    });
-    return {
-      date: dateLabel,
-      count: item.count,
-      cumulative,
-      timestamp: item.dateObj.getTime(),
-    };
-  });
-
-  const chartData = {
-    labels: cumulativeData.map((item) => item.date),
-    datasets: [
-      {
-        label: "Total Applicants",
-        data: cumulativeData.map((item) => item.cumulative),
-        borderColor: "#8d6db5",
-        backgroundColor: "rgba(141, 109, 181, 0.1)",
-        borderWidth: 3,
-        fill: true,
-        tension: 0.4,
-        pointRadius: 4,
-        pointHoverRadius: 6,
-        pointBackgroundColor: "#8d6db5",
-        pointBorderColor: "#fff",
-        pointBorderWidth: 2,
-      },
-    ],
-  };
-
-  const options = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        display: false,
-      },
-      tooltip: {
-        mode: "index" as const,
-        intersect: false,
-        backgroundColor: "rgba(0, 0, 0, 0.8)",
-        padding: 12,
-        titleColor: "#fff",
-        bodyColor: "#fff",
-        borderColor: "#8d6db5",
-        borderWidth: 1,
-      },
-    },
-    scales: {
-      y: {
-        beginAtZero: true,
-        grid: {
-          color: "rgba(0, 0, 0, 0.05)",
-        },
-        ticks: {
-          color: "#666",
-        },
-        title: {
-          display: true,
-          text: "Total Applicants",
-          color: "#666",
-          font: {
-            size: 12,
-            weight: "normal" as const,
-          },
-        },
-      },
-      x: {
-        grid: {
-          display: false,
-        },
-        ticks: {
-          color: "#666",
-          maxRotation: 45,
-          minRotation: 45,
-        },
-      },
-    },
-    interaction: {
-      mode: "nearest" as const,
-      axis: "x" as const,
-      intersect: false,
-    },
-  };
-
-  return (
-    <div>
-      {/* Date Range Selector */}
-      <div
-        style={{
-          display: "flex",
-          gap: "15px",
-          alignItems: "center",
-          marginBottom: "20px",
-          flexWrap: "wrap",
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <label
-            htmlFor="start-date"
-            style={{ fontSize: "14px", fontWeight: "500", color: "#666" }}
-          >
-            Start Date:
-          </label>
-          <input
-            id="start-date"
-            type="date"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-            max={endDate || dataLatestDate.toISOString().split('T')[0]}
-            style={{
-              padding: "6px 10px",
-              borderRadius: "6px",
-              border: "1px solid #ddd",
-              fontSize: "14px",
-              cursor: "pointer",
-            }}
-          />
-        </div>
-        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <label
-            htmlFor="end-date"
-            style={{ fontSize: "14px", fontWeight: "500", color: "#666" }}
-          >
-            End Date:
-          </label>
-          <input
-            id="end-date"
-            type="date"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-            min={startDate || dataEarliestDate.toISOString().split('T')[0]}
-            style={{
-              padding: "6px 10px",
-              borderRadius: "6px",
-              border: "1px solid #ddd",
-              fontSize: "14px",
-              cursor: "pointer",
-            }}
-          />
-        </div>
-        <button
-          onClick={() => {
-            setStartDate(dataEarliestDate.toISOString().split('T')[0]);
-            setEndDate(dataLatestDate.toISOString().split('T')[0]);
-          }}
-          style={{
-            padding: "6px 12px",
-            borderRadius: "6px",
-            border: "1px solid #ddd",
-            backgroundColor: "white",
-            cursor: "pointer",
-            fontSize: "14px",
-            color: "#666",
-          }}
-        >
-          Reset to Full Range
-        </button>
-      </div>
-
-      {/* Chart */}
-      <div style={{ height: "400px", position: "relative" }}>
-        <Line data={chartData} options={options} />
-      </div>
-    </div>
-  );
-}
-
-function StatusDistributionChart({ datas }: { datas: FormViewData[] }) {
-  const statusCounts = datas.reduce((acc, data) => {
-    const status = data.appStatus || "waiting";
-    acc[status] = (acc[status] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
-
-  const statusOrder = [
-    { key: "fullyAccepted", label: "Confirmed" },
-    { key: "userAccepted", label: "Invited" },
-    { key: "accepted", label: "Accepted" },
-    { key: "waitlist", label: "Waitlisted" },
-    { key: "waiting", label: "Pending" },
-    { key: "declined", label: "Declined" },
-  ];
-
-  const orderedStatuses = statusOrder.filter(s => statusCounts[s.key] > 0);
-
-  if (orderedStatuses.length === 0) {
-    return (
-      <div
-        style={{
-          height: "300px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          color: "#999",
-        }}
-      >
-        No data available
-      </div>
-    );
-  }
-
-  const chartData = {
-    labels: orderedStatuses.map(s => s.label),
-    datasets: [
-      {
-        data: orderedStatuses.map(s => statusCounts[s.key]),
-        backgroundColor: orderedStatuses.map(s => STATUS_COLORS[s.key]),
-        borderColor: "#fff",
-        borderWidth: 2,
-      },
-    ],
-  };
-
-  const options = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        position: "bottom" as const,
-        labels: {
-          padding: 15,
-          font: {
-            size: 12,
-          },
-          color: "#666",
-        },
-      },
-      tooltip: {
-        backgroundColor: "rgba(0, 0, 0, 0.8)",
-        padding: 12,
-        titleColor: "#fff",
-        bodyColor: "#fff",
-        borderColor: "#8d6db5",
-        borderWidth: 1,
-        callbacks: {
-          label: function (context: any) {
-            const label = context.label || "";
-            const value = context.parsed || 0;
-            const total = context.dataset.data.reduce((a: number, b: number) => a + b, 0);
-            const percentage = ((value / total) * 100).toFixed(1);
-            return `${label}: ${value} (${percentage}%)`;
-          },
-        },
-      },
-    },
-  };
-
-  return (
-    <div style={{ height: "350px", position: "relative" }}>
-      <Pie data={chartData} options={options} />
-    </div>
-  );
-}
-
-function GenderDistributionChart({ datas }: { datas: FormViewData[] }) {
-  // Count gender distribution
-  const genderCounts = datas.reduce((acc, data) => {
-    const gender = data.gender || "Unknown";
-    acc[gender] = (acc[gender] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
-
-  if (Object.keys(genderCounts).length === 0) {
-    return (
-      <div
-        style={{
-          height: "300px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          color: "#999",
-        }}
-      >
-        No data available
-      </div>
-    );
-  }
-
-  const chartData = {
-    labels: Object.keys(genderCounts),
-    datasets: [
-      {
-        data: Object.values(genderCounts),
-        backgroundColor: [
-          "#8d6db5",
-          "#a98dc9",
-          "#c5addd",
-          "#e1cef1",
-          "#f0e5f9",
-        ],
-        borderColor: "#fff",
-        borderWidth: 2,
-      },
-    ],
-  };
-
-  const options = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        position: "bottom" as const,
-        labels: {
-          padding: 15,
-          font: {
-            size: 12,
-          },
-          color: "#666",
-        },
-      },
-      tooltip: {
-        backgroundColor: "rgba(0, 0, 0, 0.8)",
-        padding: 12,
-        titleColor: "#fff",
-        bodyColor: "#fff",
-        borderColor: "#8d6db5",
-        borderWidth: 1,
-        callbacks: {
-          label: function (context: any) {
-            const label = context.label || "";
-            const value = context.parsed || 0;
-            const total = context.dataset.data.reduce((a: number, b: number) => a + b, 0);
-            const percentage = ((value / total) * 100).toFixed(1);
-            return `${label}: ${value} (${percentage}%)`;
-          },
-        },
-      },
-    },
-  };
-
-  return (
-    <div style={{ height: "350px", position: "relative" }}>
-      <Pie data={chartData} options={options} />
-    </div>
-  );
-}
-
-function YearDistributionChart({ datas }: { datas: FormViewData[] }) {
-  const yearCounts = datas.reduce((acc, data) => {
-    const year = data.year || "Unknown";
-    acc[year] = (acc[year] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
-
-  if (Object.keys(yearCounts).length === 0) {
-    return (
-      <div
-        style={{
-          height: "300px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          color: "#999",
-        }}
-      >
-        No data available
-      </div>
-    );
-  }
-
-  const chartData = {
-    labels: Object.keys(yearCounts),
-    datasets: [
-      {
-        data: Object.values(yearCounts),
-        backgroundColor: [
-          "#8d6db5",
-          "#a98dc9",
-          "#c5addd",
-          "#e1cef1",
-          "#f0e5f9",
-        ],
-        borderColor: "#fff",
-        borderWidth: 2,
-      },
-    ],
-  };
-
-  const options = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        position: "bottom" as const,
-        labels: {
-          padding: 15,
-          font: {
-            size: 12,
-          },
-          color: "#666",
-        },
-      },
-      tooltip: {
-        backgroundColor: "rgba(0, 0, 0, 0.8)",
-        padding: 12,
-        titleColor: "#fff",
-        bodyColor: "#fff",
-        borderColor: "#8d6db5",
-        borderWidth: 1,
-        callbacks: {
-          label: function (context: any) {
-            const label = context.label || "";
-            const value = context.parsed || 0;
-            const total = context.dataset.data.reduce((a: number, b: number) => a + b, 0);
-            const percentage = ((value / total) * 100).toFixed(1);
-            return `${label}: ${value} (${percentage}%)`;
-          },
-        },
-      },
-    },
-  };
-
-  return (
-    <div style={{ height: "350px", position: "relative" }}>
-      <Pie data={chartData} options={options} />
+      {viewMode === "graph" && <ApplicantGraphs datas={datas} />}
     </div>
   );
 }
