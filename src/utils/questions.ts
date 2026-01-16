@@ -72,10 +72,10 @@ export const questions = {
     preWorkshops: { // checkbox
         question: "Which of the following Pre-Hack Workshops would you find useful/interesting to attend PRIOR to SparkHacks? For more information on these workshops, view https://www.sparkhacks.org/.",
         answer: [
-            "🛠️ Git Like a Pro | Monday - February 2th @ 4:30pm",
-            "⚛️ Overthinking? Just React! | Tuesday - February 3th @ 4:30pm",
-            "🍃 Intro to MongoDB | Wednesday - February 4th @ 4:30pm",
-            "🫂 Team Mixer! | Thursday - February 5th @ 4:30pm",
+            "🛠️ Git Like a Pro | Monday - February 2th @ 5 PM - 6:30 PM",
+            "⚛️ Overthinking? Just React! | Tuesday - February 3th @ 5 PM - 6:30 PM",
+            "🍃 Intro to MongoDB | Wednesday - February 4th @ 5 PM - 6:30 PM",
+            "🫂 Team Mixer! | Thursday - February 5th @ 5 PM - 6:30 PM",
         ]
     },
     jobType: { // required, other
