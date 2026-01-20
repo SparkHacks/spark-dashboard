@@ -1,10 +1,25 @@
 import { useEffect, useRef, useState } from "react";
 import AdminTable from "./components/AdminTable";
+import ApplicantGraphs from "./components/ApplicantGraphs";
 import type { FormViewData } from "../env";
-import { collection, doc, getCountFromServer, getDoc, getDocs, orderBy, query, where, type DocumentData } from "firebase/firestore";
+import { collection, getDocs, orderBy, query, type DocumentData } from "firebase/firestore";
 import { db } from "../firebase/client";
 import { YEAR_TO_DB } from "../config/constants";
+import { STATUS_COLORS } from "./constants";
 import "./AdminBoard.css";
+import {
+  Chart as ChartJS,
+  ArcElement,
+  Tooltip,
+  Legend,
+} from "chart.js";
+import { LayoutGrid, BarChart3, Search, Filter } from "lucide-react";
+
+ChartJS.register(
+  ArcElement,
+  Tooltip,
+  Legend
+);
 
 export interface Summary {
   total: number;
@@ -22,25 +37,23 @@ export interface AdvancedFilters {
   year: string[];
   gender: string[];
   dietaryRestriction: string[];
-  shirtSize: string[];
+  crewneckSize: string[];
   availability: string[];
 }
-
-export const STATUS_COLORS: Record<string, string> = {
-  accepted: "#cef5be",
-  waitlist: "#f4e3be",
-  waiting: "#ffffff",
-  declined: "#f4bdbd",
-  userAccepted: "#bee2f5",
-  fullyAccepted: "#bfc3f4",
-};
 
 export type SortField = "email" | "name" | "createdAt" | "availability" | "appStatus";
 export type SortDirection = "asc" | "desc" | null;
 
-export default function AdminBoard() {
-  const [datas, setDatas] = useState<FormViewData[]>([]); // All data loaded
-  const [filteredDatas, setFilteredDatas] = useState<FormViewData[]>([]); // Filtered/Searched data
+interface RoleFlags {
+  isAdmin: boolean;
+  isQrScanner: boolean;
+  isWebDev: boolean;
+  isDirector: boolean;
+}
+
+export default function AdminBoard({ roles }: { roles: RoleFlags }) {
+  const [datas, setDatas] = useState<FormViewData[]>([]);
+  const [filteredDatas, setFilteredDatas] = useState<FormViewData[]>([]);
   const [view, setView] = useState<FormViewData | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchType, setSearchType] = useState<
@@ -54,24 +67,24 @@ export default function AdminBoard() {
     year: [],
     gender: [],
     dietaryRestriction: [],
-    shirtSize: [],
+    crewneckSize: [],
     availability: [],
   });
+  const [showNonUIC, setShowNonUIC] = useState(false);
   const [sortField, setSortField] = useState<SortField | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>(null);
-  const [selectedYear, setSelectedYear] = useState<string>(Object.keys(YEAR_TO_DB)[0]);
+  const [selectedYear, setSelectedYear] = useState<string>("2026");
   const ITEMS_PER_PAGE = 20;
   const [currentPage, setCurrentPage] = useState(1);
+  const [viewMode, setViewMode] = useState<"table" | "graph">("table");
 
 
   const isHighlight = (curMode: Mode) =>
     curMode === mode ? { border: "3px solid" } : {};
 
-  // Apply search and advanced filters to loaded data
   useEffect(() => {
     let filtered = [...datas];
 
-    // Apply search
     if (searchQuery.trim() !== "") {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter((item) => {
@@ -98,7 +111,6 @@ export default function AdminBoard() {
       });
     }
 
-    // Apply advanced filters
     if (advancedFilters.year.length > 0) {
       filtered = filtered.filter((item) =>
         advancedFilters.year.includes(item.year)
@@ -109,9 +121,9 @@ export default function AdminBoard() {
         advancedFilters.gender.includes(item.gender)
       );
     }
-    if (advancedFilters.shirtSize.length > 0) {
+    if (advancedFilters.crewneckSize.length > 0) {
       filtered = filtered.filter((item) =>
-        advancedFilters.shirtSize.includes(item.shirtSize)
+        advancedFilters.crewneckSize.includes(item.crewneckSize)
       );
     }
     if (advancedFilters.availability.length > 0) {
@@ -130,7 +142,13 @@ export default function AdminBoard() {
       });
     }
 
-    // Apply sorting
+    // Filter by UIC email
+    if (!showNonUIC) {
+      filtered = filtered.filter((item) =>
+        item.email?.toLowerCase().endsWith("@uic.edu")
+      );
+    }
+
     if (sortField && sortDirection) {
       filtered.sort((a, b) => {
         let aValue: any;
@@ -167,11 +185,10 @@ export default function AdminBoard() {
 
     setFilteredDatas(filtered);
     setCurrentPage(1);
-  }, [datas, searchQuery, searchType, advancedFilters, sortField, sortDirection]);
+  }, [datas, searchQuery, searchType, advancedFilters, sortField, sortDirection, showNonUIC]);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
-      // Toggle direction or clear
       if (sortDirection === "asc") {
         setSortDirection("desc");
       } else if (sortDirection === "desc") {
@@ -179,7 +196,6 @@ export default function AdminBoard() {
         setSortDirection(null);
       }
     } else {
-      // New field, start with ascending
       setSortField(field);
       setSortDirection("asc");
     }
@@ -194,10 +210,11 @@ export default function AdminBoard() {
       year: [],
       gender: [],
       dietaryRestriction: [],
-      shirtSize: [],
+      crewneckSize: [],
       availability: [],
     });
     setSearchType("all");
+    setShowNonUIC(false);
   };
 
   const toggleAdvancedFilter = (
@@ -215,7 +232,8 @@ export default function AdminBoard() {
 
   const hasActiveFilters =
     searchQuery.trim() !== "" ||
-    Object.values(advancedFilters).some((arr) => arr.length > 0);
+    Object.values(advancedFilters).some((arr) => arr.length > 0) ||
+    showNonUIC;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -228,46 +246,24 @@ export default function AdminBoard() {
 
       const collectionName = YEAR_TO_DB[selectedYear as keyof typeof YEAR_TO_DB];
 
-      // Fetch summary
-      const totalCount = (
-        await getCountFromServer(collection(db, collectionName))
-      ).data().count;
-      const fullyAcceptedCount = (
-        await getCountFromServer(
-          query(
-            collection(db, collectionName),
-            where("appStatus", "==", "fullyAccepted")
-          )
-        )
-      ).data().count;
-      const userAcceptedCount = (
-        await getCountFromServer(
-          query(
-            collection(db, collectionName),
-            where("appStatus", "==", "userAccepted")
-          )
-        )
-      ).data().count;
-      const acceptedCount = (
-        await getCountFromServer(
-          query(collection(db, collectionName), where("appStatus", "==", "accepted"))
-        )
-      ).data().count;
-      const waitlistCount = (
-        await getCountFromServer(
-          query(collection(db, collectionName), where("appStatus", "==", "waitlist"))
-        )
-      ).data().count;
-      const waitingCount = (
-        await getCountFromServer(
-          query(collection(db, collectionName), where("appStatus", "==", "waiting"))
-        )
-      ).data().count;
-      const declinedCount = (
-        await getCountFromServer(
-          query(collection(db, collectionName), where("appStatus", "==", "declined"))
-        )
-      ).data().count;
+      const allDocsQuery = query(collection(db, collectionName), orderBy("createdAt"));
+      const allDocsSnap = await getDocs(allDocsQuery);
+
+      const allDatas: FormViewData[] = [];
+      allDocsSnap.forEach((doc) => {
+        // Skip the Test document
+        if (doc.id === "Test") return;
+        const item = convertDocToFormViewData(doc);
+        allDatas.push(item);
+      });
+
+      const totalCount = allDatas.length;
+      const fullyAcceptedCount = allDatas.filter(d => d.appStatus === "fullyAccepted").length;
+      const userAcceptedCount = allDatas.filter(d => d.appStatus === "userAccepted").length;
+      const acceptedCount = allDatas.filter(d => d.appStatus === "accepted").length;
+      const waitlistCount = allDatas.filter(d => d.appStatus === "waitlist").length;
+      const waitingCount = allDatas.filter(d => d.appStatus === "waiting").length;
+      const declinedCount = allDatas.filter(d => d.appStatus === "declined").length;
 
       setSummary({
         total: totalCount,
@@ -279,21 +275,9 @@ export default function AdminBoard() {
         declined: declinedCount,
       });
 
-      const q =
-        mode === "everything"
-          ? query(collection(db, collectionName), orderBy("createdAt"))
-          : query(
-              collection(db, collectionName),
-              where("appStatus", "==", mode),
-              orderBy("createdAt")
-            );
-
-      const qSnap = await getDocs(q);
-      const newDatas: FormViewData[] = [];
-      qSnap.forEach((doc) => {
-        const item = convertDocToFormViewData(doc);
-        newDatas.push(item);
-      });
+      const newDatas = mode === "everything"
+        ? allDatas
+        : allDatas.filter(d => d.appStatus === mode);
 
       setDatas(newDatas);
     };
@@ -321,22 +305,112 @@ export default function AdminBoard() {
       }}
     >
       <div style={{ textAlign: "left", padding: "10px 10px" }}>
+        {/* Title Row with Year Selector and View Toggle */}
         <div
           style={{
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
+            marginBottom: "20px",
             flexWrap: "wrap",
-            gap: "10px",
+            gap: "12px",
           }}
         >
-          <h1>Applicants</h1>
+          <h1 style={{ margin: 0 }}>Applicants</h1>
+          <div
+            style={{
+              display: "flex",
+              gap: "12px",
+              alignItems: "center",
+            }}
+          >
+            {/* Year Selector */}
+            <select
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(e.target.value)}
+              style={{
+                padding: "12px 16px",
+                borderRadius: "8px",
+                border: "2px solid #ddd",
+                backgroundColor: "white",
+                cursor: "pointer",
+                fontSize: "14px",
+                fontWeight: "600",
+                color: "#666",
+                outline: "none",
+              }}
+            >
+              {Object.keys(YEAR_TO_DB).map((year) => (
+                <option key={year} value={year}>
+                  {year}
+                </option>
+              ))}
+            </select>
+
+            {/* View Mode Toggle */}
+            <div
+              style={{
+                display: "flex",
+                gap: "8px",
+                backgroundColor: "white",
+                borderRadius: "8px",
+                padding: "4px",
+                border: "2px solid #ddd",
+              }}
+            >
+              <button
+                onClick={() => setViewMode("table")}
+                style={{
+                  padding: "8px 16px",
+                  border: "none",
+                  borderRadius: "6px",
+                  backgroundColor: viewMode === "table" ? "#8d6db5" : "transparent",
+                  color: viewMode === "table" ? "white" : "#666",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px",
+                  fontWeight: viewMode === "table" ? "600" : "400",
+                  transition: "all 0.2s ease",
+                }}
+                title="Table View"
+              >
+                <LayoutGrid size={18} />
+                Table
+              </button>
+              <button
+                onClick={() => setViewMode("graph")}
+                style={{
+                  padding: "8px 16px",
+                  border: "none",
+                  borderRadius: "6px",
+                  backgroundColor: viewMode === "graph" ? "#8d6db5" : "transparent",
+                  color: viewMode === "graph" ? "white" : "#666",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px",
+                  fontWeight: viewMode === "graph" ? "600" : "400",
+                  transition: "all 0.2s ease",
+                }}
+                title="Graph View"
+              >
+                <BarChart3 size={18} />
+                Graph
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Search Bar and Filters - Only show in table mode */}
+        {viewMode === "table" && (
           <div
             style={{
               display: "flex",
               alignItems: "center",
               gap: "10px",
               flexWrap: "wrap",
+              marginBottom: "15px",
             }}
           >
             <div
@@ -344,19 +418,20 @@ export default function AdminBoard() {
                 display: "flex",
                 alignItems: "center",
                 backgroundColor: "white",
-                borderRadius: "30px",
-                border: "1px solid #ccc",
+                borderRadius: "8px",
+                border: "2px solid #ddd",
                 overflow: "hidden",
                 minWidth: "350px",
+                flex: "1 1 350px",
               }}
             >
               <select
                 value={searchType}
                 onChange={(e) => setSearchType(e.target.value as any)}
                 style={{
-                  height: "40px",
+                  height: "44px",
                   border: "none",
-                  padding: "0px 10px",
+                  padding: "0px 12px",
                   backgroundColor: "transparent",
                   outline: "none",
                   cursor: "pointer",
@@ -384,31 +459,20 @@ export default function AdminBoard() {
                   alignItems: "center",
                 }}
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
+                <Search
+                  size={18}
                   style={{
                     marginLeft: "8px",
                     color: "#666",
                   }}
-                >
-                  <circle cx="11" cy="11" r="8"></circle>
-                  <path d="m21 21-4.35-4.35"></path>
-                </svg>
+                />
                 <input
                   placeholder="Search Applicants"
                   style={{
                     border: "none",
                     outline: "none",
                     flex: 1,
-                    height: "40px",
+                    height: "44px",
                     paddingLeft: "8px",
                     paddingRight: "15px",
                     fontSize: "14px",
@@ -422,11 +486,13 @@ export default function AdminBoard() {
               <button
                 onClick={handleClearFilters}
                 style={{
-                  padding: "10px 15px",
-                  borderRadius: "5px",
-                  border: "1px solid #ccc",
+                  padding: "12px 16px",
+                  borderRadius: "8px",
+                  border: "2px solid #ddd",
                   backgroundColor: "white",
                   cursor: "pointer",
+                  fontSize: "14px",
+                  fontWeight: "600",
                 }}
               >
                 Clear Filters
@@ -435,37 +501,26 @@ export default function AdminBoard() {
             <button
               onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
               style={{
-                width: "40px",
-                height: "40px",
-                borderRadius: "50%",
-                border: "1px solid #ccc",
-                backgroundColor: showAdvancedFilters ? "#e0e0e0" : "white",
+                width: "44px",
+                height: "44px",
+                borderRadius: "8px",
+                border: "2px solid #ddd",
+                backgroundColor: showAdvancedFilters ? "#8d6db5" : "white",
                 cursor: "pointer",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 padding: "0",
+                color: showAdvancedFilters ? "white" : "#666",
               }}
               title={showAdvancedFilters ? "Hide Filters" : "Show Filters"}
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-              </svg>
+              <Filter size={20} />
             </button>
           </div>
-        </div>
+        )}
 
-        {showAdvancedFilters && (
+        {viewMode === "table" && showAdvancedFilters && (
           <div
             style={{
               marginTop: "20px",
@@ -632,16 +687,16 @@ export default function AdminBoard() {
 
             <FilterSection
               title="Availability"
-              options={["Both days", "Saturday only", "Sunday only"]}
+              options={["Both days full duration", "Both days not full duration", "Day one only", "Day two only"]}
               selected={advancedFilters.availability}
               onToggle={(v) => toggleAdvancedFilter("availability", v)}
             />
 
             <FilterSection
-              title="Shirt Size"
-              options={["XS", "S", "M", "L", "XL", "XXL"]}
-              selected={advancedFilters.shirtSize}
-              onToggle={(v) => toggleAdvancedFilter("shirtSize", v)}
+              title="Crewneck Size"
+              options={["S", "M", "L", "XL", "XXL"]}
+              selected={advancedFilters.crewneckSize}
+              onToggle={(v) => toggleAdvancedFilter("crewneckSize", v)}
             />
 
             <FilterSection
@@ -658,11 +713,37 @@ export default function AdminBoard() {
               selected={advancedFilters.dietaryRestriction}
               onToggle={(v) => toggleAdvancedFilter("dietaryRestriction", v)}
             />
+
+            {/* Show Non-UIC Checkbox */}
+            <div style={{ marginBottom: "15px" }}>
+              <label
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  cursor: "pointer",
+                  fontSize: "14px",
+                  fontWeight: "500",
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={showNonUIC}
+                  onChange={(e) => setShowNonUIC(e.target.checked)}
+                  style={{
+                    width: "18px",
+                    height: "18px",
+                    cursor: "pointer",
+                  }}
+                />
+                Show Non-UIC Emails
+              </label>
+            </div>
           </div>
         )}
       </div>
 
-      {summary && (
+      {viewMode === "table" && summary && (
         <section
           style={{
             padding: "0px 8px",
@@ -700,39 +781,13 @@ export default function AdminBoard() {
             <div>
               <strong>Pending:</strong> {summary.waiting}
             </div>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "end",
-              }}
-            >
-              {/* <h2 style={{ margin: 0 }}>Summary</h2> */}
-              <select
-                value={selectedYear}
-                onChange={(e) => setSelectedYear(e.target.value)}
-                style={{
-                  padding: "8px 12px",
-                  borderRadius: "8px",
-                  border: "1px solid #ccc",
-                  backgroundColor: "white",
-                  cursor: "pointer",
-                  fontSize: "14px",
-                  fontWeight: "600",
-                }}
-              >
-                {Object.keys(YEAR_TO_DB).map((year) => (
-                  <option key={year} value={year}>
-                    {year}
-                  </option>
-                ))}
-              </select>
-            </div>
           </div>
           <div
             style={{
               display: "flex",
               gap: "15px",
               alignItems: "center",
+              marginTop: "10px",
             }}
           >
             <strong>Showing:</strong> {paginatedDatas.length} results
@@ -743,66 +798,73 @@ export default function AdminBoard() {
         </section>
       )}
 
-      <AdminTable
-        datas={paginatedDatas}
-        view={view}
-        setView={setView}
-        setDatas={setDatas}
-        setSummary={setSummary}
-        summary={summary}
-        allDatas={datas}
-        sortField={sortField}
-        sortDirection={sortDirection}
-        onSort={handleSort}
-      />
+      {viewMode === "table" && (
+        <>
+          <AdminTable
+            datas={paginatedDatas}
+            view={view}
+            setView={setView}
+            setDatas={setDatas}
+            setSummary={setSummary}
+            summary={summary}
+            allDatas={datas}
+            sortField={sortField}
+            sortDirection={sortDirection}
+            onSort={handleSort}
+            roles={roles}
+          />
 
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          gap: "10px",
-          marginTop: "15px",
-          alignItems: "center",
-        }}
-      >
-        <button
-          disabled={currentPage === 1}
-          onClick={() => setCurrentPage((p) => p - 1)}
-          style={{
-                    padding: "8px 16px",
-                    borderRadius: "20px",
-                    border: "1px solid #ccc",
-                    backgroundColor: "white",
-                    cursor: "pointer",
-                    fontSize: "14px",
-                    fontWeight: mode === "fullyAccepted" ? "600" : "400",
-                    transition: "all 0.2s ease",
-                  }}
-        >
-          Previous
-        </button>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              gap: "10px",
+              marginTop: "15px",
+              alignItems: "center",
+            }}
+          >
+            <button
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage((p) => p - 1)}
+              style={{
+                padding: "8px 16px",
+                borderRadius: "20px",
+                border: "1px solid #ccc",
+                backgroundColor: "white",
+                cursor: "pointer",
+                fontSize: "14px",
+                fontWeight: mode === "fullyAccepted" ? "600" : "400",
+                transition: "all 0.2s ease",
+              }}
+            >
+              Previous
+            </button>
 
-        <span>
-          Page {currentPage} of {totalPages}
-        </span>
+            <span>
+              Page {currentPage} of {totalPages}
+            </span>
 
-        <button
-          disabled={currentPage === totalPages}
-          onClick={() => setCurrentPage((p) => p + 1)}
-          style={{
-                    padding: "8px 16px",
-                    borderRadius: "20px",
-                    border: "1px solid #ccc",
-                    backgroundColor: "white",
-                    cursor: "pointer",
-                    fontSize: "14px",
-                    fontWeight: mode === "fullyAccepted" ? "600" : "400",
-                    transition: "all 0.2s ease",
-                  }}
-        >
-          Next
-        </button>
-      </div>
+            <button
+              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage((p) => p + 1)}
+              style={{
+                padding: "8px 16px",
+                borderRadius: "20px",
+                border: "1px solid #ccc",
+                backgroundColor: "white",
+                cursor: "pointer",
+                fontSize: "14px",
+                fontWeight: mode === "fullyAccepted" ? "600" : "400",
+                transition: "all 0.2s ease",
+              }}
+            >
+              Next
+            </button>
+          </div>
+        </>
+      )}
+
+      {viewMode === "graph" && <ApplicantGraphs datas={datas} />}
     </div>
   );
 }
@@ -861,12 +923,37 @@ const convertDocToFormViewData = (doc: DocumentData) => {
     moreAvailability: docData.moreAvailability,
     dietaryRestriction: docData.dietaryRestriction,
     otherDietaryRestriction: docData.otherDietaryRestriction,
-    shirtSize: docData.shirtSize,
+    crewneckSize: docData.crewneckSize || docData.shirtSize, // Fallback for old data
     teamPlan: docData.teamPlan,
     preWorkshops: docData.preWorkshops,
     jobType: docData.jobType,
     otherJobType: docData.otherJobType,
     resumeLink: docData.resumeLink,
+    linkedinUrl: docData.linkedinUrl || "",
+
+    // Logistics & Background
+    pastSparkHacks: docData.pastSparkHacks || "",
+    pastHackathons: docData.pastHackathons || "",
+    pastProjects: docData.pastProjects || "",
+    participationType: docData.participationType || "",
+    hearAbout: docData.hearAbout || [],
+    otherHearAbout: docData.otherHearAbout || "",
+
+    // Interest & Goals
+    whyInterested: docData.whyInterested || "",
+    teamRole: docData.teamRole || "",
+    projectInterest: docData.projectInterest || [],
+    mainGoals: docData.mainGoals || [],
+
+    // Skills
+    skillGit: docData.skillGit || "",
+    skillFigma: docData.skillFigma || "",
+    skillReact: docData.skillReact || "",
+    skillPython: docData.skillPython || "",
+    skillDatabase: docData.skillDatabase || "",
+    skillCICD: docData.skillCICD || "",
+    skillAPIs: docData.skillAPIs || "",
+
     appStatus: docData.appStatus,
   };
   return result;

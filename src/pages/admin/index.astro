@@ -3,10 +3,12 @@ import DashboardLayout from "../../layouts/DashboardLayout.astro"
 import AdminBoard from "../../components/AdminBoard"
 import { getAuth } from "firebase-admin/auth";
 import { app } from "../../firebase/server";
+import getRoleFlags from "../../scripts/getRoles";
 
 let userEmail = "";
 let userName = ""
 let userPhoto = ""
+let roles = { isAdmin: false, isQrScanner: false, isWebDev: false, isDirector: false };
 
 // check token and session alive, check admin permission
 try {
@@ -33,11 +35,14 @@ try {
   userName = user.displayName || ""
   userPhoto = user.photoURL || ""
 
-  // check admin permission
-  // if (!(user.customClaims && user.customClaims.admin === true)) {
-  //   console.error("Not admin")
-  //   return new Response("Not admin", { status: 401 })
-  // }
+  // Get user roles
+  roles = getRoleFlags(user);
+
+  // Check if user has permission to access applicants table (admin, webdev, or director)
+  if (!roles.isAdmin && !roles.isWebDev && !roles.isDirector) {
+    console.error("No permission to access applicants table");
+    return Astro.redirect("/dashboard");
+  }
 }
 catch (err) {
   console.error(err);
@@ -47,9 +52,9 @@ catch (err) {
 
 ---
 
-<DashboardLayout userName={userName} userEmail={userEmail} currentPath={Astro.url.pathname}>
+<DashboardLayout userName={userName} userEmail={userEmail} currentPath={Astro.url.pathname} roles={roles}>
   <div class="admin-section">
-    <AdminBoard client:load/>
+    <AdminBoard client:load roles={roles}/>
   </div>
 </DashboardLayout>
 <style>

@@ -3,6 +3,7 @@ import Layout from "../layouts/Layout.astro";
 import { app, db } from "../firebase/server";
 import { getAuth } from "firebase-admin/auth";
 import { collection, query, where } from "firebase/firestore";
+import { NON_UIC_BYPASS } from "../config/constants";
 
 import getRoleFlags from "../scripts/getRoles.ts";
 import type { RoleFlags } from "../scripts/getRoles.ts";
@@ -44,16 +45,14 @@ const newUserState = (await db.collection("Settings").doc("newUserState").get())
     <span id="subtitle">Sign in with your <b>UIC email</b> to get started</span>
     <div id="errMsg" style="color: red; display: none"></div>
 
-    
-    <!-- REMOVE LATER -->
-    <!-- <div style="margin: 15px 0;">
-      <label style="color: black; display: flex; align-items: center; gap: 8px; cursor: pointer;">
-        <input type="checkbox" id="bypass-checkbox" style="cursor: pointer;" />
-        <span>Allow non-UIC email (temporary)</span>
-      </label>
-    </div> -->
-    <!-- REMOVE LATER -->
-
+    {NON_UIC_BYPASS && (
+      <div style="margin: 15px 0;">
+        <label style="color: black; display: flex; align-items: center; gap: 8px; cursor: pointer;">
+          <input type="checkbox" id="bypass-checkbox" style="cursor: pointer;" />
+          <span>Allow non-UIC email (temporary)</span>
+        </label>
+      </div>
+    )}
 
     <button id="google-sign-btn" data-message={newUserState} class="fill-up-animation"
       >Sign in with Google</button

@@ -1,0 +1,83 @@
+.svg-container {
+  resize: both;
+  padding: 1rem;
+}
+
+.text-container {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  position: relative;
+  min-height: 60px;
+  padding-bottom: 10px;
+}
+
+.text-container h3 {
+  position: absolute;
+  transform: translateX(-50%);
+  margin: 0;
+  max-width: 20%;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.text-container h3:nth-child(1) {
+  left: 5%;
+}
+
+.text-container h3:nth-child(2) {
+  left: 35%;
+}
+
+.text-container h3:nth-child(3) {
+  left: 65%;
+}
+
+.text-container h3:nth-child(4) {
+  left: 95%;
+}
+
+/* "waiting" , "declined" , "waitlist" , "accepted" , "userAccepted" , "fullyAccepted"  */
+.emptyStatus {
+  color: #000000;
+  stroke: #d9d9d9;
+  fill: #d9d9d9;
+  font-weight: bold;
+}
+
+.declined {
+  color: #f97979;
+  stroke: #f97979;
+  fill: #f97979;
+  font-weight: bold;
+}
+
+.waiting,
+.waitlist {
+  color: #a9d796;
+  stroke: #a9d796;
+  fill: #a9d796;
+  font-weight: bold;
+}
+
+.accepted {
+  color: #40911f;
+  stroke: #40911f;
+  fill: #40911f;
+  font-weight: bold;
+}
+
+.userAccepted,
+.fullyAccepted {
+  color: #215f07;
+  stroke: #215f07;
+  fill: #215f07;
+  font-weight: bold;
+}
+
+/* Mobile styles */
+@media (max-width: 768px) {
+  .text-container {
+    display: none;
+  }
+}

@@ -78,3 +78,22 @@
   transform: translateY(0) !important;
   box-shadow: 0 2px 4px rgba(141, 109, 181, 0.2) !important;
 }
+
+@media (max-width: 768px) {
+  #qrcodeRegionId {
+    max-width: 100%;
+  }
+
+  #qrcodeRegionId__scan_region {
+    min-height: 250px !important;
+  }
+
+  #qrcodeRegionId button,
+  #html5-qrcode-button-camera-permission,
+  #html5-qrcode-button-camera-start,
+  #html5-qrcode-button-camera-stop {
+    min-width: 150px !important;
+    padding: 10px 18px !important;
+    font-size: 14px !important;
+  }
+}
