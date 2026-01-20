@@ -6,12 +6,14 @@ import { getAuth } from "firebase-admin/auth";
 import type { DocumentData } from "firebase-admin/firestore";
 import type { FormViewData } from "../../env";
 import { FORMS_COLLECTION } from "../../utils/utils";
+import getRoleFlags from "../../scripts/getRoles";
 
 let userEmail = "";
 let userName = "";
 let userPhoto = "";
 let registered = false
 let applicationData: FormViewData | null = null
+let roles = { isAdmin: false, isQrScanner: false, isWebDev: false, isDirector: false };
 
 try {
   const auth = getAuth(app);
@@ -37,6 +39,15 @@ try {
   userName = user.displayName || "";
   userPhoto = user.photoURL || "";
   const newUserState = false
+
+  // Get user roles
+  roles = getRoleFlags(user);
+
+  // Check if user has permission to access admin application (admin, webdev, or director)
+  if (!roles.isAdmin && !roles.isWebDev && !roles.isDirector) {
+    console.error("No permission to access admin application");
+    return Astro.redirect("/dashboard");
+  }
 
 
   // if already registered then do not render submit button
@@ -75,7 +86,7 @@ try {
 }
 ---
 
-<DashboardLayout userName={userName} userEmail={userEmail} currentPath={Astro.url.pathname}>
+<DashboardLayout userName={userName} userEmail={userEmail} currentPath={Astro.url.pathname} roles={roles}>
     <div class="admin-section">
         <div class="app-form">
             <AppForm email={userEmail} registered={registered} applicationData={applicationData} isAdmin={true} client:only="react" />

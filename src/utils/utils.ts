@@ -15,7 +15,7 @@ export const displayFormData = (
   moreAvailability: string | undefined,
   dietaryRestriction: string[] | undefined,
   otherDietaryRestriction: string | undefined,
-  shirtSize: string | undefined,
+  crewneckSize: string | undefined,
   teamPlan: string | undefined,
   preWorkshops: string[],
   jobType: string | undefined,
@@ -32,7 +32,7 @@ export const displayFormData = (
   console.log("More availability:", moreAvailability)
   console.log("Dietary Restriction*:", dietaryRestriction)
   console.log("Other Dietary Restriction:", otherDietaryRestriction)
-  console.log("Shirt size*:", shirtSize)
+  console.log("Crewneck size*:", crewneckSize)
   console.log("Team Plan*:", teamPlan)
   console.log("Pre workshops*:", preWorkshops)
   console.log("Job type:*", jobType)
@@ -50,11 +50,25 @@ export const validateFormData = (
   availability: string | undefined,
   dietaryRestriction: string[],
   otherDietaryRestriction: string | undefined,
-  shirtSize: string | undefined,
+  crewneckSize: string | undefined,
   teamPlan: string | undefined,
   preWorkshops: string[],
   jobType: string | undefined,
   otherJobType: string | undefined,
+  pastSparkHacks: string | undefined,
+  pastProjects: string | undefined,
+  participationType: string | undefined,
+  hearAbout: string[],
+  otherHearAbout: string | undefined,
+  projectInterest: string[],
+  mainGoals: string[],
+  skillGit: string | undefined,
+  skillFigma: string | undefined,
+  skillReact: string | undefined,
+  skillPython: string | undefined,
+  skillDatabase: string | undefined,
+  skillCICD: string | undefined,
+  skillAPIs: string | undefined,
 ) => {
 
   // First Name validation
@@ -117,12 +131,12 @@ export const validateFormData = (
     }
   }
 
-  // T-shirt Size validation
-  if (!shirtSize || shirtSize === "") {
-    return { success: false, msg: "Empty t-shirt size"}
+  // Crewneck Size validation
+  if (!crewneckSize || crewneckSize === "") {
+    return { success: false, msg: "Empty crewneck size"}
   }
-  if (!(questions.shirtSize.answer.includes(shirtSize))) {
-    return { success: false, msg: "Invalid t-shirt size"}
+  if (!(questions.crewneckSize.answer.includes(crewneckSize))) {
+    return { success: false, msg: "Invalid crewneck size"}
   }
 
   // Have Team validation
@@ -157,6 +171,120 @@ export const validateFormData = (
   }
 
   // resume link (optional)
+
+  // Past SparkHacks validation
+  if (!pastSparkHacks || pastSparkHacks === "") {
+    return { success: false, msg: "Empty past SparkHacks participation"}
+  }
+  if (!(questions.pastSparkHacks.answer.includes(pastSparkHacks))) {
+    return { success: false, msg: "Invalid past SparkHacks participation"}
+  }
+
+  // Past Hackathons (optional)
+
+  // Past Projects validation
+  if (!pastProjects || pastProjects === "") {
+    return { success: false, msg: "Empty past projects"}
+  }
+  if (!(questions.pastProjects.answer.includes(pastProjects))) {
+    return { success: false, msg: "Invalid past projects"}
+  }
+
+  // Participation Type validation
+  if (!participationType || participationType === "") {
+    return { success: false, msg: "Empty participation type"}
+  }
+  if (!(questions.participationType.answer.includes(participationType))) {
+    return { success: false, msg: "Invalid participation type"}
+  }
+
+  // Hear About validation
+  if (hearAbout.length === 0) {
+    return { success: false, msg: "Empty hear about"}
+  }
+  for (const hear of hearAbout) {
+    if (!(questions.hearAbout.answer.includes(hear))) {
+      return { success: false, msg: "Invalid hear about"}
+    }
+  }
+  if (hearAbout.includes("Other")) {
+    if (!otherHearAbout || otherHearAbout === "") {
+      return { success: false, msg: "Other hear about is chosen but input is blank"}
+    }
+  }
+
+  // Why Interested (optional)
+  // Team Role (optional)
+
+  // Project Interest validation
+  if (projectInterest.length === 0) {
+    return { success: false, msg: "Empty project interest"}
+  }
+  for (const project of projectInterest) {
+    if (!(questions.projectInterest.answer.includes(project))) {
+      return { success: false, msg: "Invalid project interest"}
+    }
+  }
+
+  // Main Goals validation
+  if (mainGoals.length === 0) {
+    return { success: false, msg: "Empty main goals"}
+  }
+  for (const goal of mainGoals) {
+    if (!(questions.mainGoals.answer.includes(goal))) {
+      return { success: false, msg: "Invalid main goals"}
+    }
+  }
+
+  // Skills validation
+  if (!skillGit || skillGit === "") {
+    return { success: false, msg: "Empty git skill level"}
+  }
+  if (!(questions.skillGit.answer.includes(skillGit))) {
+    return { success: false, msg: "Invalid git skill level"}
+  }
+
+  if (!skillFigma || skillFigma === "") {
+    return { success: false, msg: "Empty figma skill level"}
+  }
+  if (!(questions.skillFigma.answer.includes(skillFigma))) {
+    return { success: false, msg: "Invalid figma skill level"}
+  }
+
+  if (!skillReact || skillReact === "") {
+    return { success: false, msg: "Empty React skill level"}
+  }
+  if (!(questions.skillReact.answer.includes(skillReact))) {
+    return { success: false, msg: "Invalid React skill level"}
+  }
+
+  if (!skillPython || skillPython === "") {
+    return { success: false, msg: "Empty Python skill level"}
+  }
+  if (!(questions.skillPython.answer.includes(skillPython))) {
+    return { success: false, msg: "Invalid Python skill level"}
+  }
+
+  if (!skillDatabase || skillDatabase === "") {
+    return { success: false, msg: "Empty database skill level"}
+  }
+  if (!(questions.skillDatabase.answer.includes(skillDatabase))) {
+    return { success: false, msg: "Invalid database skill level"}
+  }
+
+  if (!skillCICD || skillCICD === "") {
+    return { success: false, msg: "Empty CI/CD skill level"}
+  }
+  if (!(questions.skillCICD.answer.includes(skillCICD))) {
+    return { success: false, msg: "Invalid CI/CD skill level"}
+  }
+
+  if (!skillAPIs || skillAPIs === "") {
+    return { success: false, msg: "Empty APIs skill level"}
+  }
+  if (!(questions.skillAPIs.answer.includes(skillAPIs))) {
+    return { success: false, msg: "Invalid APIs skill level"}
+  }
 
   return { success: true, msg: "Valid form data" }
 }

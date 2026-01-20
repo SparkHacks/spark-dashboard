@@ -39,12 +39,37 @@ interface FormSubmissionData {
     moreAvailability: string, // optional
     dietaryRestriction: string[],
     otherDietaryRestriction: string, // optional
-    shirtSize: string,
+    crewneckSize: string,
     teamPlan: string,
     preWorkshops: string[],
     jobType: string,
     otherJobType: string, // optional
     resumeLink: string, // optional
+    linkedinUrl: string, // optional
+
+    // Logistics & Background
+    pastSparkHacks: string,
+    pastHackathons: string, // optional
+    pastProjects: string,
+    participationType: string,
+    hearAbout: string[],
+    otherHearAbout: string, // optional
+
+    // Interest & Goals
+    whyInterested: string, // optional
+    teamRole: string, // optional
+    projectInterest: string[],
+    mainGoals: string[],
+
+    // Skills
+    skillGit: string,
+    skillFigma: string,
+    skillReact: string,
+    skillPython: string,
+    skillDatabase: string,
+    skillCICD: string,
+    skillAPIs: string,
+
     appStatus: "waiting" | "declined" | "waitlist" | "accepted" | "userAccepted" | "fullyAccepted",
     createdAt: FieldValue
 }
@@ -60,12 +85,37 @@ interface FormViewData {
     moreAvailability: string, // optional
     dietaryRestriction: string[],
     otherDietaryRestriction: string, // optional
-    shirtSize: string,
+    crewneckSize: string,
     teamPlan: string,
     preWorkshops: string[],
     jobType: string,
     otherJobType: string, // optional
     resumeLink: string, // optional
+    linkedinUrl: string, // optional
+
+    // Logistics & Background
+    pastSparkHacks: string,
+    pastHackathons: string, // optional
+    pastProjects: string,
+    participationType: string,
+    hearAbout: string[],
+    otherHearAbout: string, // optional
+
+    // Interest & Goals
+    whyInterested: string, // optional
+    teamRole: string, // optional
+    projectInterest: string[],
+    mainGoals: string[],
+
+    // Skills
+    skillGit: string,
+    skillFigma: string,
+    skillReact: string,
+    skillPython: string,
+    skillDatabase: string,
+    skillCICD: string,
+    skillAPIs: string,
+
     appStatus: "waiting" | "declined" | "waitlist" | "accepted" | "userAccepted" | "fullyAccepted",
     createdAt: string
 }

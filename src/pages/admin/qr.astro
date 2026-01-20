@@ -43,11 +43,11 @@ try {
   userName = user.displayName || ""
   userPhoto = user.photoURL || ""
 
-  // check admin permission
-  // if (!(user.customClaims && user.customClaims.admin === true)) {
-  //   console.error("Not admin")
-  //   return new Response("Not admin", { status: 401 })
-  // }
+  // check if user has permission to access QR scanner (qrScanner, admin, webdev, or director)
+  if (!roles.isQrScanner && !roles.isAdmin && !roles.isWebDev && !roles.isDirector) {
+    console.error("No permission to access QR scanner");
+    return Astro.redirect("/dashboard");
+  }
 }
 catch (err) {
   console.error(err);
@@ -57,7 +57,7 @@ catch (err) {
 
 ---
 
-<DashboardLayout userName={userName} userEmail={userEmail} currentPath={Astro.url.pathname}>
+<DashboardLayout userName={userName} userEmail={userEmail} currentPath={Astro.url.pathname} roles={roles}>
   <div class="main-section">
     <div class="main-right-section" style={{justifyContent: 'center'}}>
       <AdminCode client:load />

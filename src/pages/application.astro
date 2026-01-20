@@ -7,9 +7,11 @@ import type { DocumentData } from "firebase-admin/firestore";
 import type { FormViewData } from "../env";
 import { FORMS_COLLECTION } from "../utils/utils";
 
+let userName = "";
 let userEmail = "";
 let registered = false
 let applicationData: FormViewData | null = null
+let newUserState = true
 
 import getRoleFlags from "../scripts/getRoles.ts";
 import type { RoleFlags } from "../scripts/getRoles.ts";
@@ -41,8 +43,9 @@ try {
   }
   roles = getRoleFlags(user);
 
+  userName = user.displayName || "";
   userEmail = user.email as string;
-  const newUserState = (await db.collection("Settings").doc("newUserState").get()).data()?.isNewUserEnabled
+  newUserState = (await db.collection("Settings").doc("newUserState").get()).data()?.isNewUserEnabled
 
 
   // if already registered then do not render submit button
@@ -64,15 +67,12 @@ try {
       shirtSize: data.shirtSize,
       teamPlan: data.teamPlan,
       preWorkshops: data.preWorkshops,
-      jobType: data.jobType, 
+      jobType: data.jobType,
       otherJobType: data.otherJobType,// optional
       resumeLink: data.resumeLink, // optional
       appStatus: data.appStatus, // status of application
       createdAt: data.createdAt.toDate().toLocaleString("en-US", { timeZone: "America/Chicago"}) || ""
     }
-  }
-  else if (!newUserState) {
-    return new Response("Application is closed due to reaching capacity", { status: 403 })
   }
 
 } catch (err) {
@@ -81,6 +81,6 @@ try {
 }
 ---
 
-<DashboardLayout>
-  <AppForm email={userEmail} registered={registered} applicationData={applicationData} isAdmin={roles.isAdmin} client:only="react" />
+<DashboardLayout userName={userName} userEmail={userEmail} currentPath={Astro.url.pathname} roles={roles}>
+  <AppForm email={userEmail} registered={registered} applicationData={applicationData} isAdmin={roles.isAdmin} applicationsClosed={!newUserState} client:only="react" />
 </DashboardLayout>
