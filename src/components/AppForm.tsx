@@ -325,7 +325,7 @@ export default function AppForm({ email, registered, applicationData, isAdmin, a
           <Radios
             required
             disabled={registered || applicationsClosed}
-            label={<>Do you have a team? If you do not already, no worries, we have you covered! <strong>Note: team size is restricted to 4-5 people.</strong></>}
+            label={<>Do you have a team? If you do not already, no worries, we have you covered! <strong>Note: team size is restricted to 3-5 people.</strong></>}
             name="teamPlan"
             defaultValue={applicationData?.teamPlan || ""}
             groupRadios={questions.teamPlan.answer}
