@@ -1,9 +1,20 @@
 import styles from "./styles/AdminTable.module.css";
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
 import type { FormViewData } from "../../env";
-import type { Summary, SortField, SortDirection } from "../AdminBoard";
+import type { Summary, SortField, SortDirection, ColumnKey, ColumnWidths } from "../AdminBoard";
+import { AVAILABLE_COLUMNS } from "../AdminBoard";
 import { STATUS_COLORS } from "../constants";
 import { ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
+
+const shortenAvailability = (availability: string): string => {
+  switch (availability) {
+    case "Both days full duration": return "Both D Full";
+    case "Both days not full duration": return "Both D Partial";
+    case "Day one only": return "D1 Only";
+    case "Day two only": return "D2 Only";
+    default: return availability;
+  }
+};
 
 interface RoleFlags {
   isAdmin: boolean;
@@ -24,6 +35,10 @@ export default function AdminTable({
   sortDirection,
   onSort,
   roles,
+  visibleColumns,
+  columnWidths,
+  setColumnWidths,
+  showColumnSelector,
 }: {
   datas: FormViewData[];
   setDatas: React.Dispatch<React.SetStateAction<FormViewData[]>>;
@@ -36,8 +51,38 @@ export default function AdminTable({
   sortDirection: SortDirection;
   onSort: (field: SortField) => void;
   roles: RoleFlags;
+  visibleColumns: ColumnKey[];
+  columnWidths: ColumnWidths;
+  setColumnWidths: React.Dispatch<React.SetStateAction<ColumnWidths>>;
+  showColumnSelector: boolean;
 }) {
   const [globalLoading, setGlobalLoading] = useState(false);
+  const [resizing, setResizing] = useState<ColumnKey | null>(null);
+  const startXRef = useRef<number>(0);
+  const startWidthRef = useRef<number>(0);
+
+  const handleMouseDown = useCallback((e: React.MouseEvent, columnKey: ColumnKey) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setResizing(columnKey);
+    startXRef.current = e.clientX;
+    startWidthRef.current = columnWidths[columnKey];
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const diff = e.clientX - startXRef.current;
+      const newWidth = Math.max(50, startWidthRef.current + diff);
+      setColumnWidths(prev => ({ ...prev, [columnKey]: newWidth }));
+    };
+
+    const handleMouseUp = () => {
+      setResizing(null);
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+    };
+
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
+  }, [columnWidths, setColumnWidths]);
 
   const SortIcon = ({ field }: { field: SortField }) => {
     if (sortField !== field) {
@@ -49,46 +94,59 @@ export default function AdminTable({
     return <ArrowDown size={14} style={{ marginLeft: "4px" }} />;
   };
 
+  const Resizer = ({ columnKey }: { columnKey: ColumnKey }) => {
+    if (!showColumnSelector) return null;
+    return (
+      <div
+        className={styles.resizer}
+        onMouseDown={(e) => handleMouseDown(e, columnKey)}
+        style={{
+          opacity: resizing === columnKey ? 1 : undefined,
+        }}
+      />
+    );
+  };
+
   return (
     <section className={styles.adminTable}>
       <div className={styles.headerTable}>
-        <div className={styles.cellId}>#</div>
+        <div style={{ width: 35, minWidth: 35, flexShrink: 0, flexGrow: 0 }}>#</div>
         <div
-          className={`${styles.cellEmail} ${styles.sortableHeader}`}
+          className={styles.sortableHeader}
+          style={{ flex: `0 1 ${columnWidths.email}px`, minWidth: 50, position: "relative", overflow: "hidden" }}
           onClick={() => onSort("email")}
         >
           Email
           <SortIcon field="email" />
+          <Resizer columnKey="email" />
         </div>
+        {AVAILABLE_COLUMNS.filter((col) => visibleColumns.includes(col.key)).map((col) => (
+          <div
+            key={col.key}
+            className={col.sortable ? styles.sortableHeader : ""}
+            style={{
+              flex: col.key === "name" ? `1 1 ${columnWidths[col.key]}px` : `0 1 ${columnWidths[col.key]}px`,
+              minWidth: 50,
+              position: "relative",
+              overflow: "hidden"
+            }}
+            onClick={() => col.sortable && onSort(col.key as SortField)}
+          >
+            {col.label}
+            {col.sortable && <SortIcon field={col.key as SortField} />}
+            <Resizer columnKey={col.key} />
+          </div>
+        ))}
         <div
-          className={`${styles.cellName} ${styles.sortableHeader}`}
-          onClick={() => onSort("name")}
-        >
-          Name
-          <SortIcon field="name" />
-        </div>
-        <div
-          className={`${styles.cellCreatedAt} ${styles.sortableHeader}`}
-          onClick={() => onSort("createdAt")}
-        >
-          Created At
-          <SortIcon field="createdAt" />
-        </div>
-        <div
-          className={`${styles.cellAvailability} ${styles.sortableHeader}`}
-          onClick={() => onSort("availability")}
-        >
-          Availability
-          <SortIcon field="availability" />
-        </div>
-        <div
-          className={`${styles.cellStatus} ${styles.sortableHeader}`}
+          className={styles.sortableHeader}
+          style={{ flex: `0 1 ${columnWidths.status}px`, minWidth: 50, position: "relative", overflow: "hidden" }}
           onClick={() => onSort("appStatus")}
         >
           Status
           <SortIcon field="appStatus" />
+          <Resizer columnKey="status" />
         </div>
-        <div className={styles.cellActions}></div>
+        <div style={{ flex: `0 0 ${columnWidths.actions}px`, minWidth: 50 }}></div>
       </div>
 
       <div className={styles.contentTable}>
@@ -109,6 +167,8 @@ export default function AdminTable({
               globalLoading={globalLoading}
               setGlobalLoading={setGlobalLoading}
               roles={roles}
+              visibleColumns={visibleColumns}
+              columnWidths={columnWidths}
             />
           ))
         )}
@@ -129,6 +189,8 @@ function Row({
   globalLoading,
   setGlobalLoading,
   roles,
+  visibleColumns,
+  columnWidths,
 }: {
   id: number;
   data: FormViewData;
@@ -141,6 +203,8 @@ function Row({
   globalLoading: boolean;
   setGlobalLoading: React.Dispatch<React.SetStateAction<boolean>>;
   roles: RoleFlags;
+  visibleColumns: ColumnKey[];
+  columnWidths: ColumnWidths;
 }) {
 
   const getEffectiveRole = () => {
@@ -227,6 +291,18 @@ function Row({
 
   const isExpanded = view?.email === data.email;
 
+  const getCellContent = (key: ColumnKey) => {
+    switch (key) {
+      case "name": return `${data.firstName} ${data.lastName}`;
+      case "createdAt": return data.createdAt;
+      case "availability": return shortenAvailability(data.availability);
+      case "year": return data.year;
+      case "gender": return data.gender;
+      case "teamPlan": return data.teamPlan === "I have a team" ? "Yes" : "No";
+      default: return "";
+    }
+  };
+
   return (
     <div
       className={styles.rowContainer}
@@ -240,16 +316,26 @@ function Row({
       }}
     >
       <div className={styles.rowTable} style={{ fontWeight: 600, backgroundColor: backgroundColor }}>
-        <div className={styles.cellId}>
+        <div style={{ width: 35, minWidth: 35, flexShrink: 0, flexGrow: 0 }}>
           <strong>{id}</strong>
         </div>
-        <div className={styles.cellEmail}>{data.email}</div>
-        <div className={styles.cellName}>
-          {data.firstName} {data.lastName}
+        <div style={{ flex: `0 1 ${columnWidths.email}px`, minWidth: 50, overflow: "hidden", textOverflow: "ellipsis" }}>
+          {data.email}
         </div>
-        <div className={styles.cellCreatedAt}>{data.createdAt}</div>
-        <div className={styles.cellAvailability}>{data.availability}</div>
-        <div className={styles.cellStatus}>
+        {AVAILABLE_COLUMNS.filter((col) => visibleColumns.includes(col.key)).map((col) => (
+          <div
+            key={col.key}
+            style={{
+              flex: col.key === "name" ? `1 1 ${columnWidths[col.key]}px` : `0 1 ${columnWidths[col.key]}px`,
+              minWidth: 50,
+              overflow: "hidden",
+              textOverflow: "ellipsis"
+            }}
+          >
+            {getCellContent(col.key)}
+          </div>
+        ))}
+        <div style={{ flex: `0 1 ${columnWidths.status}px`, minWidth: 50, overflow: "hidden" }}>
           <select
             style={{
               backgroundColor: "EEE1F7",
@@ -271,7 +357,7 @@ function Row({
             <option value="fullyAccepted">Confirmed</option>
           </select>
         </div>
-        <div className={styles.cellActions}>
+        <div style={{ flex: `0 0 ${columnWidths.actions}px`, minWidth: 50, display: "flex", justifyContent: "flex-end" }}>
           <button className={styles.viewBtn} onClick={handleView} style={{fontWeight: "bold"}}>
             {isExpanded ? "Hide" : "View"}
           </button>
@@ -284,7 +370,7 @@ function Row({
           maxHeight: isExpanded ? "2000px" : "0",
           opacity: isExpanded ? 1 : 0,
           transition: "max-height 0.4s ease, opacity 0.3s ease, padding 0.3s ease",
-          padding: isExpanded ? "0px 20px 20px 20px" : "0 20px",
+          padding: isExpanded ? "0px 20px 12px 20px" : "0 20px",
         }}
       >
         <div className={styles.detailsGrid}>
@@ -298,8 +384,8 @@ function Row({
             <strong>Year:</strong> {data.year}
           </div>
 
-          <div style={{ gridColumn: "1 / -1", borderTop: "2px dotted #ccc", margin: "12px 0 8px 0" }}></div>
-          <div className={styles.detailItem} style={{ gridColumn: "1 / -1", fontSize: "18px", marginBottom: "4px" }}>
+          <div style={{ gridColumn: "1 / -1", borderTop: "2px dotted #ccc", margin: "6px 0 4px 0" }}></div>
+          <div className={styles.detailItem} style={{ gridColumn: "1 / -1", fontSize: "16px", marginBottom: "2px" }}>
             <strong>Background</strong>
           </div>
           <div className={styles.detailItem} style={{ gridColumn: "1 / -1", display: "flex", flexWrap: "wrap", gap: "20px" }}>
@@ -314,8 +400,8 @@ function Row({
             <strong>Heard from:</strong> {data.hearAbout?.join(", ")} {data.otherHearAbout && `(${data.otherHearAbout})`}
           </div>
 
-          <div style={{ gridColumn: "1 / -1", borderTop: "2px dotted #ccc", margin: "12px 0 8px 0" }}></div>
-          <div className={styles.detailItem} style={{ gridColumn: "1 / -1", fontSize: "18px", marginBottom: "4px" }}>
+          <div style={{ gridColumn: "1 / -1", borderTop: "2px dotted #ccc", margin: "6px 0 4px 0" }}></div>
+          <div className={styles.detailItem} style={{ gridColumn: "1 / -1", fontSize: "16px", marginBottom: "2px" }}>
             <strong>Interest & Goals</strong>
           </div>
           <div className={styles.detailItem} style={{ gridColumn: "1 / -1" }}>
@@ -329,8 +415,8 @@ function Row({
             <span><strong>Main goals:</strong> {data.mainGoals?.join(", ")}</span>
           </div>
 
-          <div style={{ gridColumn: "1 / -1", borderTop: "2px dotted #ccc", margin: "12px 0 8px 0" }}></div>
-          <div className={styles.detailItem} style={{ gridColumn: "1 / -1", fontSize: "18px", marginBottom: "4px" }}>
+          <div style={{ gridColumn: "1 / -1", borderTop: "2px dotted #ccc", margin: "6px 0 4px 0" }}></div>
+          <div className={styles.detailItem} style={{ gridColumn: "1 / -1", fontSize: "16px", marginBottom: "2px" }}>
             <strong>Skills (1-5)</strong>
           </div>
           <div className={styles.detailItem} style={{ gridColumn: "1 / -1", display: "flex", flexWrap: "wrap", gap: "20px" }}>
@@ -343,8 +429,8 @@ function Row({
             <span><strong>APIs:</strong> {data.skillAPIs}</span>
           </div>
 
-          <div style={{ gridColumn: "1 / -1", borderTop: "2px dotted #ccc", margin: "12px 0 8px 0" }}></div>
-          <div className={styles.detailItem} style={{ gridColumn: "1 / -1", fontSize: "18px", marginBottom: "4px" }}>
+          <div style={{ gridColumn: "1 / -1", borderTop: "2px dotted #ccc", margin: "6px 0 4px 0" }}></div>
+          <div className={styles.detailItem} style={{ gridColumn: "1 / -1", fontSize: "16px", marginBottom: "2px" }}>
             <strong>Attendance</strong>
           </div>
           <div className={styles.detailItem} style={{ gridColumn: "1 / -1", display: "flex", flexWrap: "wrap", gap: "20px" }}>
@@ -362,8 +448,8 @@ function Row({
             <strong>Workshops:</strong> {data.preWorkshops?.join(", ")}
           </div>
 
-          <div style={{ gridColumn: "1 / -1", borderTop: "2px dotted #ccc", margin: "12px 0 8px 0" }}></div>
-          <div className={styles.detailItem} style={{ gridColumn: "1 / -1", fontSize: "18px", marginBottom: "4px" }}>
+          <div style={{ gridColumn: "1 / -1", borderTop: "2px dotted #ccc", margin: "6px 0 4px 0" }}></div>
+          <div className={styles.detailItem} style={{ gridColumn: "1 / -1", fontSize: "16px", marginBottom: "2px" }}>
             <strong>Career</strong>
           </div>
           <div className={styles.detailItem} style={{ gridColumn: "1 / -1" }}>

@@ -24,7 +24,7 @@ export default function ViewCard({view, setView} : {
         </ul>
       </div>
       <div><strong>Other Dietary Restriction:</strong> {view?.otherDietaryRestriction}</div>
-      <div><strong>T-shirt size:</strong> {view?.shirtSize}</div>
+      <div><strong>Crewneck size:</strong> {view?.crewneckSize}</div>
       <div><strong>Team plan:</strong> {view?.teamPlan}</div>
       <div>
         <strong>Pre workshops:</strong>

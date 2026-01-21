@@ -13,7 +13,7 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
-import { LayoutGrid, BarChart3, Search, Filter } from "lucide-react";
+import { LayoutGrid, BarChart3, Search, Filter, Columns3 } from "lucide-react";
 
 ChartJS.register(
   ArcElement,
@@ -41,8 +41,39 @@ export interface AdvancedFilters {
   availability: string[];
 }
 
-export type SortField = "email" | "name" | "createdAt" | "availability" | "appStatus";
+export type SortField = "email" | "name" | "createdAt" | "availability" | "appStatus" | "year" | "gender" | "teamPlan";
 export type SortDirection = "asc" | "desc" | null;
+
+export type ColumnKey = "email" | "name" | "createdAt" | "availability" | "year" | "gender" | "teamPlan" | "status" | "actions";
+
+export interface ColumnConfig {
+  key: ColumnKey;
+  label: string;
+  sortable: boolean;
+}
+
+export const AVAILABLE_COLUMNS: ColumnConfig[] = [
+  { key: "name", label: "Name", sortable: true },
+  { key: "createdAt", label: "Created At", sortable: true },
+  { key: "availability", label: "Availability", sortable: true },
+  { key: "year", label: "Year", sortable: true },
+  { key: "gender", label: "Gender", sortable: true },
+  { key: "teamPlan", label: "Team", sortable: true },
+];
+
+export const DEFAULT_COLUMN_WIDTHS: Record<ColumnKey, number> = {
+  email: 200,
+  name: 150,
+  createdAt: 160,
+  availability: 110,
+  year: 90,
+  gender: 90,
+  teamPlan: 180,
+  status: 130,
+  actions: 70,
+};
+
+export type ColumnWidths = Record<ColumnKey, number>;
 
 interface RoleFlags {
   isAdmin: boolean;
@@ -77,6 +108,9 @@ export default function AdminBoard({ roles }: { roles: RoleFlags }) {
   const ITEMS_PER_PAGE = 20;
   const [currentPage, setCurrentPage] = useState(1);
   const [viewMode, setViewMode] = useState<"table" | "graph">("table");
+  const [visibleColumns, setVisibleColumns] = useState<ColumnKey[]>(["name", "createdAt", "availability"]);
+  const [showColumnSelector, setShowColumnSelector] = useState(false);
+  const [columnWidths, setColumnWidths] = useState<ColumnWidths>({ ...DEFAULT_COLUMN_WIDTHS });
 
 
   const isHighlight = (curMode: Mode) =>
@@ -174,6 +208,18 @@ export default function AdminBoard({ roles }: { roles: RoleFlags }) {
           case "appStatus":
             aValue = a.appStatus?.toLowerCase() || "";
             bValue = b.appStatus?.toLowerCase() || "";
+            break;
+          case "year":
+            aValue = a.year?.toLowerCase() || "";
+            bValue = b.year?.toLowerCase() || "";
+            break;
+          case "gender":
+            aValue = a.gender?.toLowerCase() || "";
+            bValue = b.gender?.toLowerCase() || "";
+            break;
+          case "teamPlan":
+            aValue = a.teamPlan?.toLowerCase() || "";
+            bValue = b.teamPlan?.toLowerCase() || "";
             break;
         }
 
@@ -517,6 +563,73 @@ export default function AdminBoard({ roles }: { roles: RoleFlags }) {
             >
               <Filter size={20} />
             </button>
+            <button
+              onClick={() => setShowColumnSelector(!showColumnSelector)}
+              style={{
+                width: "44px",
+                height: "44px",
+                borderRadius: "8px",
+                border: "2px solid #ddd",
+                backgroundColor: showColumnSelector ? "#8d6db5" : "white",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: "0",
+                color: showColumnSelector ? "white" : "#666",
+              }}
+              title={showColumnSelector ? "Hide Columns" : "Select Columns"}
+            >
+              <Columns3 size={20} />
+            </button>
+          </div>
+        )}
+
+        {viewMode === "table" && showColumnSelector && (
+          <div
+            style={{
+              marginTop: "10px",
+              padding: "15px 20px",
+              backgroundColor: "white",
+              borderRadius: "8px",
+              border: "1px solid #ddd",
+            }}
+          >
+            <h4 style={{ margin: "0 0 12px 0", fontSize: "14px", fontWeight: "600" }}>
+              Select Columns to Display
+            </h4>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+              {AVAILABLE_COLUMNS.map((col) => (
+                <button
+                  key={col.key}
+                  onClick={() => {
+                    setVisibleColumns((prev) =>
+                      prev.includes(col.key)
+                        ? prev.filter((k) => k !== col.key)
+                        : [...prev, col.key]
+                    );
+                  }}
+                  style={{
+                    padding: "8px 16px",
+                    borderRadius: "20px",
+                    border: visibleColumns.includes(col.key)
+                      ? "2px solid #8d6db5"
+                      : "1px solid #ccc",
+                    backgroundColor: visibleColumns.includes(col.key) ? "#f3e8ff" : "white",
+                    cursor: "pointer",
+                    fontSize: "14px",
+                    fontWeight: visibleColumns.includes(col.key) ? "600" : "400",
+                    color: visibleColumns.includes(col.key) ? "#8d6db5" : "#666",
+                    transition: "all 0.2s ease",
+                  }}
+                >
+                  {col.label}
+                </button>
+              ))}
+            </div>
+            <p style={{ margin: "10px 0 0 0", fontSize: "12px", color: "#888" }}>
+              Email and Status columns are always shown.
+            </p>
           </div>
         )}
 
@@ -812,6 +925,10 @@ export default function AdminBoard({ roles }: { roles: RoleFlags }) {
             sortDirection={sortDirection}
             onSort={handleSort}
             roles={roles}
+            visibleColumns={visibleColumns}
+            columnWidths={columnWidths}
+            setColumnWidths={setColumnWidths}
+            showColumnSelector={showColumnSelector}
           />
 
           <div
