@@ -64,12 +64,37 @@ try {
       moreAvailability: data.moreAvailability, // optional
       dietaryRestriction: data.dietaryRestriction,
       otherDietaryRestriction: data.otherDietaryRestriction, // optional
-      shirtSize: data.shirtSize,
+      crewneckSize: data.crewneckSize,
       teamPlan: data.teamPlan,
       preWorkshops: data.preWorkshops,
       jobType: data.jobType,
-      otherJobType: data.otherJobType,// optional
+      otherJobType: data.otherJobType, // optional
       resumeLink: data.resumeLink, // optional
+      linkedinUrl: data.linkedinUrl, // optional
+
+      // Logistics & Background
+      pastSparkHacks: data.pastSparkHacks,
+      pastHackathons: data.pastHackathons, // optional
+      pastProjects: data.pastProjects,
+      participationType: data.participationType,
+      hearAbout: data.hearAbout,
+      otherHearAbout: data.otherHearAbout, // optional
+
+      // Interest & Goals
+      whyInterested: data.whyInterested, // optional
+      teamRole: data.teamRole, // optional
+      projectInterest: data.projectInterest,
+      mainGoals: data.mainGoals,
+
+      // Skills
+      skillGit: data.skillGit,
+      skillFigma: data.skillFigma,
+      skillReact: data.skillReact,
+      skillPython: data.skillPython,
+      skillDatabase: data.skillDatabase,
+      skillCICD: data.skillCICD,
+      skillAPIs: data.skillAPIs,
+
       appStatus: data.appStatus, // status of application
       createdAt: data.createdAt.toDate().toLocaleString("en-US", { timeZone: "America/Chicago"}) || ""
     }
