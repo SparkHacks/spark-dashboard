@@ -813,7 +813,8 @@ export default function AdminBoard({ roles }: { roles: RoleFlags }) {
                 "Sophomore",
                 "Junior",
                 "Senior",
-                "Graduate",
+                "Masters",
+                "PhD",
               ]}
               selected={advancedFilters.year}
               onToggle={(v) => toggleAdvancedFilter("year", v)}
