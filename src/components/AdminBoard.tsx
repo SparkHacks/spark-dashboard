@@ -946,7 +946,7 @@ export default function AdminBoard({ roles }: { roles: RoleFlags }) {
               marginTop: "10px",
             }}
           >
-            <strong>Showing:</strong> {paginatedDatas.length} results
+            <strong>Showing:</strong> {filteredDatas.length > 0 ? (currentPage - 1) * ITEMS_PER_PAGE + 1 : 0}-{Math.min(currentPage * ITEMS_PER_PAGE, filteredDatas.length)} out of {filteredDatas.length}
             {hasActiveFilters && (
               <span>(filtered from {datas.length} loaded)</span>
             )}
