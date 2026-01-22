@@ -113,10 +113,10 @@ export default function AdminTable({
         <div style={{ width: 35, minWidth: 35, flexShrink: 0, flexGrow: 0 }}>#</div>
         <div
           className={styles.sortableHeader}
-          style={{ flex: `0 1 ${columnWidths.email}px`, minWidth: 50, position: "relative", overflow: "hidden" }}
+          style={{ width: columnWidths.email, minWidth: columnWidths.email, flexShrink: 0, flexGrow: 0, position: "relative" }}
           onClick={() => onSort("email")}
         >
-          Email
+          <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", display: "block", paddingRight: 10 }}>Email</span>
           <SortIcon field="email" />
           <Resizer columnKey="email" />
         </div>
@@ -125,28 +125,27 @@ export default function AdminTable({
             key={col.key}
             className={col.sortable ? styles.sortableHeader : ""}
             style={{
-              flex: col.key === "name" ? `1 1 ${columnWidths[col.key]}px` : `0 1 ${columnWidths[col.key]}px`,
+              flex: col.key === "name" ? `1 1 ${columnWidths[col.key]}px` : `0 0 ${columnWidths[col.key]}px`,
               minWidth: 50,
               position: "relative",
-              overflow: "hidden"
             }}
             onClick={() => col.sortable && onSort(col.key as SortField)}
           >
-            {col.label}
+            <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", display: "block", paddingRight: 10 }}>{col.label}</span>
             {col.sortable && <SortIcon field={col.key as SortField} />}
             <Resizer columnKey={col.key} />
           </div>
         ))}
         <div
           className={styles.sortableHeader}
-          style={{ flex: `0 1 ${columnWidths.status}px`, minWidth: 50, position: "relative", overflow: "hidden" }}
+          style={{ width: columnWidths.status, minWidth: columnWidths.status, flexShrink: 0, flexGrow: 0, position: "relative" }}
           onClick={() => onSort("appStatus")}
         >
-          Status
+          <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", display: "block", paddingRight: 10 }}>Status</span>
           <SortIcon field="appStatus" />
           <Resizer columnKey="status" />
         </div>
-        <div style={{ flex: `0 0 ${columnWidths.actions}px`, minWidth: 50 }}></div>
+        <div style={{ width: columnWidths.actions, minWidth: columnWidths.actions, flexShrink: 0, flexGrow: 0 }}></div>
       </div>
 
       <div className={styles.contentTable}>
@@ -299,6 +298,8 @@ function Row({
       case "year": return data.year;
       case "gender": return data.gender;
       case "teamPlan": return data.teamPlan === "I have a team" ? "Yes" : "No";
+      case "pastSparkHacks": return data.pastSparkHacks;
+      case "participationType": return data.participationType;
       default: return "";
     }
   };
@@ -319,23 +320,25 @@ function Row({
         <div style={{ width: 35, minWidth: 35, flexShrink: 0, flexGrow: 0 }}>
           <strong>{id}</strong>
         </div>
-        <div style={{ flex: `0 1 ${columnWidths.email}px`, minWidth: 50, overflow: "hidden", textOverflow: "ellipsis" }}>
+        <div style={{ width: columnWidths.email, minWidth: columnWidths.email, flexShrink: 0, flexGrow: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
           {data.email}
         </div>
         {AVAILABLE_COLUMNS.filter((col) => visibleColumns.includes(col.key)).map((col) => (
           <div
             key={col.key}
             style={{
-              flex: col.key === "name" ? `1 1 ${columnWidths[col.key]}px` : `0 1 ${columnWidths[col.key]}px`,
+              flex: col.key === "name" ? `1 1 ${columnWidths[col.key]}px` : `0 0 ${columnWidths[col.key]}px`,
               minWidth: 50,
               overflow: "hidden",
-              textOverflow: "ellipsis"
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+              textAlign: "left",
             }}
           >
             {getCellContent(col.key)}
           </div>
         ))}
-        <div style={{ flex: `0 1 ${columnWidths.status}px`, minWidth: 50, overflow: "hidden" }}>
+        <div style={{ width: columnWidths.status, minWidth: columnWidths.status, flexShrink: 0, flexGrow: 0, overflow: "hidden" }}>
           <select
             style={{
               backgroundColor: "EEE1F7",
@@ -357,7 +360,7 @@ function Row({
             <option value="fullyAccepted">Confirmed</option>
           </select>
         </div>
-        <div style={{ flex: `0 0 ${columnWidths.actions}px`, minWidth: 50, display: "flex", justifyContent: "flex-end" }}>
+        <div style={{ width: columnWidths.actions, minWidth: columnWidths.actions, flexShrink: 0, flexGrow: 0, display: "flex", justifyContent: "flex-end" }}>
           <button className={styles.viewBtn} onClick={handleView} style={{fontWeight: "bold"}}>
             {isExpanded ? "Hide" : "View"}
           </button>
