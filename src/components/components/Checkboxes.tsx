@@ -12,7 +12,7 @@ export default function Checkboxes({required, disabled, label, name, defaultValu
     otherName?: string,
     otherValue?: string,
 }) {
-    const [otherChecked, setOtherChecked] = useState(false)
+    const [otherChecked, setOtherChecked] = useState(defaultValue.includes("Other"))
 
     return (
         <FormControl required={required} variant="filled">

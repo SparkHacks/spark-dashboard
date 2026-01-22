@@ -14,7 +14,7 @@ export default function Radios({ required, disabled, label, name, defaultValue, 
   row?: boolean
 }) {
 
-  const [otherChecked, setOtherChecked] = useState(false)
+  const [otherChecked, setOtherChecked] = useState(defaultValue === "Other" || (other && !groupRadios.includes(defaultValue) && defaultValue !== ""))
 
   return (
     <FormControl required={required}>

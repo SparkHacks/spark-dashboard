@@ -12,6 +12,7 @@ let userEmail = "";
 let registered = false
 let applicationData: FormViewData | null = null
 let newUserState = true
+let canEdit = false
 
 import getRoleFlags from "../scripts/getRoles.ts";
 import type { RoleFlags } from "../scripts/getRoles.ts";
@@ -46,6 +47,7 @@ try {
   userName = user.displayName || "";
   userEmail = user.email as string;
   newUserState = (await db.collection("Settings").doc("newUserState").get()).data()?.isNewUserEnabled
+  canEdit = (await db.collection("Settings").doc("canEdit").get()).data()?.canEdit || false
 
 
   // if already registered then do not render submit button
@@ -107,5 +109,5 @@ try {
 ---
 
 <DashboardLayout userName={userName} userEmail={userEmail} currentPath={Astro.url.pathname} roles={roles}>
-  <AppForm email={userEmail} registered={registered} applicationData={applicationData} isAdmin={roles.isAdmin} applicationsClosed={!newUserState} client:only="react" />
+  <AppForm email={userEmail} registered={registered} applicationData={applicationData} isAdmin={roles.isAdmin} applicationsClosed={!newUserState} canEdit={canEdit} client:only="react" />
 </DashboardLayout>
