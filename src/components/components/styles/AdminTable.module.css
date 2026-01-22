@@ -232,7 +232,7 @@
 /* Column Resizer */
 .resizer {
   position: absolute;
-  right: 0;
+  right: -3px;
   top: 0;
   height: 100%;
   width: 6px;
@@ -240,6 +240,7 @@
   user-select: none;
   background-color: #ccc;
   transition: background-color 0.2s ease;
+  z-index: 20;
 }
 
 .resizer:hover,

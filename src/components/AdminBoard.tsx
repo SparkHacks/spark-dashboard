@@ -39,12 +39,14 @@ export interface AdvancedFilters {
   dietaryRestriction: string[];
   crewneckSize: string[];
   availability: string[];
+  pastSparkHacks: string[];
+  participationType: string[];
 }
 
-export type SortField = "email" | "name" | "createdAt" | "availability" | "appStatus" | "year" | "gender" | "teamPlan";
+export type SortField = "email" | "name" | "createdAt" | "availability" | "appStatus" | "year" | "gender" | "teamPlan" | "pastSparkHacks" | "participationType";
 export type SortDirection = "asc" | "desc" | null;
 
-export type ColumnKey = "email" | "name" | "createdAt" | "availability" | "year" | "gender" | "teamPlan" | "status" | "actions";
+export type ColumnKey = "email" | "name" | "createdAt" | "availability" | "year" | "gender" | "teamPlan" | "pastSparkHacks" | "participationType" | "status" | "actions";
 
 export interface ColumnConfig {
   key: ColumnKey;
@@ -59,16 +61,20 @@ export const AVAILABLE_COLUMNS: ColumnConfig[] = [
   { key: "year", label: "Year", sortable: true },
   { key: "gender", label: "Gender", sortable: true },
   { key: "teamPlan", label: "Team", sortable: true },
+  { key: "pastSparkHacks", label: "Past SH", sortable: true },
+  { key: "participationType", label: "Participation", sortable: true },
 ];
 
 export const DEFAULT_COLUMN_WIDTHS: Record<ColumnKey, number> = {
   email: 200,
-  name: 150,
-  createdAt: 160,
+  name: 120,
+  createdAt: 180,
   availability: 110,
   year: 90,
   gender: 90,
-  teamPlan: 180,
+  teamPlan: 60,
+  pastSparkHacks: 85,
+  participationType: 115,
   status: 130,
   actions: 70,
 };
@@ -100,6 +106,8 @@ export default function AdminBoard({ roles }: { roles: RoleFlags }) {
     dietaryRestriction: [],
     crewneckSize: [],
     availability: [],
+    pastSparkHacks: [],
+    participationType: [],
   });
   const [showNonUIC, setShowNonUIC] = useState(false);
   const [sortField, setSortField] = useState<SortField | null>(null);
@@ -165,6 +173,16 @@ export default function AdminBoard({ roles }: { roles: RoleFlags }) {
         advancedFilters.availability.includes(item.availability)
       );
     }
+    if (advancedFilters.pastSparkHacks.length > 0) {
+      filtered = filtered.filter((item) =>
+        advancedFilters.pastSparkHacks.includes(item.pastSparkHacks)
+      );
+    }
+    if (advancedFilters.participationType.length > 0) {
+      filtered = filtered.filter((item) =>
+        advancedFilters.participationType.includes(item.participationType)
+      );
+    }
     if (advancedFilters.dietaryRestriction.length > 0) {
       filtered = filtered.filter((item) => {
         const restrictions = Array.isArray(item.dietaryRestriction)
@@ -221,6 +239,14 @@ export default function AdminBoard({ roles }: { roles: RoleFlags }) {
             aValue = a.teamPlan?.toLowerCase() || "";
             bValue = b.teamPlan?.toLowerCase() || "";
             break;
+          case "pastSparkHacks":
+            aValue = a.pastSparkHacks?.toLowerCase() || "";
+            bValue = b.pastSparkHacks?.toLowerCase() || "";
+            break;
+          case "participationType":
+            aValue = a.participationType?.toLowerCase() || "";
+            bValue = b.participationType?.toLowerCase() || "";
+            break;
         }
 
         if (aValue < bValue) return sortDirection === "asc" ? -1 : 1;
@@ -258,6 +284,8 @@ export default function AdminBoard({ roles }: { roles: RoleFlags }) {
       dietaryRestriction: [],
       crewneckSize: [],
       availability: [],
+      pastSparkHacks: [],
+      participationType: [],
     });
     setSearchType("all");
     setShowNonUIC(false);
@@ -785,10 +813,25 @@ export default function AdminBoard({ roles }: { roles: RoleFlags }) {
                 "Sophomore",
                 "Junior",
                 "Senior",
-                "Graduate",
+                "Masters",
+                "PhD",
               ]}
               selected={advancedFilters.year}
               onToggle={(v) => toggleAdvancedFilter("year", v)}
+            />
+
+            <FilterSection
+              title="Past SparkHacks"
+              options={["Yes", "No"]}
+              selected={advancedFilters.pastSparkHacks}
+              onToggle={(v) => toggleAdvancedFilter("pastSparkHacks", v)}
+            />
+
+            <FilterSection
+              title="Participation Type"
+              options={["Code", "No code", "Here to get involved"]}
+              selected={advancedFilters.participationType}
+              onToggle={(v) => toggleAdvancedFilter("participationType", v)}
             />
 
             <FilterSection
@@ -903,7 +946,7 @@ export default function AdminBoard({ roles }: { roles: RoleFlags }) {
               marginTop: "10px",
             }}
           >
-            <strong>Showing:</strong> {paginatedDatas.length} results
+            <strong>Showing:</strong> {filteredDatas.length > 0 ? (currentPage - 1) * ITEMS_PER_PAGE + 1 : 0}-{Math.min(currentPage * ITEMS_PER_PAGE, filteredDatas.length)} out of {filteredDatas.length}
             {hasActiveFilters && (
               <span>(filtered from {datas.length} loaded)</span>
             )}
