@@ -120,6 +120,19 @@ export default function AdminTable({
     document.body.removeChild(link);
   };
 
+  const Resizer = ({ columnKey }: { columnKey: ColumnKey }) => {
+    if (!showColumnSelector) return null;
+    return (
+      <div
+        className={styles.resizer}
+        onMouseDown={(e) => handleMouseDown(e, columnKey)}
+        style={{
+          opacity: resizing === columnKey ? 1 : undefined,
+        }}
+      />
+    );
+  };
+
   return (
     <section className={styles.adminTable}>
       <div style={{ marginBottom: "1rem", display: "flex", justifyContent: "flex-end" }}>
