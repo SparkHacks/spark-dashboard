@@ -25,17 +25,23 @@ const style = {
 };
 
 // TODO: replace with React MUI
-export default function AppForm({ email, registered, applicationData, isAdmin, applicationsClosed = false }: {
+export default function AppForm({ email, registered, applicationData, isAdmin, applicationsClosed = false, canEdit = false }: {
   email: string,
   registered: boolean,
   applicationData: FormViewData | null
   isAdmin: boolean | false
   applicationsClosed?: boolean
+  canEdit?: boolean
 }) {
   const formRef = useRef<HTMLFormElement | null>(null)
   const [loading, setLoading] = useState(false)
   const [modal, setModal] = useState(false)
+  const [isEditing, setIsEditing] = useState(false)
+  const [updateModal, setUpdateModal] = useState(false)
   console.log(applicationData)
+
+  // Determine if form fields should be disabled
+  const isDisabled = registered && !isEditing
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
@@ -43,24 +49,30 @@ export default function AppForm({ email, registered, applicationData, isAdmin, a
     setLoading(true)
     const formData = new FormData(formRef.current as HTMLFormElement)
     // for (let pair of formData.entries()) {
-    //   console.log(pair[0]+ ', ' + pair[1]); 
+    //   console.log(pair[0]+ ', ' + pair[1]);
     // }
 
     try {
-      const response = await fetch("/api/auth/submit-form", {
+      const endpoint = isEditing ? "/api/auth/update-form-user" : "/api/auth/submit-form"
+      const response = await fetch(endpoint, {
         method: "POST",
         body: formData
       })
       if (response.ok) {
-        setModal(true)
+        if (isEditing) {
+          setUpdateModal(true)
+          setIsEditing(false)
+        } else {
+          setModal(true)
+        }
       } else {
         const errorText = await response.text()
-        alert(`Failed to submit form: ${errorText}`)
+        alert(`Failed to ${isEditing ? 'update' : 'submit'} form: ${errorText}`)
       }
     }
     catch (err) {
       console.log(err)
-      alert("Failed to submit form for some reason")
+      alert(`Failed to ${isEditing ? 'update' : 'submit'} form for some reason`)
     }
 
     setLoading(false)
@@ -76,10 +88,24 @@ export default function AppForm({ email, registered, applicationData, isAdmin, a
           <img src="/sparkhacks-logo.svg" width="100" height="100"/>
           <h2>Form submitted successfully</h2>
           <div style={{marginBottom: "30px"}}>A confirmation email should sent to you shortly</div>
-          <Button 
+          <Button
             variant="contained"
             onClick={() => window.location.assign("/dashboard")}
           >Back to Dashboard</Button>
+        </Box>
+      </Modal>
+      <Modal
+        open={updateModal}
+        onClose={() => setUpdateModal(false)}
+      >
+        <Box sx={style}>
+          <img src="/sparkhacks-logo.svg" width="100" height="100"/>
+          <h2>Application updated successfully</h2>
+          <div style={{marginBottom: "30px"}}>Your changes have been saved</div>
+          <Button
+            variant="contained"
+            onClick={() => window.location.reload()}
+          >OK</Button>
         </Box>
       </Modal>
       {/* <Button
@@ -91,10 +117,34 @@ export default function AppForm({ email, registered, applicationData, isAdmin, a
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "30px 10px" }}>
         <h1>SparkHacks 2026 Registration</h1>
         {(applicationData && applicationData.createdAt !== "") &&
-          <div>
+          <div style={{ marginBottom: "10px" }}>
             Submitted at: {applicationData?.createdAt}
           </div>
         }
+        {registered && canEdit && !isEditing && (
+          <Button
+            variant="outlined"
+            onClick={() => setIsEditing(true)}
+            style={{ marginBottom: "20px" }}
+          >
+            Edit Application
+          </Button>
+        )}
+        {isEditing && (
+          <div style={{
+            backgroundColor: "#d4edda",
+            color: "#155724",
+            padding: "15px 20px",
+            borderRadius: "8px",
+            marginBottom: "20px",
+            maxWidth: "800px",
+            width: "100%",
+            textAlign: "center",
+            fontWeight: "bold"
+          }}>
+            You are now editing your application. Make your changes and click "Save Changes" at the bottom.
+          </div>
+        )}
         {applicationsClosed && !registered && (
           <div style={{
             backgroundColor: "#fff3cd",
@@ -110,26 +160,26 @@ export default function AppForm({ email, registered, applicationData, isAdmin, a
             Applications are currently closed. You can view the form below but cannot submit.
           </div>
         )}
-        <form onSubmit={handleSubmit} ref={formRef} style={{ maxWidth: "800px", width: "100%", display: "flex", flexDirection: "column", gap: "20px" }}>
+        <form key={isEditing ? "editing" : "viewing"} onSubmit={handleSubmit} ref={formRef} style={{ maxWidth: "800px", width: "100%", display: "flex", flexDirection: "column", gap: "20px" }}>
           <h2>General Information</h2>
           <div>
             Email: <strong>{email}</strong>
           </div>
           <FormControl required>
             <FormLabel>First Name</FormLabel>
-            <TextField name="firstName" placeholder="Enter your first name" defaultValue={applicationData && applicationData.firstName} disabled={registered || applicationsClosed} required fullWidth />
+            <TextField name="firstName" placeholder="Enter your first name" defaultValue={applicationData && applicationData.firstName} disabled={isDisabled || applicationsClosed} required fullWidth />
           </FormControl>
           <FormControl required>
             <FormLabel>Last Name</FormLabel>
-            <TextField name="lastName" placeholder="Enter your last name" defaultValue={applicationData && applicationData.lastName} disabled={registered || applicationsClosed}  required fullWidth />
+            <TextField name="lastName" placeholder="Enter your last name" defaultValue={applicationData && applicationData.lastName} disabled={isDisabled || applicationsClosed}  required fullWidth />
           </FormControl>
           <FormControl required>
             <FormLabel>UIN</FormLabel>
-            <TextField name="uin" placeholder="Enter your 9-Digit UIN" defaultValue={applicationData && applicationData.uin} disabled={registered || applicationsClosed}  type="number" required fullWidth />
+            <TextField name="uin" placeholder="Enter your 9-Digit UIN" defaultValue={applicationData && applicationData.uin} disabled={isDisabled || applicationsClosed}  type="number" required fullWidth />
           </FormControl>
           <Radios 
             required={true}
-            disabled={registered || applicationsClosed}
+            disabled={isDisabled || applicationsClosed}
             label="Gender"
             name="gender"
             defaultValue={applicationData?.gender || ""}
@@ -137,7 +187,7 @@ export default function AppForm({ email, registered, applicationData, isAdmin, a
           />
           <Radios
             required={true}
-            disabled={registered || applicationsClosed}
+            disabled={isDisabled || applicationsClosed}
             label="Year"
             name="year"
             defaultValue={applicationData?.year || ""}
@@ -147,7 +197,7 @@ export default function AppForm({ email, registered, applicationData, isAdmin, a
           <h2>Logistics & Background</h2>
           <Radios
             required={true}
-            disabled={registered || applicationsClosed}
+            disabled={isDisabled || applicationsClosed}
             label={questions.pastSparkHacks.question}
             name="pastSparkHacks"
             defaultValue={applicationData?.pastSparkHacks || ""}
@@ -161,12 +211,12 @@ export default function AppForm({ email, registered, applicationData, isAdmin, a
               placeholder="List hackathons you've attended (Optional)"
               fullWidth
               multiline
-              disabled={registered || applicationsClosed}
+              disabled={isDisabled || applicationsClosed}
             />
           </FormControl>
           <Radios
             required={true}
-            disabled={registered || applicationsClosed}
+            disabled={isDisabled || applicationsClosed}
             label={questions.pastProjects.question}
             name="pastProjects"
             defaultValue={applicationData?.pastProjects || ""}
@@ -174,7 +224,7 @@ export default function AppForm({ email, registered, applicationData, isAdmin, a
           />
           <Radios
             required={true}
-            disabled={registered || applicationsClosed}
+            disabled={isDisabled || applicationsClosed}
             label={questions.participationType.question}
             name="participationType"
             defaultValue={applicationData?.participationType || ""}
@@ -182,7 +232,7 @@ export default function AppForm({ email, registered, applicationData, isAdmin, a
           />
           <Checkboxes
             required
-            disabled={registered || applicationsClosed}
+            disabled={isDisabled || applicationsClosed}
             label={questions.hearAbout.question}
             name="hearAbout"
             defaultValue={applicationData?.hearAbout || []}
@@ -195,7 +245,7 @@ export default function AppForm({ email, registered, applicationData, isAdmin, a
           <h2>Availability & Attendance</h2>
           <Radios
             required={true}
-            disabled={registered || applicationsClosed}
+            disabled={isDisabled || applicationsClosed}
             label="Which day(s) are you available to attend the hackathon? Priority will be given to those who can attend both days."
             name="availability"
             defaultValue={applicationData?.availability || ""}
@@ -203,11 +253,11 @@ export default function AppForm({ email, registered, applicationData, isAdmin, a
           />
           <FormControl>
             <FormLabel>If you want to add more detailed availability please add it here!</FormLabel>
-            <TextField name="moreAvailability" defaultValue={applicationData && applicationData.moreAvailability} placeholder="Enter your additional availability (Optional)" fullWidth multiline disabled={registered || applicationsClosed} />
+            <TextField name="moreAvailability" defaultValue={applicationData && applicationData.moreAvailability} placeholder="Enter your additional availability (Optional)" fullWidth multiline disabled={isDisabled || applicationsClosed} />
           </FormControl>
           <Checkboxes
             required
-            disabled={registered || applicationsClosed}
+            disabled={isDisabled || applicationsClosed}
             label={<>Which of the following Pre-Hack Workshops would you find useful/interesting to attend PRIOR to SparkHacks? (Select all that apply)<br/>For more information on these workshops, view <a href="https://www.sparkhacks.org/">https://www.sparkhacks.org/</a>.</>}
             name="preWorkshops"
             defaultValue={applicationData?.preWorkshops || []}
@@ -224,7 +274,7 @@ export default function AppForm({ email, registered, applicationData, isAdmin, a
               fullWidth
               multiline
               rows={3}
-              disabled={registered || applicationsClosed}
+              disabled={isDisabled || applicationsClosed}
             />
           </FormControl>
           <FormControl>
@@ -236,12 +286,12 @@ export default function AppForm({ email, registered, applicationData, isAdmin, a
               fullWidth
               multiline
               rows={3}
-              disabled={registered || applicationsClosed}
+              disabled={isDisabled || applicationsClosed}
             />
           </FormControl>
           <Checkboxes
             required
-            disabled={registered || applicationsClosed}
+            disabled={isDisabled || applicationsClosed}
             label={questions.projectInterest.question}
             name="projectInterest"
             defaultValue={applicationData?.projectInterest || []}
@@ -249,7 +299,7 @@ export default function AppForm({ email, registered, applicationData, isAdmin, a
           />
           <Checkboxes
             required
-            disabled={registered || applicationsClosed}
+            disabled={isDisabled || applicationsClosed}
             label={questions.mainGoals.question}
             name="mainGoals"
             defaultValue={applicationData?.mainGoals || []}
@@ -259,7 +309,7 @@ export default function AppForm({ email, registered, applicationData, isAdmin, a
           <h2>Skills & Experience</h2>
           <Radios
             required={true}
-            disabled={registered || applicationsClosed}
+            disabled={isDisabled || applicationsClosed}
             label={questions.skillGit.question}
             name="skillGit"
             defaultValue={applicationData?.skillGit || ""}
@@ -268,7 +318,7 @@ export default function AppForm({ email, registered, applicationData, isAdmin, a
           />
           <Radios
             required={true}
-            disabled={registered || applicationsClosed}
+            disabled={isDisabled || applicationsClosed}
             label={questions.skillFigma.question}
             name="skillFigma"
             defaultValue={applicationData?.skillFigma || ""}
@@ -277,7 +327,7 @@ export default function AppForm({ email, registered, applicationData, isAdmin, a
           />
           <Radios
             required={true}
-            disabled={registered || applicationsClosed}
+            disabled={isDisabled || applicationsClosed}
             label={questions.skillReact.question}
             name="skillReact"
             defaultValue={applicationData?.skillReact || ""}
@@ -286,7 +336,7 @@ export default function AppForm({ email, registered, applicationData, isAdmin, a
           />
           <Radios
             required={true}
-            disabled={registered || applicationsClosed}
+            disabled={isDisabled || applicationsClosed}
             label={questions.skillPython.question}
             name="skillPython"
             defaultValue={applicationData?.skillPython || ""}
@@ -295,7 +345,7 @@ export default function AppForm({ email, registered, applicationData, isAdmin, a
           />
           <Radios
             required={true}
-            disabled={registered || applicationsClosed}
+            disabled={isDisabled || applicationsClosed}
             label={questions.skillDatabase.question}
             name="skillDatabase"
             defaultValue={applicationData?.skillDatabase || ""}
@@ -304,7 +354,7 @@ export default function AppForm({ email, registered, applicationData, isAdmin, a
           />
           <Radios
             required={true}
-            disabled={registered || applicationsClosed}
+            disabled={isDisabled || applicationsClosed}
             label={questions.skillCICD.question}
             name="skillCICD"
             defaultValue={applicationData?.skillCICD || ""}
@@ -313,7 +363,7 @@ export default function AppForm({ email, registered, applicationData, isAdmin, a
           />
           <Radios
             required={true}
-            disabled={registered || applicationsClosed}
+            disabled={isDisabled || applicationsClosed}
             label={questions.skillAPIs.question}
             name="skillAPIs"
             defaultValue={applicationData?.skillAPIs || ""}
@@ -324,7 +374,7 @@ export default function AppForm({ email, registered, applicationData, isAdmin, a
           <h2>Team</h2>
           <Radios
             required
-            disabled={registered || applicationsClosed}
+            disabled={isDisabled || applicationsClosed}
             label={<>Do you have a team? If you do not already, no worries, we have you covered! <strong>Note: team size is restricted to 3-5 people.</strong></>}
             name="teamPlan"
             defaultValue={applicationData?.teamPlan || ""}
@@ -334,7 +384,7 @@ export default function AppForm({ email, registered, applicationData, isAdmin, a
           <h2>Food & Merch</h2>
           <Checkboxes
             required
-            disabled={registered || applicationsClosed}
+            disabled={isDisabled || applicationsClosed}
             label="Do you have any dietary restrictions?"
             name="dietaryRestriction"
             defaultValue={applicationData?.dietaryRestriction || []}
@@ -345,7 +395,7 @@ export default function AppForm({ email, registered, applicationData, isAdmin, a
           />
           <Radios
             required
-            disabled={registered || applicationsClosed}
+            disabled={isDisabled || applicationsClosed}
             label="What is your unisex crewneck size?"
             name="crewneckSize"
             defaultValue={applicationData?.crewneckSize || ""}
@@ -355,7 +405,7 @@ export default function AppForm({ email, registered, applicationData, isAdmin, a
           <h2>Career Opportunities</h2>
           <Radios
             required={true}
-            disabled={registered || applicationsClosed}
+            disabled={isDisabled || applicationsClosed}
             label="If you would like to be considered for an opportunity with our company partners, select the type of job you are looking for:"
             name="jobType"
             defaultValue={applicationData?.jobType || ""}
@@ -370,7 +420,7 @@ export default function AppForm({ email, registered, applicationData, isAdmin, a
               <br/>
               <img src={"/images/share_perms.png"} alt="Share permissions" style={{width: "500px", maxWidth: "100%"}}/>
             </FormLabel>
-            <TextField placeholder="Enter your shareable link (Optional)" defaultValue={applicationData && applicationData.resumeLink} name="resumeLink" disabled={registered || applicationsClosed} />
+            <TextField placeholder="Enter your shareable link (Optional)" defaultValue={applicationData && applicationData.resumeLink} name="resumeLink" disabled={isDisabled || applicationsClosed} />
           </FormControl>
           <FormControl>
             <FormLabel>{questions.linkedinUrl.question}</FormLabel>
@@ -379,7 +429,7 @@ export default function AppForm({ email, registered, applicationData, isAdmin, a
               defaultValue={applicationData && applicationData.linkedinUrl}
               placeholder="https://linkedin.com/in/yourprofile"
               fullWidth
-              disabled={registered || applicationsClosed}
+              disabled={isDisabled || applicationsClosed}
             />
           </FormControl>
           <div>
@@ -393,6 +443,24 @@ export default function AppForm({ email, registered, applicationData, isAdmin, a
           >
             Submit
           </Button>}
+          {isEditing && (
+            <div style={{ display: "flex", gap: "10px", justifyContent: "center" }}>
+              <Button
+                variant="outlined"
+                disabled={loading}
+                onClick={() => setIsEditing(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="contained"
+                disabled={loading}
+                type="submit"
+              >
+                Save Changes
+              </Button>
+            </div>
+          )}
         </form>
       </div>
     </div>

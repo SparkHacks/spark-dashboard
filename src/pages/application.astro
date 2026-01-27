@@ -12,6 +12,7 @@ let userEmail = "";
 let registered = false
 let applicationData: FormViewData | null = null
 let newUserState = true
+let canEdit = false
 
 import getRoleFlags from "../scripts/getRoles.ts";
 import type { RoleFlags } from "../scripts/getRoles.ts";
@@ -46,6 +47,7 @@ try {
   userName = user.displayName || "";
   userEmail = user.email as string;
   newUserState = (await db.collection("Settings").doc("newUserState").get()).data()?.isNewUserEnabled
+  canEdit = (await db.collection("Settings").doc("canEdit").get()).data()?.canEdit || false
 
 
   // if already registered then do not render submit button
@@ -64,12 +66,37 @@ try {
       moreAvailability: data.moreAvailability, // optional
       dietaryRestriction: data.dietaryRestriction,
       otherDietaryRestriction: data.otherDietaryRestriction, // optional
-      shirtSize: data.shirtSize,
+      crewneckSize: data.crewneckSize,
       teamPlan: data.teamPlan,
       preWorkshops: data.preWorkshops,
       jobType: data.jobType,
-      otherJobType: data.otherJobType,// optional
+      otherJobType: data.otherJobType, // optional
       resumeLink: data.resumeLink, // optional
+      linkedinUrl: data.linkedinUrl, // optional
+
+      // Logistics & Background
+      pastSparkHacks: data.pastSparkHacks,
+      pastHackathons: data.pastHackathons, // optional
+      pastProjects: data.pastProjects,
+      participationType: data.participationType,
+      hearAbout: data.hearAbout,
+      otherHearAbout: data.otherHearAbout, // optional
+
+      // Interest & Goals
+      whyInterested: data.whyInterested, // optional
+      teamRole: data.teamRole, // optional
+      projectInterest: data.projectInterest,
+      mainGoals: data.mainGoals,
+
+      // Skills
+      skillGit: data.skillGit,
+      skillFigma: data.skillFigma,
+      skillReact: data.skillReact,
+      skillPython: data.skillPython,
+      skillDatabase: data.skillDatabase,
+      skillCICD: data.skillCICD,
+      skillAPIs: data.skillAPIs,
+
       appStatus: data.appStatus, // status of application
       createdAt: data.createdAt.toDate().toLocaleString("en-US", { timeZone: "America/Chicago"}) || ""
     }
@@ -82,5 +109,5 @@ try {
 ---
 
 <DashboardLayout userName={userName} userEmail={userEmail} currentPath={Astro.url.pathname} roles={roles}>
-  <AppForm email={userEmail} registered={registered} applicationData={applicationData} isAdmin={roles.isAdmin} applicationsClosed={!newUserState} client:only="react" />
+  <AppForm email={userEmail} registered={registered} applicationData={applicationData} isAdmin={roles.isAdmin} applicationsClosed={!newUserState} canEdit={canEdit} client:only="react" />
 </DashboardLayout>
