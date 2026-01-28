@@ -146,8 +146,8 @@ export default function AdminCode() {
       return
     }
 
-    if (userInfo.appStatus !== "fullyAccepted") {
-      toast.error("User is not fully accepted!")
+    if (userInfo.appStatus !== "accepted") {
+      toast.error("User is not accepted!")
       return
     }
 
@@ -234,12 +234,12 @@ export default function AdminCode() {
     }
     fetchSummary()
 
-    // Fetch all fullyAccepted applicants for autocomplete
+    // Fetch all accepted applicants for autocomplete
     const fetchApplicants = async () => {
       try {
         const { getDocs, query: fsQuery, collection: fsCollection, where: fsWhere } = await import('firebase/firestore')
         console.log('Fetching applicants from:', FORMS_COLLECTION)
-        const q = fsQuery(fsCollection(db, FORMS_COLLECTION), fsWhere('appStatus', '==', 'fullyAccepted'))
+        const q = fsQuery(fsCollection(db, FORMS_COLLECTION), fsWhere('appStatus', '==', 'accepted'))
         const snapshot = await getDocs(q)
         const applicants: ApplicantResult[] = []
         snapshot.forEach((doc) => {
@@ -428,7 +428,7 @@ export default function AdminCode() {
         
         <div style={{width: '100%', display: 'flex', flexDirection: 'column'}}>
           <span><strong>Name: </strong>{userInfo?.firstName} {userInfo?.lastName}</span>
-          <span><strong>Status </strong> <span style={{color: userInfo?.appStatus == "fullyAccepted" ? "green" : "red"}}> {userInfo?.appStatus}</span></span>
+          <span><strong>Status </strong> <span style={{color: userInfo?.appStatus == "accepted" ? "green" : "red"}}> {userInfo?.appStatus}</span></span>
           <span><strong>Email: </strong>{userInfo?.email}</span>
           <span><strong>Shirt Size: </strong> {userInfo?.shirtSize}</span>
         </div>

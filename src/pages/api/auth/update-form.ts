@@ -48,7 +48,7 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
       return new Response ("Empty email", { status: 400 })
     }
 
-    if (updateAction !== "declined" && updateAction !== "accepted" && updateAction !== "waitlist" && updateAction !== "waiting" && updateAction !== "fullyAccepted" && updateAction !== "userAccepted") {
+    if (updateAction !== "declined" && updateAction !== "invited" && updateAction !== "accepted" && updateAction !== "waitlist" && updateAction !== "waiting") {
       return new Response ("Update action is not valid", { status: 400 })
     }
 

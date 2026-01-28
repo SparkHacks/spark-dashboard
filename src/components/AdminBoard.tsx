@@ -23,15 +23,14 @@ ChartJS.register(
 
 export interface Summary {
   total: number;
-  fullyAccepted: number;
-  userAccepted: number;
+  invited: number;
   accepted: number;
   waitlist: number;
   waiting: number;
   declined: number;
 }
 
-export type Mode = "everything" | "fullyAccepted" | "userAccepted" | "accepted" | "waitlist" | "waiting" | "declined";
+export type Mode = "everything" | "invited" | "accepted" | "waitlist" | "waiting" | "declined";
 
 export interface AdvancedFilters {
   year: string[];
@@ -332,8 +331,7 @@ export default function AdminBoard({ roles }: { roles: RoleFlags }) {
       });
 
       const totalCount = allDatas.length;
-      const fullyAcceptedCount = allDatas.filter(d => d.appStatus === "fullyAccepted").length;
-      const userAcceptedCount = allDatas.filter(d => d.appStatus === "userAccepted").length;
+      const invitedCount = allDatas.filter(d => d.appStatus === "invited").length;
       const acceptedCount = allDatas.filter(d => d.appStatus === "accepted").length;
       const waitlistCount = allDatas.filter(d => d.appStatus === "waitlist").length;
       const waitingCount = allDatas.filter(d => d.appStatus === "waiting").length;
@@ -341,8 +339,7 @@ export default function AdminBoard({ roles }: { roles: RoleFlags }) {
 
       setSummary({
         total: totalCount,
-        fullyAccepted: fullyAcceptedCount,
-        userAccepted: userAcceptedCount,
+        invited: invitedCount,
         accepted: acceptedCount,
         waitlist: waitlistCount,
         waiting: waitingCount,
@@ -704,48 +701,14 @@ export default function AdminBoard({ roles }: { roles: RoleFlags }) {
                   Everything
                 </button>
                 <button
-                  onClick={() => setMode("fullyAccepted")}
-                  style={{
-                    padding: "8px 16px",
-                    borderRadius: "20px",
-                    border:
-                      mode === "fullyAccepted"
-                        ? "2px solid #333"
-                        : "1px solid #ccc",
-                    backgroundColor: STATUS_COLORS.fullyAccepted,
-                    cursor: "pointer",
-                    fontSize: "14px",
-                    fontWeight: mode === "fullyAccepted" ? "600" : "400",
-                    transition: "all 0.2s ease",
-                  }}
-                >
-                  Confirmed
-                </button>
-                <button
-                  onClick={() => setMode("userAccepted")}
-                  style={{
-                    padding: "8px 16px",
-                    borderRadius: "20px",
-                    border:
-                      mode === "userAccepted"
-                        ? "2px solid #333"
-                        : "1px solid #ccc",
-                    backgroundColor: STATUS_COLORS.userAccepted,
-                    cursor: "pointer",
-                    fontSize: "14px",
-                    fontWeight: mode === "userAccepted" ? "600" : "400",
-                    transition: "all 0.2s ease",
-                  }}
-                >
-                  Invited
-                </button>
-                <button
                   onClick={() => setMode("accepted")}
                   style={{
                     padding: "8px 16px",
                     borderRadius: "20px",
                     border:
-                      mode === "accepted" ? "2px solid #333" : "1px solid #ccc",
+                      mode === "accepted"
+                        ? "2px solid #333"
+                        : "1px solid #ccc",
                     backgroundColor: STATUS_COLORS.accepted,
                     cursor: "pointer",
                     fontSize: "14px",
@@ -754,6 +717,22 @@ export default function AdminBoard({ roles }: { roles: RoleFlags }) {
                   }}
                 >
                   Accepted
+                </button>
+                <button
+                  onClick={() => setMode("invited")}
+                  style={{
+                    padding: "8px 16px",
+                    borderRadius: "20px",
+                    border:
+                      mode === "invited" ? "2px solid #333" : "1px solid #ccc",
+                    backgroundColor: STATUS_COLORS.invited,
+                    cursor: "pointer",
+                    fontSize: "14px",
+                    fontWeight: mode === "invited" ? "600" : "400",
+                    transition: "all 0.2s ease",
+                  }}
+                >
+                  Invited
                 </button>
                 <button
                   onClick={() => setMode("waitlist")}
@@ -920,13 +899,10 @@ export default function AdminBoard({ roles }: { roles: RoleFlags }) {
               <strong>Total:</strong> {summary.total}
             </div>
             <div>
-              <strong>Confirmed:</strong> {summary.fullyAccepted}
-            </div>
-            <div>
-              <strong>Invited:</strong> {summary.userAccepted}
-            </div>
-            <div>
               <strong>Accepted:</strong> {summary.accepted}
+            </div>
+            <div>
+              <strong>Invited:</strong> {summary.invited}
             </div>
             <div>
               <strong>Waitlisted:</strong> {summary.waitlist}
@@ -993,7 +969,7 @@ export default function AdminBoard({ roles }: { roles: RoleFlags }) {
                 backgroundColor: "white",
                 cursor: "pointer",
                 fontSize: "14px",
-                fontWeight: mode === "fullyAccepted" ? "600" : "400",
+                fontWeight: "400",
                 transition: "all 0.2s ease",
               }}
             >
@@ -1014,7 +990,7 @@ export default function AdminBoard({ roles }: { roles: RoleFlags }) {
                 backgroundColor: "white",
                 cursor: "pointer",
                 fontSize: "14px",
-                fontWeight: mode === "fullyAccepted" ? "600" : "400",
+                fontWeight: "400",
                 transition: "all 0.2s ease",
               }}
             >

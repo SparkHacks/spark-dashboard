@@ -221,11 +221,11 @@ function Row({
 
   const updateForm = async (
     updateAction:
+      | "waiting"
+      | "invited"
+      | "accepted"
       | "waitlist"
       | "declined"
-      | "accepted"
-      | "waiting"
-      | "fullyAccepted"
   ) => {
     const formData = new FormData();
     formData.set("email", data.email);
@@ -246,12 +246,11 @@ function Row({
 
       const newDatas = [...datas];
       let oldStatus = updateAction as
-        | "waitlist"
-        | "declined"
-        | "accepted"
         | "waiting"
-        | "fullyAccepted"
-        | "userAccepted";
+        | "invited"
+        | "accepted"
+        | "waitlist"
+        | "declined";
       for (const item of newDatas) {
         if (item.email === data.email) {
           oldStatus = item.appStatus;
@@ -353,11 +352,10 @@ function Row({
             className={styles.statusDropdown}
           >
             <option value="waiting">Pending</option>
+            <option value="invited">Invited</option>
             <option value="accepted">Accepted</option>
             <option value="waitlist">Waitlisted</option>
             <option value="declined">Declined</option>
-            <option value="userAccepted">Invited</option>
-            <option value="fullyAccepted">Confirmed</option>
           </select>
         </div>
         <div style={{ width: columnWidths.actions, minWidth: columnWidths.actions, flexShrink: 0, flexGrow: 0, display: "flex", justifyContent: "flex-end" }}>

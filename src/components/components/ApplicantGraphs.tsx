@@ -137,15 +137,14 @@ export default function ApplicantGraphs({ datas }: ApplicantGraphsProps) {
     {} as Record<string, number>
   );
 
-  const statusOrder = ["fullyAccepted", "userAccepted", "accepted", "waitlist", "waiting", "declined"];
+  const statusOrder = ["accepted", "invited", "waitlist", "waiting", "declined"];
   const orderedStatuses = statusOrder.filter(status => statusCounts[status] > 0);
 
   const statusData = {
     labels: orderedStatuses.map(status => {
       const labels: Record<string, string> = {
-        fullyAccepted: "Confirmed",
-        userAccepted: "Invited",
         accepted: "Accepted",
+        invited: "Invited",
         waitlist: "Waitlisted",
         waiting: "Pending",
         declined: "Declined"

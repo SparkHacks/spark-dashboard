@@ -39,17 +39,17 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
     const action = formData.get("action")?.toString() || "" // should be either accept or withdraw
 
     // invalid action
-    if (action !== "userAccepted" && action !== "declined") {
+    if (action !== "accepted" && action !== "declined") {
       return new Response("Invalid action", { status: 400 })
     }
-    
-    // disallow action when current appStatus is not "accepted" or there is no form
+
+    // disallow action when current appStatus is not "invited" or there is no form
     const docSnap = await db.collection(FORMS_COLLECTION).doc(email).get()
     if (!docSnap.exists) {
       return new Response("Invalid action", {status: 400})
     }
-    if (docSnap.data()?.appStatus !== "accepted") {
-      return new Response("Invalid action: user not accepted", {status: 400})
+    if (docSnap.data()?.appStatus !== "invited") {
+      return new Response("Invalid action: user not invited", {status: 400})
     }
 
     // action

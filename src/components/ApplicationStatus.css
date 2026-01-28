@@ -37,7 +37,7 @@
   left: 95%;
 }
 
-/* "waiting" , "declined" , "waitlist" , "accepted" , "userAccepted" , "fullyAccepted"  */
+/* "waiting" (Pending), "invited" (Invited), "accepted" (Accepted), "declined", "waitlist" */
 .emptyStatus {
   color: #000000;
   stroke: #d9d9d9;
@@ -54,24 +54,23 @@
 
 .waiting,
 .waitlist {
-  color: #a9d796;
-  stroke: #a9d796;
-  fill: #a9d796;
+  color: #888888;
+  stroke: #888888;
+  fill: #888888;
+  font-weight: bold;
+}
+
+.invited {
+  color: #3b82f6;
+  stroke: #3b82f6;
+  fill: #3b82f6;
   font-weight: bold;
 }
 
 .accepted {
-  color: #40911f;
-  stroke: #40911f;
-  fill: #40911f;
-  font-weight: bold;
-}
-
-.userAccepted,
-.fullyAccepted {
-  color: #215f07;
-  stroke: #215f07;
-  fill: #215f07;
+  color: #22c55e;
+  stroke: #22c55e;
+  fill: #22c55e;
   font-weight: bold;
 }
 

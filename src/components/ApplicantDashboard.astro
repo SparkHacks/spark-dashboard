@@ -21,51 +21,57 @@ const {
   uidDataURI,
 } = Astro.props;
 
-const statusLabels = {
-  waiting: "Submitted ✅",
+type AppStatusType = "waiting" | "declined" | "waitlist" | "invited" | "accepted";
+
+const statusLabels: Record<AppStatusType, string> = {
+  waiting: "Pending ⏳",
   declined: "Declined ❌",
-  waitlist: "Submitted ✅",
-  accepted: "Invited 🎉",
-  userAccepted: "Accepted 🎉",
-  fullyAccepted: "Accepted 🎉",
+  waitlist: "Waitlisted ⏳",
+  invited: "Invited 🎉",
+  accepted: "Accepted 🎉",
 };
 
-const statusMessage = {
+const statusMessage: Record<AppStatusType, string> = {
   waiting:
     "We have received your application and will review it shortly. Please check this website and email for updates.",
   declined:
     "Your application has been declined due to your decision or space limit. Please come back next year to re-apply!",
   waitlist:
     "Due to limited space, your application has been waitlisted. We will reach out with status updates.",
+  invited:
+    "You've been invited to SparkHacks 2026! Please accept or decline your invitation below.",
   accepted:
-    "You've been accepted! Please check your inbox for next steps in the coming days.",
-  userAccepted:
-    "You accept to participate SparkHacks. Wait for SparkHacks team to officially accept you.",
-  fullyAccepted:
-    "Congratulation 🎉🎉🎉! You are officially a SparkHacks 2026 participant! Check inbox for details about schedules.",
+    "Congratulations 🎉🎉🎉! You are officially a SparkHacks 2026 participant! Check your inbox for details about schedules.",
 };
 
-const getStatusLabel = (
-  appStatus:
-    | "waiting"
-    | "declined"
-    | "waitlist"
-    | "accepted"
-    | "userAccepted"
-    | "fullyAccepted"
-) => statusLabels[appStatus] || appStatus;
+const getStatusLabel = (status: string) => {
+  if (status in statusLabels) {
+    return statusLabels[status as AppStatusType];
+  }
+  return status;
+};
 
-const getMessage = (
-  appStatus:
-    | "waiting"
-    | "declined"
-    | "waitlist"
-    | "accepted"
-    | "userAccepted"
-    | "fullyAccepted"
-) =>
-  statusMessage[appStatus] ||
-  "Unknown result. Please email sparkhacks@uic.edu to reach out our team for support.";
+const getMessage = (status: string) => {
+  if (status in statusMessage) {
+    return statusMessage[status as AppStatusType];
+  }
+  return "Unknown result. Please email sparkhacks@uic.edu to reach out our team for support.";
+};
+
+const statusColors: Record<AppStatusType, string> = {
+  waiting: "#666666",    // Gray
+  declined: "#e85c5c",   // Red
+  waitlist: "#5a9ae8",   // Blue
+  invited: "#4aba6f",    // Green
+  accepted: "#4aba6f",   // Green
+};
+
+const getStatusColor = (status: string) => {
+  if (status in statusColors) {
+    return statusColors[status as AppStatusType];
+  }
+  return "#000000";
+};
 ---
 
 <section class="modal-wrapper" id="withdraw-modal">
@@ -110,7 +116,7 @@ const getMessage = (
 {
   appStatus !== "" && (
     <section class="progress-tracker">
-      <ApplicationStatus client:load message={appStatus as any} />
+      <ApplicationStatus client:load message={appStatus as AppStatusType | ""} />
     </section>
   )
 }
@@ -119,9 +125,9 @@ const getMessage = (
   class={`dashboard-status ${appStatus !== "" ? appStatus : ""}`}
   style={appStatus !== "" ? "" : "display: none"}
 >
-  <strong style="color: #A9D796;">{getStatusLabel(appStatus as any)}</strong>: <span style="color: black;">{getMessage(appStatus as any)}</span>
+  <strong style={`color: ${getStatusColor(appStatus)};`}>{getStatusLabel(appStatus)}</strong>: <span style="color: black;">{getMessage(appStatus)}</span>
   {
-    appStatus === "accepted" && (
+    appStatus === "invited" && (
       <>
         <div>Do you still accept to participate SparkHacks?</div>
         <div class="decideBtns">
@@ -132,7 +138,7 @@ const getMessage = (
     )
   }
   {
-    appStatus === "fullyAccepted" && (
+    appStatus === "accepted" && (
       <>
         <button id="modal-open-btn">Withdraw SparkHacks</button>
       </>
@@ -141,7 +147,7 @@ const getMessage = (
 </section>
 
 {
-  appStatus === "fullyAccepted" && (
+  appStatus === "accepted" && (
     <section class="qr-section">
       <h2>QR Code</h2>
       <div>Use this for check in and get food! ✅</div>
@@ -265,7 +271,7 @@ const getMessage = (
   });
 
   const decideSparkhacksCallback = async (
-    action: "userAccepted" | "declined"
+    action: "accepted" | "declined"
   ) => {
     try {
       const formData = new FormData();
@@ -288,7 +294,7 @@ const getMessage = (
   };
 
   acceptBtn?.addEventListener("click", () =>
-    decideSparkhacksCallback("userAccepted")
+    decideSparkhacksCallback("accepted")
   );
   withdrawBtn?.addEventListener("click", () =>
     decideSparkhacksCallback("declined")
