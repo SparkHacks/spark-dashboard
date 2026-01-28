@@ -81,6 +81,11 @@ const uidDataURI = await QRCode.toDataURL(userEmail, {
 });
 
 const newUserState = (await db.collection("Settings").doc("newUserState").get()).data()?.isNewUserEnabled
+const revealDecision = (await db.collection("Settings").doc("revealDecision").get()).data()?.revealDecision ?? true;
+
+// If revealDecision is false, hide the actual decision from applicants (show as "waiting")
+// Only affects non-admin users viewing ApplicantDashboard
+const displayAppStatus = revealDecision ? appStatus : "waiting";
 ---
 
 <DashboardLayout userName={userName} userEmail={userEmail} currentPath={Astro.url.pathname} roles={roles}>
@@ -122,7 +127,7 @@ const newUserState = (await db.collection("Settings").doc("newUserState").get())
           <ApplicantDashboard
             userName={userName}
             userEmail={userEmail}
-            appStatus={appStatus}
+            appStatus={displayAppStatus}
             submittedDate={submittedDate}
             registered={registered}
             newUserState={newUserState}

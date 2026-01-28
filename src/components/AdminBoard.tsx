@@ -13,7 +13,7 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
-import { LayoutGrid, BarChart3, Search, Filter, Columns3 } from "lucide-react";
+import { LayoutGrid, BarChart3, Search, Filter, Columns3, FileDown } from "lucide-react";
 
 ChartJS.register(
   ArcElement,
@@ -23,15 +23,14 @@ ChartJS.register(
 
 export interface Summary {
   total: number;
-  fullyAccepted: number;
-  userAccepted: number;
+  invited: number;
   accepted: number;
   waitlist: number;
   waiting: number;
   declined: number;
 }
 
-export type Mode = "everything" | "fullyAccepted" | "userAccepted" | "accepted" | "waitlist" | "waiting" | "declined";
+export type Mode = "everything" | "invited" | "accepted" | "waitlist" | "waiting" | "declined";
 
 export interface AdvancedFilters {
   year: string[];
@@ -123,6 +122,28 @@ export default function AdminBoard({ roles }: { roles: RoleFlags }) {
 
   const isHighlight = (curMode: Mode) =>
     curMode === mode ? { border: "3px solid" } : {};
+
+  const handleExportCSV = (data: FormViewData[]) => {
+    if (data.length === 0) return;
+    const headers = Object.keys(data[0]).join(",");
+    const csvRows = data.map((row) => {
+      return Object.values(row)
+        .map((value) => {
+          const escaped = ("" + (value || "")).replace(/"/g, '""');
+          return `"${escaped}"`;
+        })
+        .join(",");
+    });
+    const csvString = [headers, ...csvRows].join("\n");
+    const blob = new Blob([csvString], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `applicants_export_${new Date().toISOString().slice(0,10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   useEffect(() => {
     let filtered = [...datas];
@@ -332,8 +353,7 @@ export default function AdminBoard({ roles }: { roles: RoleFlags }) {
       });
 
       const totalCount = allDatas.length;
-      const fullyAcceptedCount = allDatas.filter(d => d.appStatus === "fullyAccepted").length;
-      const userAcceptedCount = allDatas.filter(d => d.appStatus === "userAccepted").length;
+      const invitedCount = allDatas.filter(d => d.appStatus === "invited").length;
       const acceptedCount = allDatas.filter(d => d.appStatus === "accepted").length;
       const waitlistCount = allDatas.filter(d => d.appStatus === "waitlist").length;
       const waitingCount = allDatas.filter(d => d.appStatus === "waiting").length;
@@ -341,8 +361,7 @@ export default function AdminBoard({ roles }: { roles: RoleFlags }) {
 
       setSummary({
         total: totalCount,
-        fullyAccepted: fullyAcceptedCount,
-        userAccepted: userAcceptedCount,
+        invited: invitedCount,
         accepted: acceptedCount,
         waitlist: waitlistCount,
         waiting: waitingCount,
@@ -473,6 +492,15 @@ export default function AdminBoard({ roles }: { roles: RoleFlags }) {
                 Graph
               </button>
             </div>
+
+            {/* Download CSV Button */}
+            <button
+              onClick={() => handleExportCSV(datas)}
+              className="download-csv-btn"
+              title="Download CSV"
+            >
+              <FileDown size={18} />
+            </button>
           </div>
         </div>
 
@@ -704,48 +732,14 @@ export default function AdminBoard({ roles }: { roles: RoleFlags }) {
                   Everything
                 </button>
                 <button
-                  onClick={() => setMode("fullyAccepted")}
-                  style={{
-                    padding: "8px 16px",
-                    borderRadius: "20px",
-                    border:
-                      mode === "fullyAccepted"
-                        ? "2px solid #333"
-                        : "1px solid #ccc",
-                    backgroundColor: STATUS_COLORS.fullyAccepted,
-                    cursor: "pointer",
-                    fontSize: "14px",
-                    fontWeight: mode === "fullyAccepted" ? "600" : "400",
-                    transition: "all 0.2s ease",
-                  }}
-                >
-                  Confirmed
-                </button>
-                <button
-                  onClick={() => setMode("userAccepted")}
-                  style={{
-                    padding: "8px 16px",
-                    borderRadius: "20px",
-                    border:
-                      mode === "userAccepted"
-                        ? "2px solid #333"
-                        : "1px solid #ccc",
-                    backgroundColor: STATUS_COLORS.userAccepted,
-                    cursor: "pointer",
-                    fontSize: "14px",
-                    fontWeight: mode === "userAccepted" ? "600" : "400",
-                    transition: "all 0.2s ease",
-                  }}
-                >
-                  Invited
-                </button>
-                <button
                   onClick={() => setMode("accepted")}
                   style={{
                     padding: "8px 16px",
                     borderRadius: "20px",
                     border:
-                      mode === "accepted" ? "2px solid #333" : "1px solid #ccc",
+                      mode === "accepted"
+                        ? "2px solid #333"
+                        : "1px solid #ccc",
                     backgroundColor: STATUS_COLORS.accepted,
                     cursor: "pointer",
                     fontSize: "14px",
@@ -754,6 +748,22 @@ export default function AdminBoard({ roles }: { roles: RoleFlags }) {
                   }}
                 >
                   Accepted
+                </button>
+                <button
+                  onClick={() => setMode("invited")}
+                  style={{
+                    padding: "8px 16px",
+                    borderRadius: "20px",
+                    border:
+                      mode === "invited" ? "2px solid #333" : "1px solid #ccc",
+                    backgroundColor: STATUS_COLORS.invited,
+                    cursor: "pointer",
+                    fontSize: "14px",
+                    fontWeight: mode === "invited" ? "600" : "400",
+                    transition: "all 0.2s ease",
+                  }}
+                >
+                  Invited
                 </button>
                 <button
                   onClick={() => setMode("waitlist")}
@@ -920,13 +930,10 @@ export default function AdminBoard({ roles }: { roles: RoleFlags }) {
               <strong>Total:</strong> {summary.total}
             </div>
             <div>
-              <strong>Confirmed:</strong> {summary.fullyAccepted}
-            </div>
-            <div>
-              <strong>Invited:</strong> {summary.userAccepted}
-            </div>
-            <div>
               <strong>Accepted:</strong> {summary.accepted}
+            </div>
+            <div>
+              <strong>Invited:</strong> {summary.invited}
             </div>
             <div>
               <strong>Waitlisted:</strong> {summary.waitlist}
@@ -993,7 +1000,7 @@ export default function AdminBoard({ roles }: { roles: RoleFlags }) {
                 backgroundColor: "white",
                 cursor: "pointer",
                 fontSize: "14px",
-                fontWeight: mode === "fullyAccepted" ? "600" : "400",
+                fontWeight: "400",
                 transition: "all 0.2s ease",
               }}
             >
@@ -1014,7 +1021,7 @@ export default function AdminBoard({ roles }: { roles: RoleFlags }) {
                 backgroundColor: "white",
                 cursor: "pointer",
                 fontSize: "14px",
-                fontWeight: mode === "fullyAccepted" ? "600" : "400",
+                fontWeight: "400",
                 transition: "all 0.2s ease",
               }}
             >

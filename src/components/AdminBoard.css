@@ -13,3 +13,22 @@
     padding: 10px;
     cursor: pointer;
 }
+
+.download-csv-btn {
+    padding: 10px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    background-color: white;
+    color: #666;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.download-csv-btn:hover {
+    background-color: #8d6db5;
+    border-color: #8d6db5;
+    color: white;
+}

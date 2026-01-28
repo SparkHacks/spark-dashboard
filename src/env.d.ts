@@ -70,7 +70,7 @@ interface FormSubmissionData {
     skillCICD: string,
     skillAPIs: string,
 
-    appStatus: "waiting" | "declined" | "waitlist" | "accepted" | "userAccepted" | "fullyAccepted",
+    appStatus: "waiting" | "declined" | "waitlist" | "invited" | "accepted",
     createdAt: FieldValue
 }
 
@@ -116,6 +116,6 @@ interface FormViewData {
     skillCICD: string,
     skillAPIs: string,
 
-    appStatus: "waiting" | "declined" | "waitlist" | "accepted" | "userAccepted" | "fullyAccepted",
+    appStatus: "waiting" | "declined" | "waitlist" | "invited" | "accepted",
     createdAt: string
 }

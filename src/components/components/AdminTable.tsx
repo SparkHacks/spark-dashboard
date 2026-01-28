@@ -1,5 +1,5 @@
 import styles from "./styles/AdminTable.module.css";
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import type { FormViewData } from "../../env";
 import type { Summary, SortField, SortDirection, ColumnKey, ColumnWidths } from "../AdminBoard";
 import { AVAILABLE_COLUMNS } from "../AdminBoard";
@@ -22,6 +22,11 @@ interface RoleFlags {
   isWebDev: boolean;
   isDirector: boolean;
 }
+
+// Fixed widths for non-resizable columns
+const FIXED_ID_WIDTH = 35;
+const FIXED_ACTIONS_WIDTH = 70;
+const MIN_COLUMN_WIDTH = 60;
 
 export default function AdminTable({
   datas,
@@ -58,31 +63,102 @@ export default function AdminTable({
 }) {
   const [globalLoading, setGlobalLoading] = useState(false);
   const [resizing, setResizing] = useState<ColumnKey | null>(null);
+  const tableRef = useRef<HTMLDivElement>(null);
   const startXRef = useRef<number>(0);
-  const startWidthRef = useRef<number>(0);
+  const startWidthsRef = useRef<{ left: number; right: number }>({ left: 0, right: 0 });
 
+  // Build the ordered list of all resizable columns: [email, ...middle columns..., status]
+  const getOrderedColumns = useCallback((): ColumnKey[] => {
+    const middleColumns = AVAILABLE_COLUMNS
+      .filter((col) => visibleColumns.includes(col.key))
+      .map((col) => col.key);
+    return ["email", ...middleColumns, "status"];
+  }, [visibleColumns]);
+
+  // Redistribute column widths when columns are added/removed to fill available space
+  useEffect(() => {
+    if (!tableRef.current) return;
+
+    const tableWidth = tableRef.current.offsetWidth;
+    // Extra padding buffer to prevent overflow
+    const containerPadding = 80;
+    const availableWidth = tableWidth - FIXED_ID_WIDTH - FIXED_ACTIONS_WIDTH - containerPadding;
+    const orderedColumns = getOrderedColumns();
+
+    // Calculate current total width of visible columns only
+    const currentTotal = orderedColumns.reduce((sum, col) => sum + columnWidths[col], 0);
+
+    // Always redistribute to exactly fill available space
+    if (currentTotal > 0 && availableWidth > 0) {
+      const scale = availableWidth / currentTotal;
+      const newWidths: Partial<ColumnWidths> = {};
+
+      let totalAssigned = 0;
+      orderedColumns.forEach((col, index) => {
+        if (index === orderedColumns.length - 1) {
+          // Last column gets remaining space to avoid rounding errors
+          newWidths[col] = Math.max(MIN_COLUMN_WIDTH, availableWidth - totalAssigned);
+        } else {
+          const width = Math.max(MIN_COLUMN_WIDTH, Math.round(columnWidths[col] * scale));
+          newWidths[col] = width;
+          totalAssigned += width;
+        }
+      });
+
+      setColumnWidths(prev => ({ ...prev, ...newWidths }));
+    }
+  }, [visibleColumns]);
+
+  // Handle resizing - adjusts both the dragged column and its right neighbor
   const handleMouseDown = useCallback((e: React.MouseEvent, columnKey: ColumnKey) => {
     e.preventDefault();
     e.stopPropagation();
+
+    const orderedColumns = getOrderedColumns();
+    const columnIndex = orderedColumns.indexOf(columnKey);
+
+    // Can't resize if it's the last column (status) or not found
+    if (columnIndex === -1 || columnIndex >= orderedColumns.length - 1) return;
+
+    const leftColumn = columnKey;
+    const rightColumn = orderedColumns[columnIndex + 1];
+
     setResizing(columnKey);
     startXRef.current = e.clientX;
-    startWidthRef.current = columnWidths[columnKey];
+    startWidthsRef.current = {
+      left: columnWidths[leftColumn],
+      right: columnWidths[rightColumn],
+    };
 
     const handleMouseMove = (e: MouseEvent) => {
       const diff = e.clientX - startXRef.current;
-      const newWidth = Math.max(50, startWidthRef.current + diff);
-      setColumnWidths(prev => ({ ...prev, [columnKey]: newWidth }));
+
+      const newLeftWidth = Math.max(MIN_COLUMN_WIDTH, startWidthsRef.current.left + diff);
+      const newRightWidth = Math.max(MIN_COLUMN_WIDTH, startWidthsRef.current.right - diff);
+
+      // Only update if both columns stay above minimum
+      if (newLeftWidth >= MIN_COLUMN_WIDTH && newRightWidth >= MIN_COLUMN_WIDTH) {
+        setColumnWidths(prev => ({
+          ...prev,
+          [leftColumn]: newLeftWidth,
+          [rightColumn]: newRightWidth,
+        }));
+      }
     };
 
     const handleMouseUp = () => {
       setResizing(null);
       document.removeEventListener("mousemove", handleMouseMove);
       document.removeEventListener("mouseup", handleMouseUp);
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
     };
 
+    document.body.style.cursor = "col-resize";
+    document.body.style.userSelect = "none";
     document.addEventListener("mousemove", handleMouseMove);
     document.addEventListener("mouseup", handleMouseUp);
-  }, [columnWidths, setColumnWidths]);
+  }, [columnWidths, setColumnWidths, getOrderedColumns]);
 
   const SortIcon = ({ field }: { field: SortField }) => {
     if (sortField !== field) {
@@ -94,34 +170,15 @@ export default function AdminTable({
     return <ArrowDown size={14} style={{ marginLeft: "4px" }} />;
   };
 
-  const handleExportCSV = (data: FormViewData[]) => {
-    if (data.length === 0) return;
-
-    const headers = Object.keys(data[0]).join(",");
-
-    const csvRows = data.map((row) => {
-      return Object.values(row)
-        .map((value) => {
-          const escaped = ("" + (value || "")).replace(/"/g, '""');
-          return `"${escaped}"`;
-        })
-        .join(",");
-    });
-
-    const csvString = [headers, ...csvRows].join("\n");
-
-    const blob = new Blob([csvString], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.setAttribute("href", url);
-    link.setAttribute("download", `applicants_export_${new Date().toISOString().slice(0,10)}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
   const Resizer = ({ columnKey }: { columnKey: ColumnKey }) => {
     if (!showColumnSelector) return null;
+
+    const orderedColumns = getOrderedColumns();
+    const columnIndex = orderedColumns.indexOf(columnKey);
+
+    // Don't show resizer on the last column (status) since there's nothing to resize against
+    if (columnIndex === orderedColumns.length - 1) return null;
+
     return (
       <div
         className={styles.resizer}
@@ -133,42 +190,42 @@ export default function AdminTable({
     );
   };
 
+  // Get ordered middle columns (between email and status)
+  const orderedMiddleColumns = AVAILABLE_COLUMNS.filter((col) => visibleColumns.includes(col.key));
+
   return (
-    <section className={styles.adminTable}>
-      <div style={{ marginBottom: "1rem", display: "flex", justifyContent: "flex-end" }}>
-      <button 
-        onClick={() => handleExportCSV(allDatas)}
-        style={{
-          padding: "8px 16px",
-          backgroundColor: "#8d6db5",
-          color: "white",
-          border: "none",
-          borderRadius: "6px",
-          cursor: "pointer",
-          fontWeight: "bold"
-        }}
-      >
-        Download CSV
-      </button>
-    </div>
+    <section className={styles.adminTable} ref={tableRef}>
       <div className={styles.headerTable}>
-        <div style={{ width: 35, minWidth: 35, flexShrink: 0, flexGrow: 0 }}>#</div>
+        {/* Fixed ID column */}
+        <div style={{ width: FIXED_ID_WIDTH, minWidth: FIXED_ID_WIDTH, flexShrink: 0, flexGrow: 0 }}>#</div>
+
+        {/* Email column - first resizable */}
         <div
           className={styles.sortableHeader}
-          style={{ width: columnWidths.email, minWidth: columnWidths.email, flexShrink: 0, flexGrow: 0, position: "relative" }}
+          style={{
+            width: columnWidths.email,
+            minWidth: MIN_COLUMN_WIDTH,
+            flexShrink: 0,
+            flexGrow: 0,
+            position: "relative"
+          }}
           onClick={() => onSort("email")}
         >
           <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", display: "block", paddingRight: 10 }}>Email</span>
           <SortIcon field="email" />
           <Resizer columnKey="email" />
         </div>
-        {AVAILABLE_COLUMNS.filter((col) => visibleColumns.includes(col.key)).map((col) => (
+
+        {/* Middle columns */}
+        {orderedMiddleColumns.map((col) => (
           <div
             key={col.key}
             className={col.sortable ? styles.sortableHeader : ""}
             style={{
-              flex: col.key === "name" ? `1 1 ${columnWidths[col.key]}px` : `0 0 ${columnWidths[col.key]}px`,
-              minWidth: 50,
+              width: columnWidths[col.key],
+              minWidth: MIN_COLUMN_WIDTH,
+              flexShrink: col.key === "name" ? 1 : 0,
+              flexGrow: col.key === "name" ? 1 : 0,
               position: "relative",
             }}
             onClick={() => col.sortable && onSort(col.key as SortField)}
@@ -178,16 +235,25 @@ export default function AdminTable({
             <Resizer columnKey={col.key} />
           </div>
         ))}
+
+        {/* Status column - second to last, no resizer since nothing to resize against */}
         <div
           className={styles.sortableHeader}
-          style={{ width: columnWidths.status, minWidth: columnWidths.status, flexShrink: 0, flexGrow: 0, position: "relative" }}
+          style={{
+            width: columnWidths.status,
+            minWidth: MIN_COLUMN_WIDTH,
+            flexShrink: 0,
+            flexGrow: 0,
+            position: "relative"
+          }}
           onClick={() => onSort("appStatus")}
         >
           <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", display: "block", paddingRight: 10 }}>Status</span>
           <SortIcon field="appStatus" />
-          <Resizer columnKey="status" />
         </div>
-        <div style={{ width: columnWidths.actions, minWidth: columnWidths.actions, flexShrink: 0, flexGrow: 0 }}></div>
+
+        {/* Actions column - fixed, last, no resizer */}
+        <div style={{ width: FIXED_ACTIONS_WIDTH, minWidth: FIXED_ACTIONS_WIDTH, flexShrink: 0, flexGrow: 0 }}></div>
       </div>
 
       <div className={styles.contentTable}>
@@ -208,8 +274,8 @@ export default function AdminTable({
               globalLoading={globalLoading}
               setGlobalLoading={setGlobalLoading}
               roles={roles}
-              visibleColumns={visibleColumns}
               columnWidths={columnWidths}
+              orderedMiddleColumns={orderedMiddleColumns}
             />
           ))
         )}
@@ -230,8 +296,8 @@ function Row({
   globalLoading,
   setGlobalLoading,
   roles,
-  visibleColumns,
   columnWidths,
+  orderedMiddleColumns,
 }: {
   id: number;
   data: FormViewData;
@@ -244,8 +310,8 @@ function Row({
   globalLoading: boolean;
   setGlobalLoading: React.Dispatch<React.SetStateAction<boolean>>;
   roles: RoleFlags;
-  visibleColumns: ColumnKey[];
   columnWidths: ColumnWidths;
+  orderedMiddleColumns: { key: ColumnKey; label: string; sortable: boolean }[];
 }) {
 
   const getEffectiveRole = () => {
@@ -263,11 +329,11 @@ function Row({
 
   const updateForm = async (
     updateAction:
+      | "waiting"
+      | "invited"
+      | "accepted"
       | "waitlist"
       | "declined"
-      | "accepted"
-      | "waiting"
-      | "fullyAccepted"
   ) => {
     const formData = new FormData();
     formData.set("email", data.email);
@@ -288,12 +354,11 @@ function Row({
 
       const newDatas = [...datas];
       let oldStatus = updateAction as
-        | "waitlist"
-        | "declined"
-        | "accepted"
         | "waiting"
-        | "fullyAccepted"
-        | "userAccepted";
+        | "invited"
+        | "accepted"
+        | "waitlist"
+        | "declined";
       for (const item of newDatas) {
         if (item.email === data.email) {
           oldStatus = item.appStatus;
@@ -359,18 +424,33 @@ function Row({
       }}
     >
       <div className={styles.rowTable} style={{ fontWeight: 600, backgroundColor: backgroundColor }}>
-        <div style={{ width: 35, minWidth: 35, flexShrink: 0, flexGrow: 0 }}>
+        {/* Fixed ID column */}
+        <div style={{ width: FIXED_ID_WIDTH, minWidth: FIXED_ID_WIDTH, flexShrink: 0, flexGrow: 0 }}>
           <strong>{id}</strong>
         </div>
-        <div style={{ width: columnWidths.email, minWidth: columnWidths.email, flexShrink: 0, flexGrow: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+
+        {/* Email column */}
+        <div style={{
+          width: columnWidths.email,
+          minWidth: MIN_COLUMN_WIDTH,
+          flexShrink: 0,
+          flexGrow: 0,
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          whiteSpace: "nowrap"
+        }}>
           {data.email}
         </div>
-        {AVAILABLE_COLUMNS.filter((col) => visibleColumns.includes(col.key)).map((col) => (
+
+        {/* Middle columns */}
+        {orderedMiddleColumns.map((col) => (
           <div
             key={col.key}
             style={{
-              flex: col.key === "name" ? `1 1 ${columnWidths[col.key]}px` : `0 0 ${columnWidths[col.key]}px`,
-              minWidth: 50,
+              width: columnWidths[col.key],
+              minWidth: MIN_COLUMN_WIDTH,
+              flexShrink: col.key === "name" ? 1 : 0,
+              flexGrow: col.key === "name" ? 1 : 0,
               overflow: "hidden",
               textOverflow: "ellipsis",
               whiteSpace: "nowrap",
@@ -380,7 +460,15 @@ function Row({
             {getCellContent(col.key)}
           </div>
         ))}
-        <div style={{ width: columnWidths.status, minWidth: columnWidths.status, flexShrink: 0, flexGrow: 0, overflow: "hidden" }}>
+
+        {/* Status column */}
+        <div style={{
+          width: columnWidths.status,
+          minWidth: MIN_COLUMN_WIDTH,
+          flexShrink: 0,
+          flexGrow: 0,
+          overflow: "hidden"
+        }}>
           <select
             style={{
               backgroundColor: "EEE1F7",
@@ -395,14 +483,22 @@ function Row({
             className={styles.statusDropdown}
           >
             <option value="waiting">Pending</option>
+            <option value="invited">Invited</option>
             <option value="accepted">Accepted</option>
             <option value="waitlist">Waitlisted</option>
             <option value="declined">Declined</option>
-            <option value="userAccepted">Invited</option>
-            <option value="fullyAccepted">Confirmed</option>
           </select>
         </div>
-        <div style={{ width: columnWidths.actions, minWidth: columnWidths.actions, flexShrink: 0, flexGrow: 0, display: "flex", justifyContent: "flex-end" }}>
+
+        {/* Actions column - fixed */}
+        <div style={{
+          width: FIXED_ACTIONS_WIDTH,
+          minWidth: FIXED_ACTIONS_WIDTH,
+          flexShrink: 0,
+          flexGrow: 0,
+          display: "flex",
+          justifyContent: "flex-end"
+        }}>
           <button className={styles.viewBtn} onClick={handleView} style={{fontWeight: "bold"}}>
             {isExpanded ? "Hide" : "View"}
           </button>
