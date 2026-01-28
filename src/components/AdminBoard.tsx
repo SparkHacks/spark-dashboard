@@ -13,7 +13,7 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
-import { LayoutGrid, BarChart3, Search, Filter, Columns3 } from "lucide-react";
+import { LayoutGrid, BarChart3, Search, Filter, Columns3, FileDown } from "lucide-react";
 
 ChartJS.register(
   ArcElement,
@@ -122,6 +122,28 @@ export default function AdminBoard({ roles }: { roles: RoleFlags }) {
 
   const isHighlight = (curMode: Mode) =>
     curMode === mode ? { border: "3px solid" } : {};
+
+  const handleExportCSV = (data: FormViewData[]) => {
+    if (data.length === 0) return;
+    const headers = Object.keys(data[0]).join(",");
+    const csvRows = data.map((row) => {
+      return Object.values(row)
+        .map((value) => {
+          const escaped = ("" + (value || "")).replace(/"/g, '""');
+          return `"${escaped}"`;
+        })
+        .join(",");
+    });
+    const csvString = [headers, ...csvRows].join("\n");
+    const blob = new Blob([csvString], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `applicants_export_${new Date().toISOString().slice(0,10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   useEffect(() => {
     let filtered = [...datas];
@@ -470,6 +492,15 @@ export default function AdminBoard({ roles }: { roles: RoleFlags }) {
                 Graph
               </button>
             </div>
+
+            {/* Download CSV Button */}
+            <button
+              onClick={() => handleExportCSV(datas)}
+              className="download-csv-btn"
+              title="Download CSV"
+            >
+              <FileDown size={18} />
+            </button>
           </div>
         </div>
 

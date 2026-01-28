@@ -170,32 +170,6 @@ export default function AdminTable({
     return <ArrowDown size={14} style={{ marginLeft: "4px" }} />;
   };
 
-  const handleExportCSV = (data: FormViewData[]) => {
-    if (data.length === 0) return;
-
-    const headers = Object.keys(data[0]).join(",");
-
-    const csvRows = data.map((row) => {
-      return Object.values(row)
-        .map((value) => {
-          const escaped = ("" + (value || "")).replace(/"/g, '""');
-          return `"${escaped}"`;
-        })
-        .join(",");
-    });
-
-    const csvString = [headers, ...csvRows].join("\n");
-
-    const blob = new Blob([csvString], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.setAttribute("href", url);
-    link.setAttribute("download", `applicants_export_${new Date().toISOString().slice(0,10)}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
   const Resizer = ({ columnKey }: { columnKey: ColumnKey }) => {
     if (!showColumnSelector) return null;
 
@@ -221,22 +195,6 @@ export default function AdminTable({
 
   return (
     <section className={styles.adminTable} ref={tableRef}>
-      <div style={{ marginBottom: "1rem", display: "flex", justifyContent: "flex-end" }}>
-        <button
-          onClick={() => handleExportCSV(allDatas)}
-          style={{
-            padding: "8px 16px",
-            backgroundColor: "#8d6db5",
-            color: "white",
-            border: "none",
-            borderRadius: "6px",
-            cursor: "pointer",
-            fontWeight: "bold"
-          }}
-        >
-          Download CSV
-        </button>
-      </div>
       <div className={styles.headerTable}>
         {/* Fixed ID column */}
         <div style={{ width: FIXED_ID_WIDTH, minWidth: FIXED_ID_WIDTH, flexShrink: 0, flexGrow: 0 }}>#</div>
