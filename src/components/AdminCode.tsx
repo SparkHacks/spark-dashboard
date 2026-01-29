@@ -4,6 +4,7 @@ import { collection, doc, getCountFromServer, getDoc, query, where} from "fireba
 import { db } from "../firebase/client"
 import { FORMS_COLLECTION } from "../config/constants"
 import { toast, ToastContainer } from 'react-toastify';
+import { RefreshCw } from 'lucide-react';
 import "./AdminCode.css"
 
 const createConfig = (props: any) => {
@@ -188,14 +189,14 @@ export default function AdminCode() {
       document.body.animate({ backgroundColor: ["white", "#8d6db5", "white"] }, 500); // Add dramatic flash so people can tell they checked in
 
       // update summary
-      // try {
-      //   const checkinData = await getNumCheckin()
-      //   setSummary(checkinData)
-      // }
-      // catch (err) {
-      //   console.error(err)
-      //   toast.error("Something is wrong with getting checkin summary")
-      // }
+      try {
+        const checkinData = await getSummaryStats()
+        setSummary(checkinData)
+      }
+      catch (err) {
+        console.error(err)
+        toast.error("Something is wrong with getting checkin summary")
+      }
     } catch(e) {
       toast.error("Failed to update food data")
     }
@@ -433,7 +434,35 @@ export default function AdminCode() {
           <span><strong>Shirt Size: </strong> {userInfo?.shirtSize}</span>
         </div>
         
-        <h3 style={{marginBottom: "0px"}}>User Check-In</h3>
+        <div style={{display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px'}}>
+          <h3 style={{margin: "0px"}}>User Check-In</h3>
+          <button
+            onClick={handleRefresh}
+            style={{
+              padding: '4px',
+              border: 'none',
+              background: 'none',
+              cursor: 'pointer',
+              color: '#666',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderRadius: '4px',
+              transition: 'all 0.2s ease'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.color = '#8d6db5';
+              e.currentTarget.style.backgroundColor = '#f0f0f0';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.color = '#666';
+              e.currentTarget.style.backgroundColor = 'transparent';
+            }}
+            title="Refresh counts"
+          >
+            <RefreshCw size={16} />
+          </button>
+        </div>
         <div id='form' style={{display: 'flex', flexDirection: 'row', gap: '20px', width: '100%', maxWidth: '500px', flexWrap: 'wrap', justifyContent: 'center'}}>
           <div style={{display: 'flex', flexDirection: 'column', gap: '8px', flex: '1 1 200px', minWidth: '180px'}}>
             <span style={{fontWeight: '700', fontSize: '16px', marginBottom: '4px'}}>Day 1:</span>
