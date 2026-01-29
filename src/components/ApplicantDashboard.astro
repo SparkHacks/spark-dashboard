@@ -9,6 +9,7 @@ interface Props {
   registered: boolean;
   newUserState: boolean;
   uidDataURI: string;
+  revealDecision?: boolean;
 }
 
 const {
@@ -19,7 +20,11 @@ const {
   registered,
   newUserState,
   uidDataURI,
+  revealDecision = true,
 } = Astro.props;
+
+// Only show status visualizer if user applied
+const showStatusVisualizer = registered;
 
 type AppStatusType = "waiting" | "declined" | "waitlist" | "invited" | "accepted";
 
@@ -114,7 +119,7 @@ const getStatusColor = (status: string) => {
 </section>
 
 {
-  appStatus !== "" && (
+  showStatusVisualizer && appStatus !== "" && (
     <section class="progress-tracker">
       <ApplicationStatus client:load message={appStatus as AppStatusType | ""} />
     </section>
@@ -123,7 +128,7 @@ const getStatusColor = (status: string) => {
 
 <section
   class={`dashboard-status ${appStatus !== "" ? appStatus : ""}`}
-  style={appStatus !== "" ? "" : "display: none"}
+  style={showStatusVisualizer && appStatus !== "" ? "" : "display: none"}
 >
   <strong style={`color: ${getStatusColor(appStatus)};`}>{getStatusLabel(appStatus)}</strong>: <span style="color: black;">{getMessage(appStatus)}</span>
   {
