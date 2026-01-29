@@ -440,18 +440,22 @@ export default function AdminCode() {
             <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
               <input name='d1Here' id="d1Here" type="checkbox" data-id="d1Here" style={{width: '18px', height: '18px', cursor: 'pointer', accentColor: '#8d6db5'}}/>
               <label htmlFor="d1Here" style={{cursor: 'pointer', fontSize: '14px'}}>Check-In</label>
+              {summary && <span style={{fontSize: '12px', color: '#666'}}>({summary.d1Here})</span>}
             </div>
             <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
               <input name='d1Snack' id="d1Snack" type="checkbox" data-id="d1Snack" style={{width: '18px', height: '18px', cursor: 'pointer', accentColor: '#8d6db5'}}/>
               <label htmlFor="d1Snack" style={{cursor: 'pointer', fontSize: '14px'}}>Snacks</label>
+              {summary && <span style={{fontSize: '12px', color: '#666'}}>({summary.d1Snack})</span>}
             </div>
             <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
               <input name='d1Dinner' id="d1Dinner" type="checkbox" data-id="d1Dinner" style={{width: '18px', height: '18px', cursor: 'pointer', accentColor: '#8d6db5'}}/>
               <label htmlFor="d1Dinner" style={{cursor: 'pointer', fontSize: '14px'}}>Dinner</label>
+              {summary && <span style={{fontSize: '12px', color: '#666'}}>({summary.d1Dinner})</span>}
             </div>
             <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
               <input name='d1Cookies' id="d1Cookies" type="checkbox" data-id="d1Cookies" style={{width: '18px', height: '18px', cursor: 'pointer', accentColor: '#8d6db5'}}/>
               <label htmlFor="d1Cookies" style={{cursor: 'pointer', fontSize: '14px'}}>Cookies</label>
+              {summary && <span style={{fontSize: '12px', color: '#666'}}>({summary.d1Cookies})</span>}
             </div>
           </div>
           <div style={{display: 'flex', flexDirection: 'column', gap: '8px', flex: '1 1 200px', minWidth: '180px'}}>
@@ -459,18 +463,22 @@ export default function AdminCode() {
             <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
               <input name='d2Here' id="d2Here" type="checkbox" data-id="d2Here" style={{width: '18px', height: '18px', cursor: 'pointer', accentColor: '#8d6db5'}}/>
               <label htmlFor="d2Here" style={{cursor: 'pointer', fontSize: '14px'}}>Check-In</label>
+              {summary && <span style={{fontSize: '12px', color: '#666'}}>({summary.d2Here})</span>}
             </div>
             <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
               <input name='d2Breakfast' id="d2Breakfast" type="checkbox" data-id="d2Breakfast" style={{width: '18px', height: '18px', cursor: 'pointer', accentColor: '#8d6db5'}}/>
               <label htmlFor="d2Breakfast" style={{cursor: 'pointer', fontSize: '14px'}}>Breakfast</label>
+              {summary && <span style={{fontSize: '12px', color: '#666'}}>({summary.d2Breakfast})</span>}
             </div>
             <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
               <input name='d2Lunch' id="d2Lunch" type="checkbox" data-id="d2Lunch" style={{width: '18px', height: '18px', cursor: 'pointer', accentColor: '#8d6db5'}}/>
               <label htmlFor="d2Lunch" style={{cursor: 'pointer', fontSize: '14px'}}>Lunch</label>
+              {summary && <span style={{fontSize: '12px', color: '#666'}}>({summary.d2Lunch})</span>}
             </div>
             <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
               <input name='d2Dinner' id="d2Dinner" type="checkbox" data-id="d2Dinner" style={{width: '18px', height: '18px', cursor: 'pointer', accentColor: '#8d6db5'}}/>
               <label htmlFor="d2Dinner" style={{cursor: 'pointer', fontSize: '14px'}}>Dinner</label>
+              {summary && <span style={{fontSize: '12px', color: '#666'}}>({summary.d2Dinner})</span>}
             </div>
           </div>
         </div>
