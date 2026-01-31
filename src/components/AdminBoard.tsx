@@ -277,8 +277,11 @@ export default function AdminBoard({ roles }: { roles: RoleFlags }) {
     }
 
     setFilteredDatas(filtered);
-    setCurrentPage(1);
   }, [datas, searchQuery, searchType, advancedFilters, sortField, sortDirection, showNonUIC]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, searchType, advancedFilters, sortField, sortDirection, showNonUIC]);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -979,6 +982,7 @@ export default function AdminBoard({ roles }: { roles: RoleFlags }) {
             columnWidths={columnWidths}
             setColumnWidths={setColumnWidths}
             showColumnSelector={showColumnSelector}
+            startIndex={(currentPage - 1) * ITEMS_PER_PAGE}
           />
 
           <div
