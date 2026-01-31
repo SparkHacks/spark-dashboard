@@ -24,6 +24,7 @@ interface RoleFlags {
 }
 
 // Fixed widths for non-resizable columns
+const FIXED_CHECKBOX_WIDTH = 40;
 const FIXED_ID_WIDTH = 35;
 const FIXED_ACTIONS_WIDTH = 70;
 const MIN_COLUMN_WIDTH = 60;
@@ -64,6 +65,7 @@ export default function AdminTable({
   startIndex?: number;
 }) {
   const [globalLoading, setGlobalLoading] = useState(false);
+  const [selectedEmails, setSelectedEmails] = useState<Set<string>>(new Set());
   const [resizing, setResizing] = useState<ColumnKey | null>(null);
   const tableRef = useRef<HTMLDivElement>(null);
   const startXRef = useRef<number>(0);
@@ -82,9 +84,9 @@ export default function AdminTable({
     if (!tableRef.current) return;
 
     const tableWidth = tableRef.current.offsetWidth;
-    // Extra padding buffer to prevent overflow
-    const containerPadding = 80;
-    const availableWidth = tableWidth - FIXED_ID_WIDTH - FIXED_ACTIONS_WIDTH - containerPadding;
+    // Padding: 10px left + 20px right on row/header = 30, plus other padding
+    const containerPadding = 70;
+    const availableWidth = tableWidth - FIXED_CHECKBOX_WIDTH - FIXED_ID_WIDTH - FIXED_ACTIONS_WIDTH - containerPadding;
     const orderedColumns = getOrderedColumns();
 
     // Calculate current total width of visible columns only
@@ -195,9 +197,155 @@ export default function AdminTable({
   // Get ordered middle columns (between email and status)
   const orderedMiddleColumns = AVAILABLE_COLUMNS.filter((col) => visibleColumns.includes(col.key));
 
+  // Multi-select handlers
+  const allSelected = datas.length > 0 && datas.every(d => selectedEmails.has(d.email));
+  const someSelected = selectedEmails.size > 0;
+
+  const handleSelectAll = () => {
+    if (allSelected) {
+      setSelectedEmails(new Set());
+    } else {
+      setSelectedEmails(new Set(datas.map(d => d.email)));
+    }
+  };
+
+  const handleSelectOne = (email: string) => {
+    const newSet = new Set(selectedEmails);
+    if (newSet.has(email)) {
+      newSet.delete(email);
+    } else {
+      newSet.add(email);
+    }
+    setSelectedEmails(newSet);
+  };
+
+  const handleBulkStatusChange = async (newStatus: "waiting" | "invited" | "accepted" | "waitlist" | "declined") => {
+    if (selectedEmails.size === 0) return;
+
+    setGlobalLoading(true);
+    try {
+      const emailsToUpdate = Array.from(selectedEmails);
+
+      // Update all selected users
+      for (const email of emailsToUpdate) {
+        const formData = new FormData();
+        formData.set("email", email);
+        formData.set("updateAction", newStatus);
+
+        const response = await fetch("/api/auth/update-form", {
+          method: "POST",
+          body: formData,
+        });
+        if (!response.ok) {
+          throw new Error(`Failed to update ${email}`);
+        }
+      }
+
+      // Update local state
+      const newDatas = [...allDatas];
+      const statusChanges: Record<string, number> = {
+        waiting: 0, invited: 0, accepted: 0, waitlist: 0, declined: 0
+      };
+
+      for (const item of newDatas) {
+        if (selectedEmails.has(item.email)) {
+          statusChanges[item.appStatus] -= 1;
+          statusChanges[newStatus] += 1;
+          item.appStatus = newStatus;
+        }
+      }
+
+      setDatas(newDatas);
+
+      if (summary) {
+        const newSummary = { ...summary };
+        newSummary.waiting += statusChanges.waiting;
+        newSummary.invited += statusChanges.invited;
+        newSummary.accepted += statusChanges.accepted;
+        newSummary.waitlist += statusChanges.waitlist;
+        newSummary.declined += statusChanges.declined;
+        setSummary(newSummary);
+      }
+
+      setSelectedEmails(new Set());
+      alert(`Successfully updated ${emailsToUpdate.length} applicant(s) to ${newStatus}`);
+    } catch (err) {
+      console.error(err);
+      alert("Error updating some applicants");
+    } finally {
+      setGlobalLoading(false);
+    }
+  };
+
   return (
     <section className={styles.adminTable} ref={tableRef}>
+      {/* Bulk Action Bar */}
+      {someSelected && (
+        <div style={{
+          padding: '15px 20px',
+          backgroundColor: 'white',
+          borderRadius: '8px',
+          border: '1px solid #ddd',
+          marginBottom: '10px',
+          display: 'flex',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '12px',
+        }}>
+          <h4 style={{ margin: 0, fontSize: '14px', fontWeight: '600' }}>
+            {selectedEmails.size} Selected
+          </h4>
+          {(["waiting", "invited", "accepted", "waitlist", "declined"] as const).map((status) => (
+            <button
+              key={status}
+              onClick={() => handleBulkStatusChange(status)}
+              disabled={globalLoading}
+              style={{
+                padding: '8px 16px',
+                fontSize: '14px',
+                fontWeight: '500',
+                border: '1px solid #ccc',
+                borderRadius: '20px',
+                backgroundColor: STATUS_COLORS[status],
+                color: '#333',
+                cursor: globalLoading ? 'not-allowed' : 'pointer',
+                opacity: globalLoading ? 0.6 : 1,
+                transition: 'all 0.2s ease',
+              }}
+            >
+              {status === 'waiting' ? 'Pending' : status.charAt(0).toUpperCase() + status.slice(1)}
+            </button>
+          ))}
+          <button
+            onClick={() => setSelectedEmails(new Set())}
+            style={{
+              padding: '6px 14px',
+              fontSize: '13px',
+              fontWeight: '500',
+              border: '1px solid #ccc',
+              borderRadius: '20px',
+              backgroundColor: 'white',
+              color: '#666',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              marginLeft: 'auto',
+            }}
+          >
+            Clear
+          </button>
+        </div>
+      )}
+
       <div className={styles.headerTable}>
+        {/* Checkbox column */}
+        <div style={{ width: FIXED_CHECKBOX_WIDTH, minWidth: FIXED_CHECKBOX_WIDTH, flexShrink: 0, flexGrow: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <input
+            type="checkbox"
+            checked={allSelected}
+            onChange={handleSelectAll}
+            style={{ width: '16px', height: '16px', cursor: 'pointer', accentColor: '#8d6db5' }}
+          />
+        </div>
         {/* Fixed ID column */}
         <div style={{ width: FIXED_ID_WIDTH, minWidth: FIXED_ID_WIDTH, flexShrink: 0, flexGrow: 0 }}>#</div>
 
@@ -226,8 +374,8 @@ export default function AdminTable({
             style={{
               width: columnWidths[col.key],
               minWidth: MIN_COLUMN_WIDTH,
-              flexShrink: col.key === "name" ? 1 : 0,
-              flexGrow: col.key === "name" ? 1 : 0,
+              flexShrink: 0,
+              flexGrow: 0,
               position: "relative",
             }}
             onClick={() => col.sortable && onSort(col.key as SortField)}
@@ -278,6 +426,8 @@ export default function AdminTable({
               roles={roles}
               columnWidths={columnWidths}
               orderedMiddleColumns={orderedMiddleColumns}
+              isSelected={selectedEmails.has(data.email)}
+              onSelect={() => handleSelectOne(data.email)}
             />
           ))
         )}
@@ -300,6 +450,8 @@ function Row({
   roles,
   columnWidths,
   orderedMiddleColumns,
+  isSelected,
+  onSelect,
 }: {
   id: number;
   data: FormViewData;
@@ -314,6 +466,8 @@ function Row({
   roles: RoleFlags;
   columnWidths: ColumnWidths;
   orderedMiddleColumns: { key: ColumnKey; label: string; sortable: boolean }[];
+  isSelected: boolean;
+  onSelect: () => void;
 }) {
 
   const getEffectiveRole = () => {
@@ -426,6 +580,16 @@ function Row({
       }}
     >
       <div className={styles.rowTable} style={{ fontWeight: 600, backgroundColor: backgroundColor }}>
+        {/* Checkbox column */}
+        <div style={{ width: FIXED_CHECKBOX_WIDTH, minWidth: FIXED_CHECKBOX_WIDTH, flexShrink: 0, flexGrow: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <input
+            type="checkbox"
+            checked={isSelected}
+            onChange={onSelect}
+            onClick={(e) => e.stopPropagation()}
+            style={{ width: '16px', height: '16px', cursor: 'pointer', accentColor: '#8d6db5' }}
+          />
+        </div>
         {/* Fixed ID column */}
         <div style={{ width: FIXED_ID_WIDTH, minWidth: FIXED_ID_WIDTH, flexShrink: 0, flexGrow: 0 }}>
           <strong>{id}</strong>
@@ -451,8 +615,8 @@ function Row({
             style={{
               width: columnWidths[col.key],
               minWidth: MIN_COLUMN_WIDTH,
-              flexShrink: col.key === "name" ? 1 : 0,
-              flexGrow: col.key === "name" ? 1 : 0,
+              flexShrink: 0,
+              flexGrow: 0,
               overflow: "hidden",
               textOverflow: "ellipsis",
               whiteSpace: "nowrap",

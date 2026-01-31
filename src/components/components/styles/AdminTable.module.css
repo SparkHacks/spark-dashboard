@@ -6,12 +6,13 @@
   flex-direction: column;
   height: 100%;
   overflow: hidden;
+  margin-top: 15px;
 }
 .headerTable, .rowTable {
   display: flex;
   min-height: 40px;
   align-items: center;
-  padding: 12px 20px;
+  padding: 12px 20px 12px 10px;
   flex-wrap: nowrap;
 }
 .headerTable {
@@ -57,7 +58,7 @@
   scrollbar-color: #cbd5e0 #f7fafc;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   border-radius: 8px;
-  padding: 12px;
+  padding: 0;
 }
 
 .contentTable::-webkit-scrollbar {
