@@ -9,6 +9,7 @@ import ApplicantDashboard from "../components/ApplicantDashboard.astro";
 import getRoleFlags from "../scripts/getRoles.ts";
 import type { RoleFlags } from "../scripts/getRoles.ts";
 import { FORMS_COLLECTION } from "../utils/utils";
+import { DEV_ALWAYS_REVEAL_DECISION } from "../config/constants";
 
 // information that will be displayed in dashboard page
 let userUID;
@@ -81,7 +82,8 @@ const uidDataURI = await QRCode.toDataURL(userEmail, {
 });
 
 const newUserState = (await db.collection("Settings").doc("newUserState").get()).data()?.isNewUserEnabled
-const revealDecision = (await db.collection("Settings").doc("revealDecision").get()).data()?.revealDecision ?? true;
+const revealDecisionFromDB = (await db.collection("Settings").doc("revealDecision").get()).data()?.revealDecision ?? true;
+const revealDecision = DEV_ALWAYS_REVEAL_DECISION || revealDecisionFromDB;
 
 // If revealDecision is false, hide the actual decision from applicants (show as "waiting")
 // Only affects non-admin users viewing ApplicantDashboard
