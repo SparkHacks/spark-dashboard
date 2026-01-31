@@ -982,6 +982,7 @@ export default function AdminBoard({ roles }: { roles: RoleFlags }) {
             columnWidths={columnWidths}
             setColumnWidths={setColumnWidths}
             showColumnSelector={showColumnSelector}
+            startIndex={(currentPage - 1) * ITEMS_PER_PAGE}
           />
 
           <div

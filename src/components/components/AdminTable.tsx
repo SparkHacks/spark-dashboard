@@ -44,6 +44,7 @@ export default function AdminTable({
   columnWidths,
   setColumnWidths,
   showColumnSelector,
+  startIndex = 0,
 }: {
   datas: FormViewData[];
   setDatas: React.Dispatch<React.SetStateAction<FormViewData[]>>;
@@ -60,6 +61,7 @@ export default function AdminTable({
   columnWidths: ColumnWidths;
   setColumnWidths: React.Dispatch<React.SetStateAction<ColumnWidths>>;
   showColumnSelector: boolean;
+  startIndex?: number;
 }) {
   const [globalLoading, setGlobalLoading] = useState(false);
   const [resizing, setResizing] = useState<ColumnKey | null>(null);
@@ -260,10 +262,10 @@ export default function AdminTable({
         {datas.length === 0 ? (
           <div style={{ marginTop: "20px", textAlign: "center" }}>No data</div>
         ) : (
-          datas.map((data, id) => (
+          datas.map((data, idx) => (
             <Row
               key={data.email}
-              id={id + 1}
+              id={startIndex + idx + 1}
               data={data}
               view={view}
               setView={setView}
