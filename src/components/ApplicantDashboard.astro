@@ -114,6 +114,32 @@ const getStatusColor = (status: string) => {
   </div>
 </section>
 
+<section class="modal-wrapper" id="accept-modal">
+  <div class="modal confirm-modal accept-modal-content">
+    <img src="/sparkhacks-logo.svg" alt="logo" width="120" height="120" />
+    <h2>Accept Invitation</h2>
+    <p>Are you sure you want to <strong>accept</strong> your invitation to SparkHacks 2026?</p>
+    <p class="confirm-subtext">By accepting, you confirm that you will attend the event.</p>
+    <div class="confirm-btns">
+      <button id="accept-confirm-btn" class="confirm-yes-btn">Yes, Accept</button>
+      <button id="accept-cancel-btn" class="confirm-no-btn">Cancel</button>
+    </div>
+  </div>
+</section>
+
+<section class="modal-wrapper" id="decline-modal">
+  <div class="modal confirm-modal decline-modal-content">
+    <img src="/sparkhacks-logo.svg" alt="logo" width="120" height="120" />
+    <h2>Decline Invitation</h2>
+    <p>Are you sure you want to <strong>decline</strong> your invitation to SparkHacks 2026?</p>
+    <p class="confirm-subtext warning">This action cannot be undone and your spot will be given to someone else.</p>
+    <div class="confirm-btns">
+      <button id="decline-confirm-btn" class="confirm-danger-btn">Yes, Decline</button>
+      <button id="decline-cancel-btn" class="confirm-no-btn">Cancel</button>
+    </div>
+  </div>
+</section>
+
 <section class="user-info">
   <h1>Welcome, {userName}!</h1>
 </section>
@@ -298,12 +324,63 @@ const getStatusColor = (status: string) => {
     }
   };
 
-  acceptBtn?.addEventListener("click", () =>
-    decideSparkhacksCallback("accepted")
-  );
-  withdrawBtn?.addEventListener("click", () =>
-    decideSparkhacksCallback("declined")
-  );
+  // Accept Modal
+  const acceptModal = document.getElementById("accept-modal") as HTMLElement;
+  const acceptModalContent = acceptModal?.querySelector(".confirm-modal") as HTMLElement;
+  const acceptConfirmBtn = document.getElementById("accept-confirm-btn") as HTMLButtonElement;
+  const acceptCancelBtn = document.getElementById("accept-cancel-btn") as HTMLButtonElement;
+
+  // Decline Modal
+  const declineModal = document.getElementById("decline-modal") as HTMLElement;
+  const declineModalContent = declineModal?.querySelector(".confirm-modal") as HTMLElement;
+  const declineConfirmBtn = document.getElementById("decline-confirm-btn") as HTMLButtonElement;
+  const declineCancelBtn = document.getElementById("decline-cancel-btn") as HTMLButtonElement;
+
+  // Open accept modal
+  acceptBtn?.addEventListener("click", () => {
+    acceptModal.style.display = "flex";
+  });
+
+  // Close accept modal on cancel or backdrop click
+  acceptCancelBtn?.addEventListener("click", () => {
+    acceptModal.style.display = "none";
+  });
+  acceptModal?.addEventListener("click", () => {
+    acceptModal.style.display = "none";
+  });
+  acceptModalContent?.addEventListener("click", (e) => {
+    e.stopPropagation();
+  });
+
+  // Confirm accept
+  acceptConfirmBtn?.addEventListener("click", () => {
+    acceptConfirmBtn.disabled = true;
+    acceptConfirmBtn.textContent = "Processing...";
+    decideSparkhacksCallback("accepted");
+  });
+
+  // Open decline modal
+  withdrawBtn?.addEventListener("click", () => {
+    declineModal.style.display = "flex";
+  });
+
+  // Close decline modal on cancel or backdrop click
+  declineCancelBtn?.addEventListener("click", () => {
+    declineModal.style.display = "none";
+  });
+  declineModal?.addEventListener("click", () => {
+    declineModal.style.display = "none";
+  });
+  declineModalContent?.addEventListener("click", (e) => {
+    e.stopPropagation();
+  });
+
+  // Confirm decline
+  declineConfirmBtn?.addEventListener("click", () => {
+    declineConfirmBtn.disabled = true;
+    declineConfirmBtn.textContent = "Processing...";
+    decideSparkhacksCallback("declined");
+  });
 </script>
 
 <style>
@@ -503,5 +580,97 @@ const getStatusColor = (status: string) => {
     background-color: white;
     margin-bottom: 20px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Confirmation Modals */
+  .confirm-modal {
+    min-height: auto;
+    padding: 30px 40px;
+    max-width: 450px;
+  }
+
+  .confirm-modal h2 {
+    margin: 15px 0 10px 0;
+    font-size: 24px;
+  }
+
+  .confirm-modal p {
+    margin: 8px 0;
+    font-size: 16px;
+    color: #333;
+  }
+
+  .confirm-subtext {
+    font-size: 14px !important;
+    color: #666 !important;
+    margin-top: 5px !important;
+  }
+
+  .confirm-subtext.warning {
+    color: #c53030 !important;
+    font-weight: 500;
+  }
+
+  .confirm-btns {
+    display: flex;
+    gap: 12px;
+    margin-top: 25px;
+    width: 100%;
+  }
+
+  .confirm-btns button {
+    flex: 1;
+    padding: 14px 20px;
+    font-size: 16px;
+    font-weight: 600;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .confirm-btns button:hover {
+    transform: scale(1.02);
+  }
+
+  .confirm-btns button:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .confirm-yes-btn {
+    background-color: #cef5be;
+    color: #1a5c1a;
+  }
+
+  .confirm-yes-btn:hover {
+    background-color: #b8e8a5;
+  }
+
+  .confirm-danger-btn {
+    background-color: #f4bdbd;
+    color: #8b2525;
+  }
+
+  .confirm-danger-btn:hover {
+    background-color: #f0a5a5;
+  }
+
+  .confirm-no-btn {
+    background-color: #e8e8e8;
+    color: #555;
+  }
+
+  .confirm-no-btn:hover {
+    background-color: #d8d8d8;
+  }
+
+  .accept-modal-content {
+    border: 6px solid #cef5be;
+  }
+
+  .decline-modal-content {
+    border: 6px solid #f4bdbd;
   }
 </style>
