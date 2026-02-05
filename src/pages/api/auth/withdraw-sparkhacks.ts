@@ -43,13 +43,14 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
       return new Response("Invalid email", { status: 400 })
     }
     
-    // disallow action when current appStatus is not "accepted" or there is no form
+    // disallow action when current appStatus is not "accepted" or "waitlist" or there is no form
     const docSnap = await db.collection(FORMS_COLLECTION).doc(email).get()
     if (!docSnap.exists) {
       return new Response("Invalid action", {status: 400})
     }
-    if (docSnap.data()?.appStatus !== "accepted") {
-      return new Response("Invalid action: user not accepted", {status: 400})
+    const currentStatus = docSnap.data()?.appStatus;
+    if (currentStatus !== "accepted" && currentStatus !== "waitlist") {
+      return new Response("Invalid action: user not accepted or waitlisted", {status: 400})
     }
 
     // action
