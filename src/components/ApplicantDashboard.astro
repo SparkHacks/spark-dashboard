@@ -1,6 +1,7 @@
 ---
 import LiveSchedule from "./schedule/LiveSchedule.astro";
 import ApplicationStatus from "./ApplicationStatus";
+import { QrCode, FileText, ChevronDown, Activity } from "lucide-react";
 
 interface Props {
   userName: string;
@@ -147,8 +148,17 @@ const getStatusColor = (status: string) => {
 
 {
   showStatusVisualizer && appStatus !== "" && (
-    <section class="progress-tracker">
-      <ApplicationStatus client:load message={appStatus as AppStatusType | ""} />
+    <section class="progress-tracker collapsible-section">
+      <div class="section-header collapsible-header">
+        <div class="section-title">
+          <Activity size={24} className="section-icon" />
+          <h2>Application Status: <span class="status-badge" style={`color: ${getStatusColor(appStatus)};`}>{getStatusLabel(appStatus)}</span></h2>
+        </div>
+        <ChevronDown size={24} className="chevron-icon" />
+      </div>
+      <div class="section-content">
+        <ApplicationStatus client:load message={appStatus as AppStatusType | ""} />
+      </div>
     </section>
   )
 }
@@ -184,48 +194,62 @@ const getStatusColor = (status: string) => {
       <LiveSchedule />
     </section>
 
-    <section class="qr-section">
-      <h2>QR Code</h2>
-      <div>Use this for check in and get food! ✅</div>
-      <div style="display: flex; justify-content: center;">
-        <img
-          id="qr-code-image"
-          style="display: block; max-width: 100%; height: auto; width: 20rem; border: 2px black solid; border-radius: 10px; cursor: pointer;"
-          src={uidDataURI}
-          alt="Click to enlarge QR code"
-        />
+    <section class="qr-section collapsible-section">
+      <div class="section-header collapsible-header">
+        <div class="section-title">
+          <QrCode size={24} className="section-icon" />
+          <h2>QR Code</h2>
+        </div>
+        <ChevronDown size={24} className="chevron-icon" />
+      </div>
+      <div class="section-content">
+        <p class="section-subtitle">Use this for check in and get food! ✅</p>
+        <div style="display: flex; justify-content: center;">
+          <img
+            id="qr-code-image"
+            style="display: block; max-width: 100%; height: auto; width: 20rem; border: 2px black solid; border-radius: 10px; cursor: pointer;"
+            src={uidDataURI}
+            alt="Click to enlarge QR code"
+          />
+        </div>
       </div>
     </section>
   )
 }
 
-<section class="dashboard-app">
-  <div
-    style="display: flex; justify-content: space-between; align-items: center"
-  >
-    <h2>Application to SparkHacks</h2>
-    <div><strong>Close at:</strong> 1/27/26</div>
+<section class="dashboard-app collapsible-section">
+  <div class="section-header collapsible-header">
+    <div class="section-title">
+      <FileText size={24} className="section-icon" />
+      <h2>Application to SparkHacks</h2>
+    </div>
+    <div class="header-right">
+      <div class="close-date"><strong>Close at:</strong> 1/27/26</div>
+      <ChevronDown size={24} className="chevron-icon" />
+    </div>
   </div>
-  {
-    submittedDate !== "" && (
-      <div>
-        <strong>Submitted at:</strong> {submittedDate}
-      </div>
-    )
-  }
-  <button
-    id="app-btn"
-    disabled={registered ? false : !newUserState}
-    onclick={registered || newUserState ? "window.location.assign('/application')" : ""}
-  >
+  <div class="section-content">
     {
-      registered
-        ? "View Application"
-        : newUserState
-          ? "Start Application"
-          : "Applications are closed :("
+      submittedDate !== "" && (
+        <p class="section-subtitle">
+          <strong>Submitted at:</strong> {submittedDate}
+        </p>
+      )
     }
-  </button>
+    <button
+      id="app-btn"
+      disabled={registered ? false : !newUserState}
+      onclick={registered || newUserState ? "window.location.assign('/application')" : ""}
+    >
+      {
+        registered
+          ? "View Application"
+          : newUserState
+            ? "Start Application"
+            : "Applications are closed :("
+      }
+    </button>
+  </div>
 </section>
 
 <script>
@@ -386,6 +410,17 @@ const getStatusColor = (status: string) => {
     declineConfirmBtn.textContent = "Processing...";
     decideSparkhacksCallback("declined");
   });
+
+  // Collapsible sections (exclude sched-header which has its own handler)
+  const collapsibleHeaders = document.querySelectorAll(".collapsible-header:not(.sched-header)");
+  collapsibleHeaders.forEach((header) => {
+    header.addEventListener("click", () => {
+      const section = header.closest(".collapsible-section");
+      if (section) {
+        section.classList.toggle("collapsed");
+      }
+    });
+  });
 </script>
 
 <style>
@@ -430,8 +465,8 @@ const getStatusColor = (status: string) => {
     flex: 1;
     max-width: 100%;
     margin-top: 20px;
-    padding: 12px 20px 20px 20px;
-    border-radius: 10px;
+    padding: 20px;
+    border-radius: 12px;
     background-color: white;
     margin-bottom: 20px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -581,11 +616,95 @@ const getStatusColor = (status: string) => {
     flex: 1;
     max-width: 100%;
     margin-top: 20px;
-    padding: 12px 20px 20px 20px;
-    border-radius: 10px;
+    padding: 20px;
+    border-radius: 12px;
     background-color: white;
     margin-bottom: 20px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #eee;
+  }
+
+  .section-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .section-title h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: #1a1a1a;
+  }
+
+  .section-title :global(.section-icon) {
+    color: #5a9ae8;
+  }
+
+  .section-subtitle {
+    color: #666;
+    margin: 0 0 1rem 0;
+  }
+
+  .close-date {
+    color: #666;
+    font-size: 0.9rem;
+  }
+
+  .status-badge {
+    font-weight: 600;
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .collapsible-header {
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .collapsible-header:hover {
+    background-color: #fafafa;
+    margin: -1rem -20px 1rem -20px;
+    padding: 1rem 20px;
+    border-radius: 12px 12px 0 0;
+  }
+
+  .collapsible-section :global(.chevron-icon) {
+    color: #888;
+    transition: transform 0.3s ease;
+  }
+
+  .collapsible-section.collapsed :global(.chevron-icon) {
+    transform: rotate(-90deg);
+  }
+
+  .section-content {
+    overflow: hidden;
+    transition: max-height 0.3s ease, opacity 0.3s ease;
+    max-height: 1000px;
+    opacity: 1;
+  }
+
+  .collapsible-section.collapsed .section-content {
+    max-height: 0;
+    opacity: 0;
+  }
+
+  .collapsible-section.collapsed .section-header {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
   }
 
   /* Confirmation Modals */

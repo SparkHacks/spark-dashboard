@@ -1,53 +1,67 @@
 ---
 import LiveSchedCard from "./LiveSchedCard.tsx";
 import { scheduleData } from "./scheduleData";
-import { RefreshCw, Calendar, CalendarClock } from "lucide-react";
+import { RefreshCw, Calendar, CalendarClock, ChevronDown } from "lucide-react";
 
 const now = new Date();
 const start = new Date("2026-02-05T00:00:00.000-06:00");
 const end = new Date("2026-02-07T20:30:00.000-06:00");
 const isLive = start < now && now < end;
 ---
-<section class="sched-section">
-    <div class="sched-header">
+<section class="sched-section collapsible-section">
+    <div class="sched-header collapsible-header">
         <div class="sched-title">
             <CalendarClock size={24} className="sched-icon" />
             <h2>Live Schedule</h2>
         </div>
-        {isLive && (
-            <div class="live-badge">
-                <span class="live-dot"></span>
-                LIVE
-            </div>
-        )}
+        <div class="header-right">
+            {isLive && (
+                <div class="live-badge">
+                    <span class="live-dot"></span>
+                    LIVE
+                </div>
+            )}
+            <ChevronDown size={24} className="chevron-icon" />
+        </div>
     </div>
 
-    { isLive ?
-        <div id="component-container">
-            <div id="flex-box">
-                {
-                    scheduleData.map((d) => (
-                        d.events.map((event) => (
-                            <LiveSchedCard client:load eventData={event} />
+    <div class="section-content">
+        { isLive ?
+            <div id="component-container">
+                <div id="flex-box">
+                    {
+                        scheduleData.map((d) => (
+                            d.events.map((event) => (
+                                <LiveSchedCard client:load eventData={event} />
+                            ))
                         ))
-                    ))
-                }
-            </div>
+                    }
+                </div>
 
-            <div class="sched-actions">
-                <a href="https://www.sparkhacks.org/#schedule" class="full-sched-link">
-                    <Calendar size={18} />
-                    View full schedule
-                </a>
-                <button onclick="location.reload()" class="refresh-btn" title="Refresh">
-                    <RefreshCw size={18} />
-                </button>
+                <div class="sched-actions">
+                    <a href="https://www.sparkhacks.org/#schedule" class="full-sched-link">
+                        <Calendar size={18} />
+                        View full schedule
+                    </a>
+                    <button onclick="location.reload()" class="refresh-btn" title="Refresh">
+                        <RefreshCw size={18} />
+                    </button>
+                </div>
             </div>
-        </div>
-        :
-        <p class="nothing-happening">Nothing happening right now. Check back during the event!</p>
-    }
+            :
+            <p class="nothing-happening">Nothing happening right now. Check back during the event!</p>
+        }
+    </div>
 </section>
+
+<script>
+    // Collapsible functionality for Live Schedule
+    const schedHeader = document.querySelector(".sched-section .sched-header.collapsible-header");
+    schedHeader?.addEventListener("click", () => {
+        const section = schedHeader.closest(".collapsible-section");
+        section?.classList.toggle("collapsed");
+    });
+</script>
 
 <style>
   .sched-section {
@@ -190,5 +204,50 @@ const isLive = start < now && now < end;
     text-align: center;
     color: #666;
     padding: 2rem;
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .collapsible-header {
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .collapsible-header:hover {
+    background-color: #fafafa;
+    margin: -20px -20px 1rem -20px;
+    padding: 20px;
+    border-radius: 12px 12px 0 0;
+  }
+
+  .collapsible-section :global(.chevron-icon) {
+    color: #888;
+    transition: transform 0.3s ease;
+  }
+
+  .collapsible-section.collapsed :global(.chevron-icon) {
+    transform: rotate(-90deg);
+  }
+
+  .section-content {
+    overflow: hidden;
+    transition: max-height 0.3s ease, opacity 0.3s ease;
+    max-height: 2000px;
+    opacity: 1;
+  }
+
+  .collapsible-section.collapsed .section-content {
+    max-height: 0;
+    opacity: 0;
+  }
+
+  .collapsible-section.collapsed .sched-header {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
   }
 </style>
