@@ -1,4 +1,5 @@
 ---
+import LiveSchedule from "./schedule/LiveSchedule.astro";
 import ApplicationStatus from "./ApplicationStatus";
 
 interface Props {
@@ -179,6 +180,10 @@ const getStatusColor = (status: string) => {
 
 {
   appStatus === "accepted" && (
+    <section id="live-schedule-section">
+      <LiveSchedule />
+    </section>
+
     <section class="qr-section">
       <h2>QR Code</h2>
       <div>Use this for check in and get food! ✅</div>
@@ -463,7 +468,8 @@ const getStatusColor = (status: string) => {
 
   #app-btn:hover,
   #accept-btn:hover,
-  #withdraw-btn:hover {
+  #withdraw-btn:hover,
+  #modal-open-btn:hover {
     filter: brightness(90%);
     transform: scale(1.02);
     transition: all 0.2s ease;
