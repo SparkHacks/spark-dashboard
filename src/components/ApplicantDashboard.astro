@@ -231,6 +231,13 @@ const getStatusColor = (status: string) => {
       </>
     )
   }
+  {
+    appStatus === "waitlist" && (
+      <>
+        <button id="modal-open-btn">Withdraw from Waitlist</button>
+      </>
+    )
+  }
 </section>
 
 {
