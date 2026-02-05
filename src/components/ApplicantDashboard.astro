@@ -328,9 +328,12 @@ const getStatusColor = (status: string) => {
     "withdraw-form"
   ) as HTMLFormElement;
 
-  modalOpenBtn?.addEventListener("click", () => {
-    withdrawModal.style.display = "flex";
-  });
+  if (modalOpenBtn) {
+    modalOpenBtn.addEventListener("click", () => {
+      withdrawModal.style.display = "flex";
+    });
+  }
+  
   modalCloseBtn?.addEventListener("click", () => {
     withdrawModal.style.display = "none";
   });
