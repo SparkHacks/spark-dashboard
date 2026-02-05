@@ -328,14 +328,16 @@ const getStatusColor = (status: string) => {
     "withdraw-form"
   ) as HTMLFormElement;
 
-  if (modalOpenBtn) {
+  if (modalOpenBtn && withdrawModal) {
     modalOpenBtn.addEventListener("click", () => {
       withdrawModal.style.display = "flex";
     });
   }
   
   modalCloseBtn?.addEventListener("click", () => {
-    withdrawModal.style.display = "none";
+    if (withdrawModal) {
+      withdrawModal.style.display = "none";
+    }
   });
   withdrawModal?.addEventListener("click", () => {
     withdrawModal.style.display = "none";
@@ -352,13 +354,17 @@ const getStatusColor = (status: string) => {
   const qrMinimizeBtn = qrModal?.querySelector(".qr-minimize-btn") as HTMLElement;
 
   const openQrModal = () => {
-    qrModal.classList.add("active");
-    document.body.style.overflow = "hidden";
+    if (qrModal) {
+      qrModal.classList.add("active");
+      document.body.style.overflow = "hidden";
+    }
   };
 
   const closeQrModal = () => {
-    qrModal.classList.remove("active");
-    document.body.style.overflow = "";
+    if (qrModal) {
+      qrModal.classList.remove("active");
+      document.body.style.overflow = "";
+    }
   };
 
   qrCodeImage?.addEventListener("click", openQrModal);
@@ -438,15 +444,21 @@ const getStatusColor = (status: string) => {
 
   // Open accept modal
   acceptBtn?.addEventListener("click", () => {
-    acceptModal.style.display = "flex";
+    if (acceptModal) {
+      acceptModal.style.display = "flex";
+    }
   });
 
   // Close accept modal on cancel or backdrop click
   acceptCancelBtn?.addEventListener("click", () => {
-    acceptModal.style.display = "none";
+    if (acceptModal) {
+      acceptModal.style.display = "none";
+    }
   });
   acceptModal?.addEventListener("click", () => {
-    acceptModal.style.display = "none";
+    if (acceptModal) {
+      acceptModal.style.display = "none";
+    }
   });
   acceptModalContent?.addEventListener("click", (e) => {
     e.stopPropagation();
@@ -461,15 +473,21 @@ const getStatusColor = (status: string) => {
 
   // Open decline modal
   withdrawBtn?.addEventListener("click", () => {
-    declineModal.style.display = "flex";
+    if (declineModal) {
+      declineModal.style.display = "flex";
+    }
   });
 
   // Close decline modal on cancel or backdrop click
   declineCancelBtn?.addEventListener("click", () => {
-    declineModal.style.display = "none";
+    if (declineModal) {
+      declineModal.style.display = "none";
+    }
   });
   declineModal?.addEventListener("click", () => {
-    declineModal.style.display = "none";
+    if (declineModal) {
+      declineModal.style.display = "none";
+    }
   });
   declineModalContent?.addEventListener("click", (e) => {
     e.stopPropagation();
