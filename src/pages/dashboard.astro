@@ -19,6 +19,8 @@ let userPhoto;
 let registered = false;
 let appStatus = "";
 let submittedDate = "";
+let foodGroup: number | null = null;
+let userUIN: number | null = null;
 
 
 let roles: RoleFlags = {
@@ -71,6 +73,16 @@ try {
       data?.createdAt
         .toDate()
         .toLocaleString("en-US", { timeZone: "America/Chicago" }) || "";
+    userUIN = data?.uin || null;
+  }
+
+  // Get food group from separate collection
+  const foodGroupDoc = await db
+    .collection("FoodGroups")
+    .doc(decodedCookie.email as string)
+    .get();
+  if (foodGroupDoc.exists) {
+    foodGroup = foodGroupDoc.data()?.group || null;
   }
 } catch (err) {
   console.error(err);
@@ -122,6 +134,8 @@ const displayAppStatus = revealDecision ? appStatus : "waiting";
                   newUserState={newUserState}
                   uidDataURI={uidDataURI}
                   revealDecision={revealDecision}
+                  foodGroup={foodGroup}
+                  userUIN={userUIN}
                 />
               </div>
             )}
@@ -136,6 +150,8 @@ const displayAppStatus = revealDecision ? appStatus : "waiting";
             newUserState={newUserState}
             uidDataURI={uidDataURI}
             revealDecision={revealDecision}
+            foodGroup={foodGroup}
+            userUIN={userUIN}
           />
         )
       }

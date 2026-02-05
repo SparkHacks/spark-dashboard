@@ -60,9 +60,6 @@ export default function ApplicationStatus({ message }: ApplicationStatusProps) {
 
   return (
     <div>
-      <h2 style={{ color: "black", fontWeight: "bold", textWrap: "wrap" }}>
-        Application Status: <span className={message}>{statusMessage}</span>
-      </h2>
       <div className="svg-container">
         <svg
           viewBox="0 0 1000 100"

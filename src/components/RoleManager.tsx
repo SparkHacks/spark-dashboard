@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { ChevronDown, ChevronRight, Utensils } from 'lucide-react';
 
 interface User {
   uid: string;
@@ -37,12 +38,107 @@ export default function RoleManager({ users, canModifyRoles, canModifyAdminRole 
   const [newUserEmail, setNewUserEmail] = useState('');
   const [newUserName, setNewUserName] = useState('');
 
+  // Food groups state
+  const [foodGroups, setFoodGroups] = useState<Record<number, string[]>>({ 1: [], 2: [], 3: [], 4: [] });
+  const [foodGroupsTotal, setFoodGroupsTotal] = useState(0);
+  const [expandedGroups, setExpandedGroups] = useState<Record<number, boolean>>({ 1: false, 2: false, 3: false, 4: false });
+  const [isAssigningGroups, setIsAssigningGroups] = useState(false);
+  const [isClearingGroups, setIsClearingGroups] = useState(false);
+  const [foodGroupsLoaded, setFoodGroupsLoaded] = useState(false);
+
   useEffect(() => {
     const savedFilter = localStorage.getItem('roleManagerFilter');
     if (savedFilter) {
       setFilterRole(savedFilter);
     }
   }, []);
+
+  // Fetch food groups on mount
+  useEffect(() => {
+    fetchFoodGroups();
+  }, []);
+
+  const fetchFoodGroups = async () => {
+    try {
+      const res = await fetch('/api/auth/assign-food-groups');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success) {
+          setFoodGroups(data.groups);
+          setFoodGroupsTotal(data.total);
+          setFoodGroupsLoaded(true);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to fetch food groups:', err);
+    }
+  };
+
+  const assignFoodGroups = async () => {
+    if (!canModifyAdminRole) {
+      toast.error('Only admins can assign food groups');
+      return;
+    }
+
+    setIsAssigningGroups(true);
+    try {
+      const res = await fetch('/api/auth/assign-food-groups', {
+        method: 'POST'
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        toast.error(`Error: ${data.error || 'Failed to assign groups'}`);
+        return;
+      }
+
+      toast.success(data.message);
+      await fetchFoodGroups();
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to assign food groups');
+    } finally {
+      setIsAssigningGroups(false);
+    }
+  };
+
+  const toggleGroupExpanded = (group: number) => {
+    setExpandedGroups(prev => ({ ...prev, [group]: !prev[group] }));
+  };
+
+  const clearFoodGroups = async () => {
+    if (!canModifyAdminRole) {
+      toast.error('Only admins can clear food groups');
+      return;
+    }
+
+    if (!confirm('Are you sure you want to clear ALL food group assignments? This cannot be undone.')) {
+      return;
+    }
+
+    setIsClearingGroups(true);
+    try {
+      const res = await fetch('/api/auth/assign-food-groups', {
+        method: 'DELETE'
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        toast.error(`Error: ${data.error || 'Failed to clear groups'}`);
+        return;
+      }
+
+      toast.success(data.message);
+      await fetchFoodGroups();
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to clear food groups');
+    } finally {
+      setIsClearingGroups(false);
+    }
+  };
 
   const handleFilterChange = (newFilter: string) => {
     setFilterRole(newFilter);
@@ -610,6 +706,195 @@ export default function RoleManager({ users, canModifyRoles, canModifyAdminRole 
         <div style={{ marginTop: '12px', fontSize: '13px', color: '#666' }}>
           Exception Users: <strong>{exceptionUsers.length}</strong>
         </div>
+      </div>
+
+      {/* Food Groups Section */}
+      <div style={{ marginTop: '48px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
+          <div>
+            <h2 style={{ fontSize: '20px', margin: '0 0 8px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Utensils size={22} />
+              Food Groups
+            </h2>
+            <p style={{ margin: 0, color: '#666', fontSize: '14px' }}>
+              Assign applicants to food groups for meal distribution
+            </p>
+          </div>
+          {canModifyAdminRole && (
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button
+                onClick={assignFoodGroups}
+                disabled={isAssigningGroups}
+                style={{
+                  padding: '10px 20px',
+                  backgroundColor: isAssigningGroups ? '#ccc' : '#5a9ae8',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  cursor: isAssigningGroups ? 'not-allowed' : 'pointer',
+                  transition: 'all 0.2s',
+                  whiteSpace: 'nowrap'
+                }}
+                onMouseEnter={(e) => {
+                  if (!isAssigningGroups) {
+                    e.currentTarget.style.backgroundColor = '#4a8ad8';
+                    e.currentTarget.style.transform = 'scale(1.02)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isAssigningGroups) {
+                    e.currentTarget.style.backgroundColor = '#5a9ae8';
+                    e.currentTarget.style.transform = 'scale(1)';
+                  }
+                }}
+              >
+                {isAssigningGroups ? 'Assigning...' : 'Assign New Applicants'}
+              </button>
+              <button
+                onClick={clearFoodGroups}
+                disabled={isClearingGroups || foodGroupsTotal === 0}
+                style={{
+                  padding: '10px 20px',
+                  backgroundColor: 'transparent',
+                  color: isClearingGroups || foodGroupsTotal === 0 ? '#ccc' : '#dc3545',
+                  border: `2px solid ${isClearingGroups || foodGroupsTotal === 0 ? '#ccc' : '#dc3545'}`,
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  cursor: isClearingGroups || foodGroupsTotal === 0 ? 'not-allowed' : 'pointer',
+                  transition: 'all 0.2s',
+                  whiteSpace: 'nowrap'
+                }}
+                onMouseEnter={(e) => {
+                  if (!isClearingGroups && foodGroupsTotal > 0) {
+                    e.currentTarget.style.backgroundColor = '#dc3545';
+                    e.currentTarget.style.color = 'white';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isClearingGroups && foodGroupsTotal > 0) {
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                    e.currentTarget.style.color = '#dc3545';
+                  }
+                }}
+              >
+                {isClearingGroups ? 'Clearing...' : 'Clear All'}
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Group Stats */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
+          gap: '12px',
+          marginBottom: '16px'
+        }}>
+          {[1, 2, 3, 4].map(group => (
+            <div
+              key={group}
+              style={{
+                backgroundColor: 'white',
+                padding: '16px',
+                borderRadius: '12px',
+                textAlign: 'center',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                border: `3px solid ${['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4'][group - 1]}`
+              }}
+            >
+              <div style={{ fontSize: '28px', fontWeight: '700', color: ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4'][group - 1] }}>
+                {foodGroups[group]?.length || 0}
+              </div>
+              <div style={{ fontSize: '14px', color: '#666', fontWeight: '500' }}>Group {group}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Total */}
+        <div style={{ marginBottom: '16px', fontSize: '14px', color: '#666' }}>
+          Total Assigned: <strong>{foodGroupsTotal}</strong>
+        </div>
+
+        {/* Collapsible Group Lists */}
+        <div style={{
+          backgroundColor: 'white',
+          borderRadius: '12px',
+          overflow: 'hidden',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+        }}>
+          {[1, 2, 3, 4].map((group, index) => (
+            <div key={group}>
+              <button
+                onClick={() => toggleGroupExpanded(group)}
+                style={{
+                  width: '100%',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  padding: '14px 20px',
+                  border: 'none',
+                  borderBottom: index < 3 || expandedGroups[group] ? '1px solid #f0f0f0' : 'none',
+                  backgroundColor: expandedGroups[group] ? '#f8f9fa' : 'white',
+                  cursor: 'pointer',
+                  transition: 'background-color 0.15s',
+                  textAlign: 'left'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f8f9fa'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = expandedGroups[group] ? '#f8f9fa' : 'white'}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div style={{
+                    width: '12px',
+                    height: '12px',
+                    borderRadius: '50%',
+                    backgroundColor: ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4'][group - 1]
+                  }} />
+                  <span style={{ fontWeight: '600', fontSize: '15px' }}>Group {group}</span>
+                  <span style={{ color: '#666', fontSize: '14px' }}>({foodGroups[group]?.length || 0} members)</span>
+                </div>
+                {expandedGroups[group] ? <ChevronDown size={20} color="#666" /> : <ChevronRight size={20} color="#666" />}
+              </button>
+
+              {expandedGroups[group] && (
+                <div style={{
+                  maxHeight: '200px',
+                  overflowY: 'auto',
+                  borderBottom: index < 3 ? '1px solid #f0f0f0' : 'none'
+                }}>
+                  {foodGroups[group]?.length === 0 ? (
+                    <div style={{ padding: '12px 20px', color: '#999', fontSize: '14px' }}>
+                      No members assigned
+                    </div>
+                  ) : (
+                    foodGroups[group]?.map((email, emailIndex) => (
+                      <div
+                        key={email}
+                        style={{
+                          padding: '8px 20px 8px 44px',
+                          fontSize: '13px',
+                          color: '#555',
+                          borderBottom: emailIndex < foodGroups[group].length - 1 ? '1px solid #f8f8f8' : 'none',
+                          backgroundColor: emailIndex % 2 === 0 ? 'white' : '#fafafa'
+                        }}
+                      >
+                        {email}
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+
+        {!foodGroupsLoaded && (
+          <div style={{ textAlign: 'center', padding: '20px', color: '#666' }}>
+            Loading food groups...
+          </div>
+        )}
       </div>
 
       {/* Add New User Modal */}

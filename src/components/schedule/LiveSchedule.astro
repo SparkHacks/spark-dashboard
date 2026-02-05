@@ -1,0 +1,253 @@
+---
+import LiveSchedCard from "./LiveSchedCard.tsx";
+import { scheduleData } from "./scheduleData";
+import { RefreshCw, Calendar, CalendarClock, ChevronDown } from "lucide-react";
+
+const now = new Date();
+const start = new Date("2026-02-05T00:00:00.000-06:00");
+const end = new Date("2026-02-07T20:30:00.000-06:00");
+const isLive = start < now && now < end;
+---
+<section class="sched-section collapsible-section">
+    <div class="sched-header collapsible-header">
+        <div class="sched-title">
+            <CalendarClock size={24} className="sched-icon" />
+            <h2>Live Schedule</h2>
+        </div>
+        <div class="header-right">
+            {isLive && (
+                <div class="live-badge">
+                    <span class="live-dot"></span>
+                    LIVE
+                </div>
+            )}
+            <ChevronDown size={24} className="chevron-icon" />
+        </div>
+    </div>
+
+    <div class="section-content">
+        { isLive ?
+            <div id="component-container">
+                <div id="flex-box">
+                    {
+                        scheduleData.map((d) => (
+                            d.events.map((event) => (
+                                <LiveSchedCard client:load eventData={event} />
+                            ))
+                        ))
+                    }
+                </div>
+
+                <div class="sched-actions">
+                    <a href="https://www.sparkhacks.org/#schedule" class="full-sched-link">
+                        <Calendar size={18} />
+                        View full schedule
+                    </a>
+                    <button onclick="location.reload()" class="refresh-btn" title="Refresh">
+                        <RefreshCw size={18} />
+                    </button>
+                </div>
+            </div>
+            :
+            <p class="nothing-happening">Nothing happening right now. Check back during the event!</p>
+        }
+    </div>
+</section>
+
+<script>
+    // Collapsible functionality for Live Schedule
+    const schedHeader = document.querySelector(".sched-section .sched-header.collapsible-header");
+    schedHeader?.addEventListener("click", () => {
+        const section = schedHeader.closest(".collapsible-section");
+        section?.classList.toggle("collapsed");
+    });
+</script>
+
+<style>
+  .sched-section {
+    box-sizing: border-box;
+    flex: 1;
+    max-width: 100%;
+    margin-top: 20px;
+    padding: 20px;
+    border-radius: 12px;
+    background-color: white;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .sched-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #eee;
+  }
+
+  .sched-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .sched-title h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: #1a1a1a;
+  }
+
+  .sched-title :global(.sched-icon) {
+    color: #5a9ae8;
+  }
+
+  .live-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background-color: #e8f5e9;
+    color: #2e7d32;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+
+  .live-dot {
+    width: 8px;
+    height: 8px;
+    background-color: #4caf50;
+    border-radius: 50%;
+    animation: pulse 1.5s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.5;
+      transform: scale(1.2);
+    }
+  }
+
+  #component-container {
+    display: flex;
+    flex-direction: column;
+    padding: 1rem 0;
+    align-items: center;
+  }
+
+  #flex-box {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: stretch;
+    color: black;
+    gap: 1.5rem;
+    padding-bottom: 1rem;
+  }
+
+  .sched-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+  }
+
+  .full-sched-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    background-color: #5a9ae8;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s ease;
+  }
+
+  .full-sched-link:hover {
+    background-color: #4a8ad8;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(90, 154, 232, 0.4);
+  }
+
+  .refresh-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    background-color: #f5f5f5;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    color: #666;
+    transition: all 0.2s ease;
+  }
+
+  .refresh-btn:hover {
+    background-color: #e8e8e8;
+    color: #5a9ae8;
+    transform: rotate(180deg);
+  }
+
+  .nothing-happening {
+    text-align: center;
+    color: #666;
+    padding: 2rem;
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .collapsible-header {
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .collapsible-header:hover {
+    background-color: #fafafa;
+    margin: -20px -20px 1rem -20px;
+    padding: 20px;
+    border-radius: 12px 12px 0 0;
+  }
+
+  .collapsible-section :global(.chevron-icon) {
+    color: #888;
+    transition: transform 0.3s ease;
+  }
+
+  .collapsible-section.collapsed :global(.chevron-icon) {
+    transform: rotate(-90deg);
+  }
+
+  .section-content {
+    overflow: hidden;
+    transition: max-height 0.3s ease, opacity 0.3s ease;
+    max-height: 2000px;
+    opacity: 1;
+  }
+
+  .collapsible-section.collapsed .section-content {
+    max-height: 0;
+    opacity: 0;
+  }
+
+  .collapsible-section.collapsed .sched-header {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+  }
+</style>

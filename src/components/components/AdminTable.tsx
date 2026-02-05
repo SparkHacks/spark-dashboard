@@ -579,7 +579,7 @@ function Row({
         transition: "all 0.3s ease",
       }}
     >
-      <div className={styles.rowTable} style={{ fontWeight: 600, backgroundColor: backgroundColor }}>
+      <div className={styles.rowTable} style={{ fontWeight: 600, backgroundColor: backgroundColor }} onClick={handleView}>
         {/* Checkbox column */}
         <div style={{ width: FIXED_CHECKBOX_WIDTH, minWidth: FIXED_CHECKBOX_WIDTH, flexShrink: 0, flexGrow: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <input
