@@ -1,7 +1,7 @@
 ---
 import LiveSchedule from "./schedule/LiveSchedule.astro";
 import ApplicationStatus from "./ApplicationStatus";
-import { QrCode, FileText, ChevronDown, Activity } from "lucide-react";
+import { QrCode, FileText, ChevronDown, Activity, Minimize2, User, Mail, Hash, Utensils, CheckCircle, Maximize2 } from "lucide-react";
 
 interface Props {
   userName: string;
@@ -12,6 +12,8 @@ interface Props {
   newUserState: boolean;
   uidDataURI: string;
   revealDecision?: boolean;
+  foodGroup: number | null;
+  userUIN: number | null;
 }
 
 const {
@@ -23,6 +25,8 @@ const {
   newUserState,
   uidDataURI,
   revealDecision = true,
+  foodGroup,
+  userUIN,
 } = Astro.props;
 
 // Only show status visualizer if user applied
@@ -79,6 +83,7 @@ const getStatusColor = (status: string) => {
   }
   return "#000000";
 };
+
 ---
 
 <section class="modal-wrapper" id="withdraw-modal">
@@ -104,15 +109,55 @@ const getStatusColor = (status: string) => {
   </div>
 </section>
 
-<section class="modal-wrapper" id="qr-modal">
-  <div class="modal qr-modal-content">
-    <button class="modal-close-btn" aria-label="Close modal">X</button>
-    <img
-      id="qr-modal-image"
-      src={uidDataURI}
-      alt="QR Code"
-      style="display: block; width: 100%; height: auto; border: 2px black solid; border-radius: 10px;"
-    />
+<section class="qr-fullscreen-modal" id="qr-modal">
+  <div class="qr-modal-container">
+    <button class="qr-minimize-btn" aria-label="Close modal">
+      <Minimize2 size={24} />
+    </button>
+
+    <div class="qr-modal-header">
+      <div class="qr-modal-avatar">
+        <User size={32} color="#5a9ae8" />
+      </div>
+      <h2 class="qr-modal-name">{userName}</h2>
+      <div class="qr-modal-email-row">
+        <Mail size={14} color="#888" />
+        <span>{userEmail}</span>
+      </div>
+    </div>
+
+    {foodGroup && (
+      <div class="qr-modal-food-row">
+        <Utensils size={24} color="white" />
+        <span class="qr-modal-food-label">Food Group:</span>
+        <span class="qr-modal-food-number">{foodGroup}</span>
+      </div>
+    )}
+
+    <div class="qr-modal-badges">
+      {userUIN && (
+        <div class="qr-badge">
+          <Hash size={16} />
+          <span class="qr-badge-label">UIN</span>
+          <span class="qr-badge-value">{userUIN}</span>
+        </div>
+      )}
+      <div class="qr-badge qr-badge-status" style={`border-color: ${getStatusColor(appStatus)}; background-color: ${getStatusColor(appStatus)}15;`}>
+        <CheckCircle size={16} color={getStatusColor(appStatus)} />
+        <span class="qr-badge-label">Status</span>
+        <span class="qr-badge-value" style={`color: ${getStatusColor(appStatus)};`}>{getStatusLabel(appStatus)}</span>
+      </div>
+    </div>
+
+    <div class="qr-code-wrapper">
+      <img
+        id="qr-modal-image"
+        src={uidDataURI}
+        alt="QR Code"
+      />
+    </div>
+
+    <p class="qr-modal-hint">Show this QR code for check-in and food</p>
   </div>
 </section>
 
@@ -204,13 +249,23 @@ const getStatusColor = (status: string) => {
       </div>
       <div class="section-content">
         <p class="section-subtitle">Use this for check in and get food! ✅</p>
-        <div style="display: flex; justify-content: center;">
+        {foodGroup && (
+          <div class="food-group-badge">
+            <span class="food-group-label">Food Group</span>
+            <span class="food-group-number">{foodGroup}</span>
+          </div>
+        )}
+        <div class="qr-preview-wrapper">
           <img
             id="qr-code-image"
-            style="display: block; max-width: 100%; height: auto; width: 20rem; border: 2px black solid; border-radius: 10px; cursor: pointer;"
+            class="qr-preview-image"
             src={uidDataURI}
             alt="Click to enlarge QR code"
           />
+          <div class="qr-expand-hint">
+            <Maximize2 size={16} />
+            <span>Tap to expand</span>
+          </div>
         </div>
       </div>
     </section>
@@ -286,25 +341,38 @@ const getStatusColor = (status: string) => {
     e.stopPropagation();
   });
 
-  // QR Code Modal
+  // QR Code Fullscreen Modal
   const qrCodeImage = document.getElementById("qr-code-image") as HTMLImageElement;
+  const qrPreviewWrapper = document.querySelector(".qr-preview-wrapper") as HTMLElement;
   const qrModal = document.getElementById("qr-modal") as HTMLElement;
-  const qrModalContent = qrModal?.getElementsByClassName("qr-modal-content")[0] as HTMLElement;
-  const qrModalCloseBtn = qrModal?.getElementsByClassName("modal-close-btn")[0] as HTMLElement;
+  const qrModalContainer = qrModal?.querySelector(".qr-modal-container") as HTMLElement;
+  const qrMinimizeBtn = qrModal?.querySelector(".qr-minimize-btn") as HTMLElement;
 
-  qrCodeImage?.addEventListener("click", () => {
-    qrModal.style.display = "flex";
+  const openQrModal = () => {
+    qrModal.classList.add("active");
+    document.body.style.overflow = "hidden";
+  };
+
+  const closeQrModal = () => {
+    qrModal.classList.remove("active");
+    document.body.style.overflow = "";
+  };
+
+  qrCodeImage?.addEventListener("click", openQrModal);
+  qrPreviewWrapper?.addEventListener("click", openQrModal);
+
+  qrMinimizeBtn?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    closeQrModal();
   });
 
-  qrModalCloseBtn?.addEventListener("click", () => {
-    qrModal.style.display = "none";
+  qrModal?.addEventListener("click", (e) => {
+    if (e.target === qrModal) {
+      closeQrModal();
+    }
   });
 
-  qrModal?.addEventListener("click", () => {
-    qrModal.style.display = "none";
-  });
-
-  qrModalContent?.addEventListener("click", (e) => {
+  qrModalContainer?.addEventListener("click", (e) => {
     e.stopPropagation();
   });
 
@@ -572,13 +640,329 @@ const getStatusColor = (status: string) => {
     align-self: self-start;
   }
 
-  .qr-modal-content {
-    border: 6px solid #c0ffd6;
+  /* QR Preview in section */
+  .qr-preview-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    padding: 0 4px;
+  }
+
+  .qr-preview-image {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    width: 20rem;
+    border: 3px solid #1a1a1a;
+    border-radius: 12px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    box-sizing: border-box;
+  }
+
+  .qr-preview-wrapper:hover .qr-preview-image {
+    transform: scale(1.02);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  }
+
+  .qr-expand-hint {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 12px;
+    padding: 8px 16px;
+    background-color: #f0f0f0;
+    border-radius: 20px;
+    font-size: 13px;
+    color: #666;
+    transition: all 0.2s ease;
+  }
+
+  .qr-preview-wrapper:hover .qr-expand-hint {
+    background-color: #5a9ae8;
+    color: white;
+  }
+
+  .qr-preview-wrapper:hover .qr-expand-hint :global(svg) {
+    color: white;
+  }
+
+  /* Fullscreen QR Modal */
+  .qr-fullscreen-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+  }
+
+  .qr-fullscreen-modal.active {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .qr-modal-container {
+    width: 100%;
+    max-width: 420px;
+    margin: 20px;
+    padding: 24px;
+    background: white;
+    border-radius: 24px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     position: relative;
-    padding: 20px;
-    width: 90vw;
-    max-width: 600px;
-    min-height: auto;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  .qr-minimize-btn {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 44px;
+    height: 44px;
+    border: none;
+    border-radius: 12px;
+    background: #f0f0f0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    color: #666;
+  }
+
+  .qr-minimize-btn:hover {
+    background: #e0e0e0;
+    transform: scale(1.05);
+  }
+
+  .qr-modal-header {
+    text-align: center;
+    margin-bottom: 20px;
+    padding-top: 8px;
+  }
+
+  .qr-modal-avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #e0f0ff 0%, #f0e8ff 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 12px;
+  }
+
+  .qr-modal-name {
+    margin: 0 0 8px 0;
+    font-size: 22px;
+    font-weight: 700;
+    color: #1a1a1a;
+  }
+
+  .qr-modal-email-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-size: 13px;
+    color: #888;
+  }
+
+  .qr-modal-badges {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    width: 100%;
+  }
+
+  .qr-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    background: #f8f8f8;
+    border: 2px solid #e8e8e8;
+    border-radius: 12px;
+    font-size: 13px;
+  }
+
+  .qr-badge-label {
+    color: #888;
+    font-weight: 500;
+  }
+
+  .qr-badge-value {
+    font-weight: 700;
+    color: #333;
+  }
+
+  /* Food group row display in modal */
+  .qr-modal-food-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 16px;
+    padding: 12px 24px;
+    background: linear-gradient(135deg, #5a9ae8 0%, #4a8ad8 100%);
+    border-radius: 12px;
+  }
+
+  .qr-modal-food-row .qr-modal-food-label {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: white;
+  }
+
+  .qr-modal-food-row .qr-modal-food-number {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: white;
+    line-height: 1;
+  }
+
+  .qr-code-wrapper {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+
+  .qr-code-wrapper img {
+    width: 100%;
+    max-width: 320px;
+    height: auto;
+    display: block;
+  }
+
+  .qr-modal-hint {
+    margin: 16px 0 0 0;
+    font-size: 13px;
+    color: #888;
+    text-align: center;
+  }
+
+  /* Mobile optimizations for QR modal */
+  @media (max-width: 480px) {
+    .qr-modal-container {
+      margin: 10px;
+      padding: 20px;
+      max-height: 95vh;
+      border-radius: 20px;
+    }
+
+    .qr-modal-name {
+      font-size: 20px;
+    }
+
+    .qr-modal-food-row .qr-modal-food-label {
+      font-size: 1.25rem;
+    }
+
+    .qr-modal-food-row .qr-modal-food-number {
+      font-size: 1.25rem;
+    }
+
+    .qr-modal-badges {
+      gap: 8px;
+    }
+
+    .qr-badge {
+      padding: 8px 12px;
+      font-size: 12px;
+    }
+
+    .qr-code-wrapper {
+      padding: 12px;
+    }
+
+    .qr-code-wrapper img {
+      max-width: 100%;
+    }
+
+    .qr-minimize-btn {
+      width: 40px;
+      height: 40px;
+      top: 12px;
+      right: 12px;
+    }
+  }
+
+  /* Very small phones - maximize QR code */
+  @media (max-width: 380px) {
+    .qr-modal-container {
+      margin: 8px;
+      padding: 16px;
+    }
+
+    .qr-modal-header {
+      margin-bottom: 12px;
+    }
+
+    .qr-modal-avatar {
+      width: 48px;
+      height: 48px;
+      margin-bottom: 8px;
+    }
+
+    .qr-modal-name {
+      font-size: 18px;
+    }
+
+    .qr-modal-food-row {
+      gap: 8px;
+      margin-bottom: 12px;
+      padding: 10px 20px;
+    }
+
+    .qr-modal-food-row .qr-modal-food-label {
+      font-size: 1.1rem;
+    }
+
+    .qr-modal-food-row .qr-modal-food-number {
+      font-size: 1.1rem;
+    }
+
+    .qr-modal-badges {
+      margin-bottom: 12px;
+    }
+
+    .qr-badge {
+      padding: 6px 10px;
+      font-size: 11px;
+      gap: 4px;
+    }
+
+    .qr-code-wrapper {
+      padding: 8px;
+      border-width: 3px;
+    }
+
+    .qr-modal-hint {
+      margin-top: 12px;
+      font-size: 12px;
+    }
+
+    .food-group-badge {
+      padding: 0.6rem 1.25rem;
+    }
+
+    .food-group-number {
+      font-size: 1.75rem;
+    }
   }
 
   .modal-close-btn {
@@ -621,6 +1005,35 @@ const getStatusColor = (status: string) => {
     background-color: white;
     margin-bottom: 20px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .food-group-badge {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin: 1rem auto;
+    padding: 0.75rem 1.5rem;
+    background: linear-gradient(135deg, #5a9ae8 0%, #4a8ad8 100%);
+    border-radius: 10px;
+    width: fit-content;
+    box-shadow: 0 4px 12px rgba(90, 154, 232, 0.3);
+  }
+
+  .food-group-label {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .food-group-number {
+    color: white;
+    font-size: 2rem;
+    font-weight: 800;
+    line-height: 1;
+    margin-top: 0.15rem;
   }
 
   .section-header {
