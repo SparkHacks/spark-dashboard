@@ -1,7 +1,18 @@
 ---
 import LiveSchedule from "./schedule/LiveSchedule.astro";
 import ApplicationStatus from "./ApplicationStatus";
-import { QrCode, FileText, ChevronDown, Activity, Minimize2, User, Mail, Hash, Utensils, CheckCircle, Maximize2 } from "lucide-react";
+import { QrCode, FileText, ChevronDown, Activity, Minimize2, User, Mail, Hash, Utensils, CheckCircle, Circle, ClipboardCheck, Maximize2 } from "lucide-react";
+
+interface CheckinStats {
+  d1Here: boolean;
+  d1Snack: boolean;
+  d1Dinner: boolean;
+  d1Cookies: boolean;
+  d2Here: boolean;
+  d2Breakfast: boolean;
+  d2Lunch: boolean;
+  d2Dinner: boolean;
+}
 
 interface Props {
   userName: string;
@@ -14,6 +25,7 @@ interface Props {
   revealDecision?: boolean;
   foodGroup: number | null;
   userUIN: number | null;
+  checkinStats: CheckinStats;
 }
 
 const {
@@ -27,6 +39,7 @@ const {
   revealDecision = true,
   foodGroup,
   userUIN,
+  checkinStats,
 } = Astro.props;
 
 // Only show status visualizer if user applied
@@ -85,8 +98,6 @@ const getStatusColor = (status: string) => {
 };
 
 ---
-
-<!-- 
 
 <section class="modal-wrapper" id="withdraw-modal">
   <div class="modal">
@@ -187,7 +198,7 @@ const getStatusColor = (status: string) => {
       <button id="decline-cancel-btn" class="confirm-no-btn">Cancel</button>
     </div>
   </div>
-</section> -->
+</section>
 
 
 <section class="user-info">
@@ -275,6 +286,59 @@ const getStatusColor = (status: string) => {
           <div class="qr-expand-hint">
             <Maximize2 size={16} />
             <span>Tap to expand</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="checkin-stats-section collapsible-section">
+      <div class="section-header collapsible-header">
+        <div class="section-title">
+          <ClipboardCheck size={24} className="section-icon" />
+          <h2>Check-in Stats</h2>
+        </div>
+        <ChevronDown size={24} className="chevron-icon" />
+      </div>
+      <div class="section-content">
+        <p class="section-subtitle">Your check-in and meal status during the event</p>
+        <div class="checkin-grid">
+          <div class="checkin-day">
+            <span class="checkin-day-label">Day 1</span>
+            <div class={`checkin-item ${checkinStats.d1Here ? "checked" : ""}`}>
+              {checkinStats.d1Here ? <CheckCircle size={18} className="checkin-icon-yes" /> : <Circle size={18} className="checkin-icon-no" />}
+              <span>Check-In</span>
+            </div>
+            <div class={`checkin-item ${checkinStats.d1Snack ? "checked" : ""}`}>
+              {checkinStats.d1Snack ? <CheckCircle size={18} className="checkin-icon-yes" /> : <Circle size={18} className="checkin-icon-no" />}
+              <span>Snacks</span>
+            </div>
+            <div class={`checkin-item ${checkinStats.d1Dinner ? "checked" : ""}`}>
+              {checkinStats.d1Dinner ? <CheckCircle size={18} className="checkin-icon-yes" /> : <Circle size={18} className="checkin-icon-no" />}
+              <span>Dinner</span>
+            </div>
+            <div class={`checkin-item ${checkinStats.d1Cookies ? "checked" : ""}`}>
+              {checkinStats.d1Cookies ? <CheckCircle size={18} className="checkin-icon-yes" /> : <Circle size={18} className="checkin-icon-no" />}
+              <span>Cookies</span>
+            </div>
+          </div>
+          <div class="checkin-day">
+            <span class="checkin-day-label">Day 2</span>
+            <div class={`checkin-item ${checkinStats.d2Here ? "checked" : ""}`}>
+              {checkinStats.d2Here ? <CheckCircle size={18} className="checkin-icon-yes" /> : <Circle size={18} className="checkin-icon-no" />}
+              <span>Check-In</span>
+            </div>
+            <div class={`checkin-item ${checkinStats.d2Breakfast ? "checked" : ""}`}>
+              {checkinStats.d2Breakfast ? <CheckCircle size={18} className="checkin-icon-yes" /> : <Circle size={18} className="checkin-icon-no" />}
+              <span>Breakfast</span>
+            </div>
+            <div class={`checkin-item ${checkinStats.d2Lunch ? "checked" : ""}`}>
+              {checkinStats.d2Lunch ? <CheckCircle size={18} className="checkin-icon-yes" /> : <Circle size={18} className="checkin-icon-no" />}
+              <span>Lunch</span>
+            </div>
+            <div class={`checkin-item ${checkinStats.d2Dinner ? "checked" : ""}`}>
+              {checkinStats.d2Dinner ? <CheckCircle size={18} className="checkin-icon-yes" /> : <Circle size={18} className="checkin-icon-no" />}
+              <span>Dinner</span>
+            </div>
           </div>
         </div>
       </div>
@@ -1034,8 +1098,69 @@ const getStatusColor = (status: string) => {
     padding: 20px;
     border-radius: 12px;
     background-color: white;
-    margin-bottom: 20px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .checkin-stats-section {
+    box-sizing: border-box;
+    flex: 1;
+    max-width: 100%;
+    margin-top: 20px;
+    padding: 20px;
+    border-radius: 12px;
+    background-color: white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .checkin-grid {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+
+  .checkin-day {
+    flex: 1 1 180px;
+    min-width: 160px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .checkin-day-label {
+    font-weight: 700;
+    font-size: 1rem;
+    color: #1a1a1a;
+    margin-bottom: 4px;
+  }
+
+  .checkin-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    background-color: #f8f8f8;
+    border: 2px solid #e8e8e8;
+    font-size: 14px;
+    font-weight: 500;
+    color: #999;
+    transition: all 0.2s ease;
+  }
+
+  .checkin-item.checked {
+    background-color: #f0faf0;
+    border-color: #c3e6c3;
+    color: #2d7a2d;
+  }
+
+  .checkin-item :global(.checkin-icon-yes) {
+    color: #4aba6f;
+    flex-shrink: 0;
+  }
+
+  .checkin-item :global(.checkin-icon-no) {
+    color: #ccc;
+    flex-shrink: 0;
   }
 
   .food-group-badge {

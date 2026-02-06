@@ -21,6 +21,16 @@ let appStatus = "";
 let submittedDate = "";
 let foodGroup: number | null = null;
 let userUIN: number | null = null;
+let checkinStats = {
+  d1Here: false,
+  d1Snack: false,
+  d1Dinner: false,
+  d1Cookies: false,
+  d2Here: false,
+  d2Breakfast: false,
+  d2Lunch: false,
+  d2Dinner: false,
+};
 
 
 let roles: RoleFlags = {
@@ -74,6 +84,16 @@ try {
         .toDate()
         .toLocaleString("en-US", { timeZone: "America/Chicago" }) || "";
     userUIN = data?.uin || null;
+    checkinStats = {
+      d1Here: data?.d1Here || false,
+      d1Snack: data?.d1Snack || false,
+      d1Dinner: data?.d1Dinner || false,
+      d1Cookies: data?.d1Cookies || false,
+      d2Here: data?.d2Here || false,
+      d2Breakfast: data?.d2Breakfast || false,
+      d2Lunch: data?.d2Lunch || false,
+      d2Dinner: data?.d2Dinner || false,
+    };
   }
 
   // Get food group from separate collection
@@ -136,6 +156,7 @@ const displayAppStatus = revealDecision ? appStatus : "waiting";
                   revealDecision={revealDecision}
                   foodGroup={foodGroup}
                   userUIN={userUIN}
+                  checkinStats={checkinStats}
                 />
               </div>
             )}
@@ -152,6 +173,7 @@ const displayAppStatus = revealDecision ? appStatus : "waiting";
             revealDecision={revealDecision}
             foodGroup={foodGroup}
             userUIN={userUIN}
+            checkinStats={checkinStats}
           />
         )
       }
