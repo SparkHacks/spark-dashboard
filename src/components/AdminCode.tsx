@@ -215,7 +215,7 @@ export default function AdminCode() {
     getUser(email)
   }
 
-  async function submitFoodData() {
+  async function submitFoodData(updatedCheckboxes: typeof defaultCheckboxState) {
     if (!userInfo) {
       toast.error("No user info")
       return
@@ -226,7 +226,7 @@ export default function AdminCode() {
       return
     }
 
-    const data = { ...checkboxes, email: userInfo.email }
+    const data = { ...updatedCheckboxes, email: userInfo.email }
     try {
       const response = await fetch("/api/auth/update-food", {
         method: "POST",
@@ -236,7 +236,7 @@ export default function AdminCode() {
         toast.error("Failed to update food data")
         return
       }
-      toast.success("Updated Food data!")
+      toast.success("Updated!")
       document.body.animate({ backgroundColor: ["white", "#8d6db5", "white"] }, 500); // Add dramatic flash so people can tell they checked in
 
       // update summary
@@ -251,6 +251,12 @@ export default function AdminCode() {
     } catch(e) {
       toast.error("Failed to update food data")
     }
+  }
+
+  const handleCheckboxChange = (field: keyof typeof defaultCheckboxState, value: boolean) => {
+    const updated = { ...checkboxes, [field]: value }
+    setCheckboxes(updated)
+    submitFoodData(updated)
   }
 
   const handleRefresh = async () => {
@@ -517,17 +523,17 @@ export default function AdminCode() {
         <div id='form' style={{display: 'flex', flexDirection: 'row', gap: '20px', width: '100%', maxWidth: '500px', flexWrap: 'wrap', justifyContent: 'center'}}>
           <div style={{display: 'flex', flexDirection: 'column', gap: '8px', flex: '1 1 200px', minWidth: '180px'}}>
             <span style={{fontWeight: '700', fontSize: '16px', marginBottom: '4px'}}>Day 1:</span>
-            <CheckboxButton name="d1Here" id="d1Here" label="Check-In" count={summary?.d1Here} checked={checkboxes.d1Here} onChange={(v) => setCheckboxes(prev => ({ ...prev, d1Here: v }))} />
-            <CheckboxButton name="d1Snack" id="d1Snack" label="Snacks" count={summary?.d1Snack} checked={checkboxes.d1Snack} onChange={(v) => setCheckboxes(prev => ({ ...prev, d1Snack: v }))} />
-            <CheckboxButton name="d1Dinner" id="d1Dinner" label="Dinner" count={summary?.d1Dinner} checked={checkboxes.d1Dinner} onChange={(v) => setCheckboxes(prev => ({ ...prev, d1Dinner: v }))} />
-            <CheckboxButton name="d1Cookies" id="d1Cookies" label="Cookies" count={summary?.d1Cookies} checked={checkboxes.d1Cookies} onChange={(v) => setCheckboxes(prev => ({ ...prev, d1Cookies: v }))} />
+            <CheckboxButton name="d1Here" id="d1Here" label="Check-In" count={summary?.d1Here} checked={checkboxes.d1Here} onChange={(v) => handleCheckboxChange('d1Here', v)} />
+            <CheckboxButton name="d1Snack" id="d1Snack" label="Snacks" count={summary?.d1Snack} checked={checkboxes.d1Snack} onChange={(v) => handleCheckboxChange('d1Snack', v)} />
+            <CheckboxButton name="d1Dinner" id="d1Dinner" label="Dinner" count={summary?.d1Dinner} checked={checkboxes.d1Dinner} onChange={(v) => handleCheckboxChange('d1Dinner', v)} />
+            <CheckboxButton name="d1Cookies" id="d1Cookies" label="Cookies" count={summary?.d1Cookies} checked={checkboxes.d1Cookies} onChange={(v) => handleCheckboxChange('d1Cookies', v)} />
           </div>
           <div style={{display: 'flex', flexDirection: 'column', gap: '8px', flex: '1 1 200px', minWidth: '180px'}}>
             <span style={{fontWeight: '700', fontSize: '16px', marginBottom: '4px'}}>Day 2:</span>
-            <CheckboxButton name="d2Here" id="d2Here" label="Check-In" count={summary?.d2Here} checked={checkboxes.d2Here} onChange={(v) => setCheckboxes(prev => ({ ...prev, d2Here: v }))} />
-            <CheckboxButton name="d2Breakfast" id="d2Breakfast" label="Breakfast" count={summary?.d2Breakfast} checked={checkboxes.d2Breakfast} onChange={(v) => setCheckboxes(prev => ({ ...prev, d2Breakfast: v }))} />
-            <CheckboxButton name="d2Lunch" id="d2Lunch" label="Lunch" count={summary?.d2Lunch} checked={checkboxes.d2Lunch} onChange={(v) => setCheckboxes(prev => ({ ...prev, d2Lunch: v }))} />
-            <CheckboxButton name="d2Dinner" id="d2Dinner" label="Dinner" count={summary?.d2Dinner} checked={checkboxes.d2Dinner} onChange={(v) => setCheckboxes(prev => ({ ...prev, d2Dinner: v }))} />
+            <CheckboxButton name="d2Here" id="d2Here" label="Check-In" count={summary?.d2Here} checked={checkboxes.d2Here} onChange={(v) => handleCheckboxChange('d2Here', v)} />
+            <CheckboxButton name="d2Breakfast" id="d2Breakfast" label="Breakfast" count={summary?.d2Breakfast} checked={checkboxes.d2Breakfast} onChange={(v) => handleCheckboxChange('d2Breakfast', v)} />
+            <CheckboxButton name="d2Lunch" id="d2Lunch" label="Lunch" count={summary?.d2Lunch} checked={checkboxes.d2Lunch} onChange={(v) => handleCheckboxChange('d2Lunch', v)} />
+            <CheckboxButton name="d2Dinner" id="d2Dinner" label="Dinner" count={summary?.d2Dinner} checked={checkboxes.d2Dinner} onChange={(v) => handleCheckboxChange('d2Dinner', v)} />
           </div>
         </div>
         {/* <h3 style={{marginBottom: "0px"}}>Old Food Data</h3> */}
@@ -571,33 +577,6 @@ export default function AdminCode() {
             </div>
           </div>
         </div> */}
-        <button
-          onClick={submitFoodData}
-          disabled={userInfo === null}
-          style={{
-            marginTop: "20px",
-            width: "100%",
-            maxWidth: "250px",
-            height: "45px",
-            marginBottom: "20px",
-            fontSize: '16px',
-            fontWeight: '700',
-            backgroundColor: userInfo === null ? '#cccccc' : '#8d6db5',
-            color: 'white',
-            border: 'none',
-            borderRadius: '8px',
-            cursor: userInfo === null ? 'not-allowed' : 'pointer',
-            transition: 'background-color 0.2s',
-          }}
-          onMouseEnter={(e) => {
-            if (userInfo !== null) e.currentTarget.style.backgroundColor = '#7a5da0'
-          }}
-          onMouseLeave={(e) => {
-            if (userInfo !== null) e.currentTarget.style.backgroundColor = '#8d6db5'
-          }}
-        >
-          Submit!
-        </button>
       </div>}
       <ToastContainer />
     </div>
