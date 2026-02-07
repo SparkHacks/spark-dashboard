@@ -563,6 +563,15 @@ function Row({
       case "teamPlan": return data.teamPlan === "I have a team" ? "Yes" : "No";
       case "pastSparkHacks": return data.pastSparkHacks;
       case "participationType": return data.participationType;
+      case "d1Here":
+      case "d1Snack":
+      case "d1Dinner":
+      case "d1Cookies":
+      case "d2Here":
+      case "d2Breakfast":
+      case "d2Lunch":
+      case "d2Dinner":
+        return data[key] ? "✅" : "—";
       default: return "";
     }
   };
@@ -753,6 +762,23 @@ function Row({
           )}
           <div className={styles.detailItem} style={{ gridColumn: "1 / -1" }}>
             <strong>Workshops:</strong> {data.preWorkshops?.join(", ")}
+          </div>
+
+          <div style={{ gridColumn: "1 / -1", borderTop: "2px dotted #ccc", margin: "6px 0 4px 0" }}></div>
+          <div className={styles.detailItem} style={{ gridColumn: "1 / -1", fontSize: "16px", marginBottom: "2px" }}>
+            <strong>Check-in Status</strong>
+          </div>
+          <div className={styles.detailItem} style={{ gridColumn: "1 / -1", display: "flex", flexWrap: "wrap", gap: "20px" }}>
+            <span><strong>D1 Check-In:</strong> {data.d1Here ? "✅" : "❌"}</span>
+            <span><strong>D1 Snacks:</strong> {data.d1Snack ? "✅" : "❌"}</span>
+            <span><strong>D1 Dinner:</strong> {data.d1Dinner ? "✅" : "❌"}</span>
+            <span><strong>D1 Cookies:</strong> {data.d1Cookies ? "✅" : "❌"}</span>
+          </div>
+          <div className={styles.detailItem} style={{ gridColumn: "1 / -1", display: "flex", flexWrap: "wrap", gap: "20px" }}>
+            <span><strong>D2 Check-In:</strong> {data.d2Here ? "✅" : "❌"}</span>
+            <span><strong>D2 Breakfast:</strong> {data.d2Breakfast ? "✅" : "❌"}</span>
+            <span><strong>D2 Lunch:</strong> {data.d2Lunch ? "✅" : "❌"}</span>
+            <span><strong>D2 Dinner:</strong> {data.d2Dinner ? "✅" : "❌"}</span>
           </div>
 
           <div style={{ gridColumn: "1 / -1", borderTop: "2px dotted #ccc", margin: "6px 0 4px 0" }}></div>
