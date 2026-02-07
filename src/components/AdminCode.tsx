@@ -488,7 +488,7 @@ export default function AdminCode() {
           <span><strong>Name: </strong>{userInfo?.firstName} {userInfo?.lastName}</span>
           <span><strong>Status </strong> <span style={{color: userInfo?.appStatus == "accepted" ? "green" : "red"}}> {userInfo?.appStatus}</span></span>
           <span><strong>Email: </strong>{userInfo?.email}</span>
-          <span><strong>Shirt Size: </strong> {userInfo?.shirtSize}</span>
+          <span><strong>Shirt Size: </strong>{userInfo?.crewneckSize}</span>
         </div>
         
         <div style={{display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px'}}>
