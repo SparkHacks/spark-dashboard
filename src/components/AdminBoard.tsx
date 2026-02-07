@@ -40,12 +40,13 @@ export interface AdvancedFilters {
   availability: string[];
   pastSparkHacks: string[];
   participationType: string[];
+  checkin: string[];
 }
 
 export type SortField = "email" | "name" | "createdAt" | "availability" | "appStatus" | "year" | "gender" | "teamPlan" | "pastSparkHacks" | "participationType";
 export type SortDirection = "asc" | "desc" | null;
 
-export type ColumnKey = "email" | "name" | "createdAt" | "availability" | "year" | "gender" | "teamPlan" | "pastSparkHacks" | "participationType" | "status" | "actions";
+export type ColumnKey = "email" | "name" | "createdAt" | "availability" | "year" | "gender" | "teamPlan" | "pastSparkHacks" | "participationType" | "d1Here" | "d1Snack" | "d1Dinner" | "d1Cookies" | "d2Here" | "d2Breakfast" | "d2Lunch" | "d2Dinner" | "status" | "actions";
 
 export interface ColumnConfig {
   key: ColumnKey;
@@ -62,6 +63,14 @@ export const AVAILABLE_COLUMNS: ColumnConfig[] = [
   { key: "teamPlan", label: "Team", sortable: true },
   { key: "pastSparkHacks", label: "Past SH", sortable: true },
   { key: "participationType", label: "Participation", sortable: true },
+  { key: "d1Here", label: "D1 Check-In", sortable: false },
+  { key: "d1Snack", label: "D1 Snacks", sortable: false },
+  { key: "d1Dinner", label: "D1 Dinner", sortable: false },
+  { key: "d1Cookies", label: "D1 Cookies", sortable: false },
+  { key: "d2Here", label: "D2 Check-In", sortable: false },
+  { key: "d2Breakfast", label: "D2 Breakfast", sortable: false },
+  { key: "d2Lunch", label: "D2 Lunch", sortable: false },
+  { key: "d2Dinner", label: "D2 Dinner", sortable: false },
 ];
 
 export const DEFAULT_COLUMN_WIDTHS: Record<ColumnKey, number> = {
@@ -74,6 +83,14 @@ export const DEFAULT_COLUMN_WIDTHS: Record<ColumnKey, number> = {
   teamPlan: 60,
   pastSparkHacks: 85,
   participationType: 115,
+  d1Here: 80,
+  d1Snack: 80,
+  d1Dinner: 80,
+  d1Cookies: 80,
+  d2Here: 80,
+  d2Breakfast: 90,
+  d2Lunch: 80,
+  d2Dinner: 80,
   status: 130,
   actions: 70,
 };
@@ -107,6 +124,7 @@ export default function AdminBoard({ roles }: { roles: RoleFlags }) {
     availability: [],
     pastSparkHacks: [],
     participationType: [],
+    checkin: [],
   });
   const [showNonUIC, setShowNonUIC] = useState(false);
   const [sortField, setSortField] = useState<SortField | null>(null);
@@ -214,6 +232,18 @@ export default function AdminBoard({ roles }: { roles: RoleFlags }) {
         );
       });
     }
+    if (advancedFilters.checkin.length > 0) {
+      const checkinFields = ["d1Here", "d1Snack", "d1Dinner", "d1Cookies", "d2Here", "d2Breakfast", "d2Lunch", "d2Dinner"] as const;
+      filtered = filtered.filter((item) => {
+        return advancedFilters.checkin.every((filter) => {
+          const [field, value] = filter.split(":");
+          if (checkinFields.includes(field as any)) {
+            return value === "yes" ? item[field as keyof typeof item] === true : item[field as keyof typeof item] !== true;
+          }
+          return true;
+        });
+      });
+    }
 
     // Filter by UIC email
     if (!showNonUIC) {
@@ -310,6 +340,7 @@ export default function AdminBoard({ roles }: { roles: RoleFlags }) {
       availability: [],
       pastSparkHacks: [],
       participationType: [],
+      checkin: [],
     });
     setSearchType("all");
     setShowNonUIC(false);
@@ -883,6 +914,71 @@ export default function AdminBoard({ roles }: { roles: RoleFlags }) {
               onToggle={(v) => toggleAdvancedFilter("dietaryRestriction", v)}
             />
 
+            {/* Check-in Filters */}
+            <div style={{ marginBottom: "15px" }}>
+              <h4 style={{ marginBottom: "8px" }}>Check-in Status</h4>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+                {([
+                  { field: "d1Here", label: "D1 Check-In" },
+                  { field: "d1Snack", label: "D1 Snacks" },
+                  { field: "d1Dinner", label: "D1 Dinner" },
+                  { field: "d1Cookies", label: "D1 Cookies" },
+                  { field: "d2Here", label: "D2 Check-In" },
+                  { field: "d2Breakfast", label: "D2 Breakfast" },
+                  { field: "d2Lunch", label: "D2 Lunch" },
+                  { field: "d2Dinner", label: "D2 Dinner" },
+                ] as const).map(({ field, label }) => {
+                  const yesKey = `${field}:yes`;
+                  const noKey = `${field}:no`;
+                  const isYes = advancedFilters.checkin.includes(yesKey);
+                  const isNo = advancedFilters.checkin.includes(noKey);
+                  return (
+                    <div key={field} style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                      <span style={{ fontSize: "12px", fontWeight: "600", color: "#555" }}>{label}</span>
+                      <div style={{ display: "flex", gap: "4px" }}>
+                        <button
+                          onClick={() => {
+                            setAdvancedFilters((prev) => {
+                              const filtered = prev.checkin.filter((v) => v !== yesKey && v !== noKey);
+                              return { ...prev, checkin: isYes ? filtered : [...filtered, yesKey] };
+                            });
+                          }}
+                          style={{
+                            padding: "4px 10px",
+                            borderRadius: "5px",
+                            border: isYes ? "2px solid #4CAF50" : "1px solid #ccc",
+                            backgroundColor: isYes ? "#e8f5e9" : "white",
+                            cursor: "pointer",
+                            fontSize: "12px",
+                          }}
+                        >
+                          ✅
+                        </button>
+                        <button
+                          onClick={() => {
+                            setAdvancedFilters((prev) => {
+                              const filtered = prev.checkin.filter((v) => v !== yesKey && v !== noKey);
+                              return { ...prev, checkin: isNo ? filtered : [...filtered, noKey] };
+                            });
+                          }}
+                          style={{
+                            padding: "4px 10px",
+                            borderRadius: "5px",
+                            border: isNo ? "2px solid #e53935" : "1px solid #ccc",
+                            backgroundColor: isNo ? "#ffebee" : "white",
+                            cursor: "pointer",
+                            fontSize: "12px",
+                          }}
+                        >
+                          ❌
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
             {/* Show Non-UIC Checkbox */}
             <div style={{ marginBottom: "15px" }}>
               <label
@@ -1126,6 +1222,16 @@ const convertDocToFormViewData = (doc: DocumentData) => {
     skillAPIs: docData.skillAPIs || "",
 
     appStatus: docData.appStatus,
+
+    // Check-in tracking
+    d1Here: docData.d1Here || false,
+    d1Snack: docData.d1Snack || false,
+    d1Dinner: docData.d1Dinner || false,
+    d1Cookies: docData.d1Cookies || false,
+    d2Here: docData.d2Here || false,
+    d2Breakfast: docData.d2Breakfast || false,
+    d2Lunch: docData.d2Lunch || false,
+    d2Dinner: docData.d2Dinner || false,
   };
   return result;
 };

@@ -117,5 +117,15 @@ interface FormViewData {
     skillAPIs: string,
 
     appStatus: "waiting" | "declined" | "waitlist" | "invited" | "accepted",
-    createdAt: string
+    createdAt: string,
+
+    // Check-in tracking
+    d1Here: boolean,
+    d1Snack: boolean,
+    d1Dinner: boolean,
+    d1Cookies: boolean,
+    d2Here: boolean,
+    d2Breakfast: boolean,
+    d2Lunch: boolean,
+    d2Dinner: boolean,
 }
