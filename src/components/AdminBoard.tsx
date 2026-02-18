@@ -13,7 +13,7 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
-import { LayoutGrid, BarChart3, Search, Filter, Columns3, FileDown } from "lucide-react";
+import { LayoutGrid, BarChart3, Search, Filter, Columns3, FileDown, X, CheckSquare, Square } from "lucide-react";
 
 ChartJS.register(
   ArcElement,
@@ -97,6 +97,70 @@ export const DEFAULT_COLUMN_WIDTHS: Record<ColumnKey, number> = {
 
 export type ColumnWidths = Record<ColumnKey, number>;
 
+export interface ExportColumn {
+  key: keyof FormViewData;
+  label: string;
+  group: string;
+}
+
+export const ALL_EXPORT_COLUMNS: ExportColumn[] = [
+  // Identity
+  { key: "email", label: "Email", group: "Identity" },
+  { key: "firstName", label: "First Name", group: "Identity" },
+  { key: "lastName", label: "Last Name", group: "Identity" },
+  { key: "uin", label: "UIN", group: "Identity" },
+  { key: "gender", label: "Gender", group: "Identity" },
+  { key: "year", label: "Year", group: "Identity" },
+  { key: "appStatus", label: "Status", group: "Identity" },
+  { key: "createdAt", label: "Submitted At", group: "Identity" },
+  // Attendance
+  { key: "availability", label: "Availability", group: "Attendance" },
+  { key: "moreAvailability", label: "Availability Details", group: "Attendance" },
+  { key: "teamPlan", label: "Team Plan", group: "Attendance" },
+  { key: "participationType", label: "Participation Type", group: "Attendance" },
+  { key: "dietaryRestriction", label: "Dietary Restrictions", group: "Attendance" },
+  { key: "otherDietaryRestriction", label: "Other Dietary", group: "Attendance" },
+  { key: "crewneckSize", label: "Crewneck Size", group: "Attendance" },
+  { key: "preWorkshops", label: "Pre-Workshops", group: "Attendance" },
+  // Background
+  { key: "pastSparkHacks", label: "Past SparkHacks", group: "Background" },
+  { key: "pastHackathons", label: "Past Hackathons", group: "Background" },
+  { key: "pastProjects", label: "Past Projects", group: "Background" },
+  { key: "hearAbout", label: "Heard About", group: "Background" },
+  { key: "otherHearAbout", label: "Other Heard About", group: "Background" },
+  // Goals
+  { key: "whyInterested", label: "Why Interested", group: "Goals" },
+  { key: "teamRole", label: "Team Role", group: "Goals" },
+  { key: "projectInterest", label: "Project Interests", group: "Goals" },
+  { key: "mainGoals", label: "Main Goals", group: "Goals" },
+  // Skills
+  { key: "skillGit", label: "Skill: Git", group: "Skills" },
+  { key: "skillFigma", label: "Skill: Figma", group: "Skills" },
+  { key: "skillReact", label: "Skill: React", group: "Skills" },
+  { key: "skillPython", label: "Skill: Python", group: "Skills" },
+  { key: "skillDatabase", label: "Skill: Database", group: "Skills" },
+  { key: "skillCICD", label: "Skill: CI/CD", group: "Skills" },
+  { key: "skillAPIs", label: "Skill: APIs", group: "Skills" },
+  // Career
+  { key: "jobType", label: "Job Type", group: "Career" },
+  { key: "otherJobType", label: "Other Job Type", group: "Career" },
+  { key: "resumeLink", label: "Resume Link", group: "Career" },
+  { key: "linkedinUrl", label: "LinkedIn", group: "Career" },
+  // Check-in
+  { key: "d1Here", label: "D1 Check-In", group: "Check-in" },
+  { key: "d1Snack", label: "D1 Snacks", group: "Check-in" },
+  { key: "d1Dinner", label: "D1 Dinner", group: "Check-in" },
+  { key: "d1Cookies", label: "D1 Cookies", group: "Check-in" },
+  { key: "d2Here", label: "D2 Check-In", group: "Check-in" },
+  { key: "d2Breakfast", label: "D2 Breakfast", group: "Check-in" },
+  { key: "d2Lunch", label: "D2 Lunch", group: "Check-in" },
+  { key: "d2Dinner", label: "D2 Dinner", group: "Check-in" },
+];
+
+const DEFAULT_EXPORT_COLUMNS: (keyof FormViewData)[] = [
+  "email", "firstName", "lastName", "uin", "appStatus", "year", "gender", "availability", "crewneckSize",
+];
+
 interface RoleFlags {
   isAdmin: boolean;
   isQrScanner: boolean;
@@ -136,21 +200,50 @@ export default function AdminBoard({ roles }: { roles: RoleFlags }) {
   const [visibleColumns, setVisibleColumns] = useState<ColumnKey[]>(["name", "createdAt", "availability"]);
   const [showColumnSelector, setShowColumnSelector] = useState(false);
   const [columnWidths, setColumnWidths] = useState<ColumnWidths>({ ...DEFAULT_COLUMN_WIDTHS });
+  const [showExportModal, setShowExportModal] = useState(false);
+  const [exportColumns, setExportColumns] = useState<(keyof FormViewData)[]>(DEFAULT_EXPORT_COLUMNS);
+  const [exportRowFilters, setExportRowFilters] = useState<{
+    statuses: string[];
+    years: string[];
+    checkin: string[]; // "d1Here:yes", "d1Here:no", etc.
+  }>({ statuses: [], years: [], checkin: [] });
 
+  const exportRows = (() => {
+    let rows = [...datas];
+    if (exportRowFilters.statuses.length > 0) {
+      rows = rows.filter((r) => exportRowFilters.statuses.includes(r.appStatus));
+    }
+    if (exportRowFilters.years.length > 0) {
+      rows = rows.filter((r) => exportRowFilters.years.includes(r.year));
+    }
+    if (exportRowFilters.checkin.length > 0) {
+      const checkinFields = ["d1Here", "d1Snack", "d1Dinner", "d1Cookies", "d2Here", "d2Breakfast", "d2Lunch", "d2Dinner"] as const;
+      rows = rows.filter((item) =>
+        exportRowFilters.checkin.every((filter) => {
+          const [field, value] = filter.split(":");
+          if (checkinFields.includes(field as any)) {
+            return value === "yes" ? item[field as keyof typeof item] === true : item[field as keyof typeof item] !== true;
+          }
+          return true;
+        })
+      );
+    }
+    return rows;
+  })();
 
   const isHighlight = (curMode: Mode) =>
     curMode === mode ? { border: "3px solid" } : {};
 
-  const handleExportCSV = (data: FormViewData[]) => {
-    if (data.length === 0) return;
-    const headers = Object.keys(data[0]).join(",");
-    const csvRows = data.map((row) => {
-      return Object.values(row)
-        .map((value) => {
-          const escaped = ("" + (value || "")).replace(/"/g, '""');
-          return `"${escaped}"`;
-        })
-        .join(",");
+  const handleExportCSV = () => {
+    if (exportRows.length === 0) return;
+    const cols = ALL_EXPORT_COLUMNS.filter((c) => exportColumns.includes(c.key));
+    const headers = cols.map((c) => `"${c.label}"`).join(",");
+    const csvRows = exportRows.map((row) => {
+      return cols.map(({ key }) => {
+        const value = row[key];
+        const str = Array.isArray(value) ? value.join("; ") : String(value ?? "");
+        return `"${str.replace(/"/g, '""')}"`;
+      }).join(",");
     });
     const csvString = [headers, ...csvRows].join("\n");
     const blob = new Blob([csvString], { type: "text/csv;charset=utf-8;" });
@@ -161,6 +254,7 @@ export default function AdminBoard({ roles }: { roles: RoleFlags }) {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    setShowExportModal(false);
   };
 
   useEffect(() => {
@@ -529,9 +623,9 @@ export default function AdminBoard({ roles }: { roles: RoleFlags }) {
 
             {/* Download CSV Button */}
             <button
-              onClick={() => handleExportCSV(datas)}
+              onClick={() => setShowExportModal(true)}
               className="download-csv-btn"
-              title="Download CSV"
+              title="Export CSV"
             >
               <FileDown size={18} />
             </button>
@@ -1132,6 +1226,235 @@ export default function AdminBoard({ roles }: { roles: RoleFlags }) {
       )}
 
       {viewMode === "graph" && <ApplicantGraphs datas={datas} />}
+
+      {/* Export CSV Modal */}
+      {showExportModal && (
+        <div
+          onClick={() => setShowExportModal(false)}
+          style={{
+            position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            zIndex: 9999,
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: "white", borderRadius: "12px", padding: "28px",
+              width: "min(680px, 95vw)", maxHeight: "85vh", display: "flex",
+              flexDirection: "column", gap: "20px", boxShadow: "0 20px 60px rgba(0,0,0,0.25)",
+            }}
+          >
+            {/* Header */}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div>
+                <h2 style={{ margin: 0, fontSize: "20px" }}>Export CSV</h2>
+                <p style={{ margin: "4px 0 0 0", fontSize: "13px", color: "#666" }}>
+                  <strong>{exportRows.length}</strong> row{exportRows.length !== 1 ? "s" : ""} will be exported
+                  {(exportRowFilters.statuses.length > 0 || exportRowFilters.years.length > 0 || exportRowFilters.checkin.length > 0) && (
+                    <> &mdash; <span style={{ color: "#8d6db5" }}>filters active</span></>
+                  )}
+                </p>
+              </div>
+              <button
+                onClick={() => setShowExportModal(false)}
+                style={{ border: "none", background: "none", cursor: "pointer", color: "#666", padding: "4px" }}
+              >
+                <X size={22} />
+              </button>
+            </div>
+
+            {/* Row Filters */}
+            <div style={{ background: "#f8f8f8", borderRadius: "8px", padding: "14px 16px", display: "flex", flexDirection: "column", gap: "12px" }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <span style={{ fontSize: "13px", fontWeight: "700", color: "#333" }}>Row Filters</span>
+                {(exportRowFilters.statuses.length > 0 || exportRowFilters.years.length > 0 || exportRowFilters.checkin.length > 0) && (
+                  <button
+                    onClick={() => setExportRowFilters({ statuses: [], years: [], checkin: [] })}
+                    style={{ fontSize: "12px", padding: "2px 8px", borderRadius: "4px", border: "1px solid #ccc", background: "white", cursor: "pointer", color: "#666" }}
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
+
+              {/* Status */}
+              <div>
+                <span style={{ fontSize: "11px", fontWeight: "600", color: "#888", textTransform: "uppercase", letterSpacing: "0.4px" }}>Status</span>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginTop: "6px" }}>
+                  {(["accepted", "invited", "waitlist", "waiting", "declined"] as const).map((s) => {
+                    const active = exportRowFilters.statuses.includes(s);
+                    return (
+                      <button key={s} onClick={() => setExportRowFilters((prev) => ({ ...prev, statuses: active ? prev.statuses.filter((x) => x !== s) : [...prev.statuses, s] }))}
+                        style={{ padding: "4px 12px", borderRadius: "20px", fontSize: "13px", cursor: "pointer", border: active ? "2px solid #555" : "1px solid #ccc", backgroundColor: STATUS_COLORS[s] || "#e8e8e8", fontWeight: active ? "700" : "400", transition: "all 0.15s" }}>
+                        {s === "waiting" ? "Pending" : s.charAt(0).toUpperCase() + s.slice(1)}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Year */}
+              <div>
+                <span style={{ fontSize: "11px", fontWeight: "600", color: "#888", textTransform: "uppercase", letterSpacing: "0.4px" }}>Year</span>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginTop: "6px" }}>
+                  {["Freshman", "Sophomore", "Junior", "Senior", "Masters", "PhD"].map((y) => {
+                    const active = exportRowFilters.years.includes(y);
+                    return (
+                      <button key={y} onClick={() => setExportRowFilters((prev) => ({ ...prev, years: active ? prev.years.filter((x) => x !== y) : [...prev.years, y] }))}
+                        style={{ padding: "4px 12px", borderRadius: "20px", fontSize: "13px", cursor: "pointer", border: active ? "2px solid #8d6db5" : "1px solid #ccc", backgroundColor: active ? "#f3e8ff" : "white", color: active ? "#8d6db5" : "#555", fontWeight: active ? "600" : "400", transition: "all 0.15s" }}>
+                        {y}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Check-in */}
+              <div>
+                <span style={{ fontSize: "11px", fontWeight: "600", color: "#888", textTransform: "uppercase", letterSpacing: "0.4px" }}>Check-in</span>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "10px", marginTop: "6px" }}>
+                  {([
+                    { field: "d1Here", label: "D1 In" }, { field: "d1Snack", label: "D1 Snack" },
+                    { field: "d1Dinner", label: "D1 Din" }, { field: "d1Cookies", label: "D1 Cook" },
+                    { field: "d2Here", label: "D2 In" }, { field: "d2Breakfast", label: "D2 Bfast" },
+                    { field: "d2Lunch", label: "D2 Lunch" }, { field: "d2Dinner", label: "D2 Din" },
+                  ] as const).map(({ field, label }) => {
+                    const yesKey = `${field}:yes`;
+                    const noKey = `${field}:no`;
+                    const isYes = exportRowFilters.checkin.includes(yesKey);
+                    const isNo = exportRowFilters.checkin.includes(noKey);
+                    const toggle = (key: string, other: string) =>
+                      setExportRowFilters((prev) => {
+                        const next = prev.checkin.filter((v) => v !== key && v !== other);
+                        return { ...prev, checkin: prev.checkin.includes(key) ? next : [...next, key] };
+                      });
+                    return (
+                      <div key={field} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "3px" }}>
+                        <span style={{ fontSize: "10px", fontWeight: "600", color: "#666", whiteSpace: "nowrap" }}>{label}</span>
+                        <div style={{ display: "flex", gap: "3px" }}>
+                          <button onClick={() => toggle(yesKey, noKey)} title={`Only ${label} checked`}
+                            style={{ padding: "3px 8px", borderRadius: "4px", border: isYes ? "2px solid #4CAF50" : "1px solid #ccc", background: isYes ? "#e8f5e9" : "white", cursor: "pointer", fontSize: "11px" }}>✅</button>
+                          <button onClick={() => toggle(noKey, yesKey)} title={`Only ${label} not checked`}
+                            style={{ padding: "3px 8px", borderRadius: "4px", border: isNo ? "2px solid #e53935" : "1px solid #ccc", background: isNo ? "#ffebee" : "white", cursor: "pointer", fontSize: "11px" }}>❌</button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* Select / Deselect All columns */}
+            <div style={{ display: "flex", gap: "8px" }}>
+              <button
+                onClick={() => setExportColumns(ALL_EXPORT_COLUMNS.map((c) => c.key))}
+                style={{
+                  display: "flex", alignItems: "center", gap: "6px",
+                  padding: "6px 14px", borderRadius: "6px", border: "1px solid #ccc",
+                  background: "white", cursor: "pointer", fontSize: "13px", fontWeight: "600",
+                }}
+              >
+                <CheckSquare size={15} /> Select All
+              </button>
+              <button
+                onClick={() => setExportColumns([])}
+                style={{
+                  display: "flex", alignItems: "center", gap: "6px",
+                  padding: "6px 14px", borderRadius: "6px", border: "1px solid #ccc",
+                  background: "white", cursor: "pointer", fontSize: "13px", fontWeight: "600",
+                }}
+              >
+                <Square size={15} /> Deselect All
+              </button>
+            </div>
+
+            {/* Column groups */}
+            <div style={{ overflowY: "auto", flex: 1, display: "flex", flexDirection: "column", gap: "16px" }}>
+              {Array.from(new Set(ALL_EXPORT_COLUMNS.map((c) => c.group))).map((group) => (
+                <div key={group}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "8px" }}>
+                    <h4 style={{ margin: 0, fontSize: "13px", fontWeight: "700", color: "#555", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                      {group}
+                    </h4>
+                    <div style={{ display: "flex", gap: "6px" }}>
+                      <button
+                        onClick={() => {
+                          const groupKeys = ALL_EXPORT_COLUMNS.filter((c) => c.group === group).map((c) => c.key);
+                          setExportColumns((prev) => Array.from(new Set([...prev, ...groupKeys])));
+                        }}
+                        style={{ fontSize: "11px", padding: "2px 8px", borderRadius: "4px", border: "1px solid #ccc", background: "white", cursor: "pointer" }}
+                      >
+                        All
+                      </button>
+                      <button
+                        onClick={() => {
+                          const groupKeys = ALL_EXPORT_COLUMNS.filter((c) => c.group === group).map((c) => c.key);
+                          setExportColumns((prev) => prev.filter((k) => !groupKeys.includes(k)));
+                        }}
+                        style={{ fontSize: "11px", padding: "2px 8px", borderRadius: "4px", border: "1px solid #ccc", background: "white", cursor: "pointer" }}
+                      >
+                        None
+                      </button>
+                    </div>
+                  </div>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+                    {ALL_EXPORT_COLUMNS.filter((c) => c.group === group).map((col) => {
+                      const selected = exportColumns.includes(col.key);
+                      return (
+                        <button
+                          key={col.key}
+                          onClick={() =>
+                            setExportColumns((prev) =>
+                              selected ? prev.filter((k) => k !== col.key) : [...prev, col.key]
+                            )
+                          }
+                          style={{
+                            padding: "5px 12px", borderRadius: "20px", fontSize: "13px", cursor: "pointer",
+                            border: selected ? "2px solid #8d6db5" : "1px solid #ccc",
+                            backgroundColor: selected ? "#f3e8ff" : "white",
+                            color: selected ? "#8d6db5" : "#555",
+                            fontWeight: selected ? "600" : "400",
+                            transition: "all 0.15s ease",
+                          }}
+                        >
+                          {col.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Footer */}
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px", paddingTop: "4px", borderTop: "1px solid #eee" }}>
+              <button
+                onClick={() => setShowExportModal(false)}
+                style={{
+                  padding: "10px 20px", borderRadius: "8px", border: "1px solid #ccc",
+                  background: "white", cursor: "pointer", fontSize: "14px", fontWeight: "600",
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleExportCSV}
+                disabled={exportColumns.length === 0 || exportRows.length === 0}
+                style={{
+                  padding: "10px 20px", borderRadius: "8px", border: "none",
+                  background: exportColumns.length === 0 || exportRows.length === 0 ? "#ccc" : "#8d6db5",
+                  color: "white", cursor: exportColumns.length === 0 || exportRows.length === 0 ? "not-allowed" : "pointer",
+                  fontSize: "14px", fontWeight: "600", display: "flex", alignItems: "center", gap: "6px",
+                }}
+              >
+                <FileDown size={16} />
+                Download ({exportColumns.length} col{exportColumns.length !== 1 ? "s" : ""}, {exportRows.length} row{exportRows.length !== 1 ? "s" : ""})
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
