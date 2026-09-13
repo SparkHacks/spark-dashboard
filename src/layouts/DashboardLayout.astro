@@ -11,9 +11,10 @@ interface Props {
 }
 
 const { userName, userEmail, currentPath, roles } = Astro.props;
+const isStaff = roles.isAdmin || roles.isQrScanner || roles.isWebDev || roles.isDirector;
 ---
 
-<Layout>
+<Layout userEmail={userEmail} isStaff={isStaff}>
   <main id="dashboard">
     <Navbar
       userName={userName}
@@ -30,6 +31,7 @@ const { userName, userEmail, currentPath, roles } = Astro.props;
   </main>
   <script>
     import { auth } from "../firebase/client";
+    import posthog from "../scripts/posthog";
 
     const logoBtn = document.getElementById("logo")
     logoBtn?.addEventListener("click", () => {
@@ -47,6 +49,7 @@ const { userName, userEmail, currentPath, roles } = Astro.props;
           return;
         }
         await auth.signOut();
+        posthog.reset();
         return window.location.assign("/");
       } catch (err) {
         alert("cannot sign out");

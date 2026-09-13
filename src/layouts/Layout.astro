@@ -1,3 +1,14 @@
+---
+import PostHog from "../components/PostHog.astro";
+
+interface Props {
+	userEmail?: string;
+	isStaff?: boolean;
+}
+
+const { userEmail, isStaff } = Astro.props;
+---
+
 <!doctype html>
 <html lang="en">
 	<head>
@@ -6,6 +17,7 @@
 		<!-- <link rel="icon" type="image/svg+xml" href="/sparkhacks-logo.svg" /> -->
 		<meta name="generator" content={Astro.generator} />
 		<title>SH 2026 Dashboard</title>
+		<PostHog email={userEmail} isStaff={isStaff} />
 	</head>
 	<body>
 		<slot />

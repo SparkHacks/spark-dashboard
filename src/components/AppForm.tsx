@@ -1,5 +1,6 @@
 import { Box, Button, FormControl, FormLabel, Modal, TextField } from "@mui/material"
 import { useEffect, useRef, useState, type FormEvent } from "react"
+import posthog from "../scripts/posthog"
 import Radios from "./components/Radios";
 import { questions } from "../utils/questions";
 import Checkboxes from "./components/Checkboxes";
@@ -76,6 +77,7 @@ export default function AppForm({ email, registered, applicationData, isAdmin, a
       })
       if (response.ok) {
         submittedRef.current = true
+        posthog.capture(isEditing ? "application_updated" : "application_submitted")
         if (isEditing) {
           setUpdateModal(true)
           setIsEditing(false)
@@ -84,6 +86,11 @@ export default function AppForm({ email, registered, applicationData, isAdmin, a
         }
       } else {
         const errorText = await response.text()
+        posthog.capture("application_submit_failed", {
+          mode: isEditing ? "edit" : "submit",
+          status: response.status,
+          error: errorText,
+        })
         alert(`Failed to ${isEditing ? 'update' : 'submit'} form: ${errorText}`)
       }
     }
@@ -141,7 +148,10 @@ export default function AppForm({ email, registered, applicationData, isAdmin, a
         {registered && canEdit && !isEditing && (
           <Button
             variant="outlined"
-            onClick={() => setIsEditing(true)}
+            onClick={() => {
+              setIsEditing(true)
+              posthog.capture("application_edit_started")
+            }}
             style={{ marginBottom: "20px" }}
           >
             Edit Application

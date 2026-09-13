@@ -1,0 +1,20 @@
+---
+interface Props {
+  email?: string;
+  isStaff?: boolean;
+}
+
+const { email = "", isStaff = false } = Astro.props;
+---
+
+<meta name="posthog-user" data-email={email} data-staff={String(isStaff)} />
+
+<script>
+  import { initPostHog } from "../scripts/posthog";
+
+  const config = document.querySelector<HTMLMetaElement>('meta[name="posthog-user"]');
+  initPostHog({
+    email: config?.dataset.email || undefined,
+    isStaff: config?.dataset.staff === "true",
+  });
+</script>
