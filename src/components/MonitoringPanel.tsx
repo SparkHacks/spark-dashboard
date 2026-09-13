@@ -387,7 +387,6 @@ export default function MonitoringPanel() {
 
       <div style={card} ref={lookupRef}>
         <h3 style={{ marginTop: 0 }}>User Lookup</h3>
-        <p style={muted}>Full server-recorded history for one account — use this to verify claims like "I submitted but it didn't go through".</p>
         <form onSubmit={handleLookup} style={{ display: "flex", flexWrap: "wrap", gap: "8px", margin: "12px 0" }}>
           <input
             type="email"
