@@ -2,14 +2,9 @@ import type { APIRoute } from "astro";
 import { validateFormData, FORMS_COLLECTION } from "../../../utils/utils.ts";
 import { getAuth } from "firebase-admin/auth";
 import { app, db } from "../../../firebase/server.ts";
+import { logEvent } from "../../../utils/events.ts";
 
 export const POST: APIRoute = async ({ request, cookies }) => {
-
-  // Check if editing is enabled
-  const canEdit = (await db.collection("Settings").doc("canEdit").get()).data()?.canEdit
-  if (!canEdit) {
-    return new Response(`Editing is currently disabled`, { status: 403 });
-  }
 
   const auth = getAuth(app)
 
@@ -34,15 +29,26 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     return new Response("Session expired. Please sign out and sign in again", { status: 500 })
   }
 
+  // Check if editing is enabled (after auth so rejected attempts are attributed)
+  const canEdit = (await db.collection("Settings").doc("canEdit").get()).data()?.canEdit
+  if (!canEdit) {
+    await logEvent({ type: "edit", result: "rejected_disabled", email, request })
+    return new Response(`Editing is currently disabled`, { status: 403 });
+  }
+
   // Check if user has an existing application to update
+  let existingData: Record<string, unknown> = {}
   try {
     const docSnap = await db.collection(FORMS_COLLECTION).doc(email).get()
     if (!docSnap.exists) {
+      await logEvent({ type: "edit", result: "rejected_not_found", email, request })
       return new Response("No application found to update", { status: 404 })
     }
+    existingData = docSnap.data() || {}
   }
   catch (err) {
     console.error(`Something is wrong with checking form for ${email}`, err)
+    await logEvent({ type: "edit", result: "error", email, detail: { stage: "lookup" }, request })
     return new Response(null, { status: 500 })
   }
 
@@ -91,6 +97,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
   // validate the input
   const validateFormResult = validateFormData(firstName, lastName, uin, gender, year, availability, dietaryRestriction, otherDietaryRestriction, crewneckSize, teamPlan, preWorkshops, jobType, otherJobType, pastSparkHacks, pastProjects, participationType, hearAbout, otherHearAbout, projectInterest, mainGoals, skillGit, skillFigma, skillReact, skillPython, skillDatabase, skillCICD, skillAPIs)
   if (!validateFormResult.success) {
+    await logEvent({ type: "edit", result: "invalid", email, detail: { reason: validateFormResult.msg }, request })
     return new Response(`Incorrect form data: ${validateFormResult.msg}`, { status: 400 })
   }
 
@@ -142,10 +149,16 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     // Update form data in database
     await db.collection(FORMS_COLLECTION).doc(email).update(updateData)
 
+    const changedFields = Object.entries(updateData)
+      .filter(([key, value]) => JSON.stringify(value) !== JSON.stringify(existingData[key]))
+      .map(([key]) => key)
+    await logEvent({ type: "edit", result: "success", email, detail: { changedFields }, request })
+
     return new Response(`Successfully updated: ${email}`)
   }
   catch (err) {
     console.log(`Something is wrong with updating form for ${email}`, err)
+    await logEvent({ type: "edit", result: "error", email, detail: { stage: "save" }, request })
     return new Response(`Something is wrong with updating form for ${email}`, { status: 500 })
   }
 }

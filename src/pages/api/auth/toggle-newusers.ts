@@ -1,9 +1,12 @@
 import type { APIRoute } from "astro";
 import { getAuth } from "firebase-admin/auth";
 import { app, db } from "../../../firebase/server";
+import { logEvent } from "../../../utils/events";
 
 export const POST: APIRoute = async ({ request, cookies, redirect }) => {
-  
+
+  let actorEmail = ""
+
   // check token and session alive, check admin permission
   try {
     const auth = getAuth(app);
@@ -22,6 +25,7 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
         "Invalid token", { status: 401 }
       )
     }
+    actorEmail = decodedCookie.email || ""
 
     // check admin permission
     const user = await auth.getUser(decodedCookie.uid)
@@ -35,7 +39,7 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
     console.log("Something is wrong with verifying cookie", err)
     return new Response("Session expired. Please sign out and sign in again", { status: 500 })
   }
-  
+
   // update appStatus
   try {
     // Read the payload from the body of the request
@@ -51,6 +55,7 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
     const res = await db.collection("Settings").doc("newUserState").set({
         isNewUserEnabled: isEnabled
     }, {merge: true})
+    await logEvent({ type: "settings_change", result: "success", actor: actorEmail, detail: { setting: "newUserState", value: isEnabled }, request })
 
     console.log(`${formData.email}: Successfully updated loginstate`)
     return new Response(JSON.stringify({isNewUserEnabled: isEnabled, success: true}), { status: 200 })
@@ -62,11 +67,11 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
 }
 
 export const GET: APIRoute = async ({ request, cookies, redirect }) => {
-  
+
     // check token and session alive, check admin permission
     try {
       const auth = getAuth(app);
-  
+
       // no session or invalid session will be redirected to sign in page
       const sessionCookieObj = cookies.get("__session");
       if (!sessionCookieObj) {
@@ -81,25 +86,25 @@ export const GET: APIRoute = async ({ request, cookies, redirect }) => {
           "Invalid token", { status: 401 }
         )
       }
-  
+
       // check admin permission
       const user = await auth.getUser(decodedCookie.uid)
       // if (!(user.customClaims && user.customClaims.admin === true)) {
       //   console.error("Not admin")
       //   return new Response("Not accessible", {status: 401})
       // }
-  
+
     }
     catch (err) {
       console.log("Something is wrong with verifying cookie", err)
       return new Response("Session expired. Please sign out and sign in again", { status: 500 })
     }
-    
+
     // update appStatus
     try {
       // Read the payload from the body of the request
-  
-  
+
+
       // get status
 
     const newUserState = await db.collection("Settings").doc("newUserState").get()

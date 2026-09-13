@@ -1,6 +1,11 @@
 // Collection name for form submissions - change this for each year
 export const FORMS_COLLECTION = "Form_26"
 
+// Monitoring collections - change alongside FORMS_COLLECTION
+export const EVENTS_COLLECTION = "Events_26"
+export const EVENT_DAILY_COLLECTION = "EventDaily_26"
+export const EVENT_USERS_COLLECTION = "EventUsers_26"
+
 // For Admin Board
 export const YEAR_TO_DB = {
     "2026": "Form_26",

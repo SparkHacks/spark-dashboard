@@ -1,5 +1,6 @@
 ---
 import Badge from "./components/Badge.astro";
+import MonitoringPanel from "./MonitoringPanel";
 import type { RoleFlags } from "../scripts/getRoles.ts";
 
 interface Props {
@@ -20,3 +21,5 @@ const { roles, userName } = Astro.props;
     {roles.isDirector && <Badge color="#BEE2F5">Director</Badge>}
   </div>
 </section>
+
+{(roles.isAdmin || roles.isWebDev) && <MonitoringPanel client:load />}

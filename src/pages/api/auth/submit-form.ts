@@ -5,13 +5,9 @@ import { getAuth } from "firebase-admin/auth";
 import { app, db } from "../../../firebase/server.ts";
 import type { FormSubmissionData } from "../../../env";
 import { sendEmailConfirmation } from "../../../nodemailer/nodemailer.ts";
+import { logEvent } from "../../../utils/events.ts";
 
 export const POST: APIRoute = async ({ request, cookies, redirect }) => {
-
-  const newUserState = (await db.collection("Settings").doc("newUserState").get()).data()?.isNewUserEnabled
-
-  if (!newUserState)
-    return new Response(`Applications are currently closed`, { status: 403 });
 
   const auth = getAuth(app)
 
@@ -40,16 +36,26 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
     return new Response("Session expired. Please sign out and sign in again", { status: 500 })
   }
 
+  // checked after auth so rejected attempts are attributed
+  const newUserState = (await db.collection("Settings").doc("newUserState").get()).data()?.isNewUserEnabled
+
+  if (!newUserState) {
+    await logEvent({ type: "submit", result: "rejected_closed", email, request })
+    return new Response(`Applications are currently closed`, { status: 403 });
+  }
+
   // check if user already submit it: TODO
   try {
     const docSnap = await db.collection(FORMS_COLLECTION).doc(email).get()
     if (docSnap.exists) {
       console.error(`User ${email} already submit form`)
+      await logEvent({ type: "submit", result: "rejected_duplicate", email, request })
       return new Response("Form already submitted", {status: 400})
     }
   }
   catch (err) {
     console.error(`Something is wrong with checking form submit for ${email}`, err)
+    await logEvent({ type: "submit", result: "error", email, detail: { stage: "duplicate_check" }, request })
     return new Response(null, { status: 500 })
   }
 
@@ -101,9 +107,10 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
   // validate the input
   const validateFormResult = validateFormData(firstName, lastName, uin, gender, year, availability, dietaryRestriction, otherDietaryRestriction, crewneckSize, teamPlan, preWorkshops, jobType, otherJobType, pastSparkHacks, pastProjects, participationType, hearAbout, otherHearAbout, projectInterest, mainGoals, skillGit, skillFigma, skillReact, skillPython, skillDatabase, skillCICD, skillAPIs)
   if (!validateFormResult.success) {
+    await logEvent({ type: "submit", result: "invalid", email, detail: { reason: validateFormResult.msg }, request })
     return new Response(`Incorrect form data: ${validateFormResult.msg}`, { status: 400 })
   }
-  
+
   try {
     const formSubmissionData = {
       email,
@@ -155,6 +162,7 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
 
     // submit form data to database
     await sendFormToFirestore(formSubmissionData)
+    await logEvent({ type: "submit", result: "success", email, request })
 
     // send email to user to confirm
     sendEmailConfirmation(email)
@@ -164,6 +172,7 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
   }
   catch (err) {
     console.log(`Something is wrong with submitting form for ${email}`, err)
+    await logEvent({ type: "submit", result: "error", email, detail: { stage: "save" }, request })
     return new Response(`Something is wrong with submitting form for ${email}`, { status: 500 })
   }
 }

@@ -6,6 +6,7 @@ import { getAuth } from "firebase-admin/auth";
 import type { DocumentData } from "firebase-admin/firestore";
 import type { FormViewData } from "../env";
 import { FORMS_COLLECTION } from "../utils/utils";
+import { logEvent } from "../utils/events";
 
 let userName = "";
 let userEmail = "";
@@ -101,6 +102,13 @@ try {
       createdAt: data.createdAt.toDate().toLocaleString("en-US", { timeZone: "America/Chicago"}) || ""
     }
   }
+
+  await logEvent({
+    type: "application_opened",
+    result: registered ? "registered" : (newUserState ? "new" : "closed"),
+    email: userEmail,
+    request: Astro.request,
+  })
 
 } catch (err) {
   console.error(err);

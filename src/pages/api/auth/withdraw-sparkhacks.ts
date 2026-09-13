@@ -2,6 +2,7 @@ import type { APIRoute } from "astro";
 import { getAuth } from "firebase-admin/auth";
 import { app, db } from "../../../firebase/server";
 import { FORMS_COLLECTION } from "../../../utils/utils";
+import { logEvent } from "../../../utils/events";
 
 export const POST: APIRoute = async ({ request, cookies, redirect }) => {
 
@@ -40,16 +41,19 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
 
     // invalid action
     if (withdrawText !== email) {
+      await logEvent({ type: "withdraw", result: "rejected_bad_confirmation", email, request })
       return new Response("Invalid email", { status: 400 })
     }
-    
+
     // disallow action when current appStatus is not "accepted" or "waitlist" or there is no form
     const docSnap = await db.collection(FORMS_COLLECTION).doc(email).get()
     if (!docSnap.exists) {
+      await logEvent({ type: "withdraw", result: "rejected_no_application", email, request })
       return new Response("Invalid action", {status: 400})
     }
     const currentStatus = docSnap.data()?.appStatus;
     if (currentStatus !== "accepted" && currentStatus !== "waitlist") {
+      await logEvent({ type: "withdraw", result: "rejected_status", email, detail: { appStatus: currentStatus }, request })
       return new Response("Invalid action: user not accepted or waitlisted", {status: 400})
     }
 
@@ -57,12 +61,14 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
     const res = await db.collection(FORMS_COLLECTION).doc(email).update({
       appStatus: "declined"
     })
-    
+    await logEvent({ type: "withdraw", result: "success", email, detail: { from: currentStatus }, request })
+
     console.log(`${email}: Successfully withdraw the hackathon`)
     return new Response(`Successfully withdraw the hackathon`)
   }
   catch (err) {
     console.error(err)
+    await logEvent({ type: "withdraw", result: "error", email, request })
     return new Response("Something is wrong with server", { status: 500 })
   }
 }

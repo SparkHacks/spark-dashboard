@@ -2,9 +2,12 @@ import type { APIRoute } from "astro";
 import { getAuth } from "firebase-admin/auth";
 import { app, db } from "../../../firebase/server";
 import { FORMS_COLLECTION } from "../../../utils/utils";
+import { logEvent } from "../../../utils/events";
 
 export const POST: APIRoute = async ({ request, cookies, redirect }) => {
-  
+
+  let actorEmail = ""
+
   // check token and session alive, check admin permission
   try {
     const auth = getAuth(app);
@@ -23,6 +26,7 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
         "Invalid token", { status: 401 }
       )
     }
+    actorEmail = decodedCookie.email || ""
 
     // check admin permission
     const user = await auth.getUser(decodedCookie.uid)
@@ -36,12 +40,13 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
     console.log("Something is wrong with verifying cookie", err)
     return new Response("Session expired. Please sign out and sign in again", { status: 500 })
   }
-  
+
   // update appStatus
+  let email = ""
   try {
     // extract email and update action
     const formData = await request.formData()
-    const email = formData.get("email")?.toString() || ""
+    email = formData.get("email")?.toString() || ""
     const updateAction = formData.get("updateAction")?.toString() || ""
 
     if (email === "") {
@@ -53,15 +58,18 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
     }
 
     // try to update
+    const previousStatus = (await db.collection(FORMS_COLLECTION).doc(email).get()).data()?.appStatus
     const res = await db.collection(FORMS_COLLECTION).doc(email).update({
       appStatus: updateAction
     })
+    await logEvent({ type: "status_change", result: "success", email, actor: actorEmail, detail: { from: previousStatus ?? null, to: updateAction }, request })
     console.log(res)
     console.log(`${email}: Successfully update form`)
     return new Response("Successful update")
   }
   catch (err) {
     console.error(err)
+    await logEvent({ type: "status_change", result: "error", email: email || undefined, actor: actorEmail, request })
     return new Response("Something is wrong with server", { status: 500 })
   }
 }

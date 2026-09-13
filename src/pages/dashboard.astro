@@ -10,6 +10,7 @@ import getRoleFlags from "../scripts/getRoles.ts";
 import type { RoleFlags } from "../scripts/getRoles.ts";
 import { FORMS_COLLECTION } from "../utils/utils";
 import { DEV_ALWAYS_REVEAL_DECISION } from "../config/constants";
+import { logEvent } from "../utils/events";
 
 // information that will be displayed in dashboard page
 let userUID;
@@ -84,6 +85,14 @@ try {
   if (foodGroupDoc.exists) {
     foodGroup = foodGroupDoc.data()?.group || null;
   }
+
+  await logEvent({
+    type: "dashboard_opened",
+    result: registered ? "registered" : "not_registered",
+    email: userEmail,
+    detail: registered ? { appStatus } : undefined,
+    request: Astro.request,
+  });
 } catch (err) {
   console.error(err);
   return Astro.redirect("/");

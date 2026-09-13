@@ -2,10 +2,12 @@ import type { APIRoute } from "astro";
 import { getAuth } from "firebase-admin/auth"
 import { app } from "../../../firebase/server";
 import { NON_UIC_BYPASS } from "../../../config/constants";
+import { logEvent } from "../../../utils/events";
 
 export const GET: APIRoute = async ({request, cookies}) => {
     const auth = getAuth(app)
     let isAdmin = false
+    let email = ""
     const idToken = request.headers.get("Authorization")?.split("Bearer ")[1]
     const bypassEmailCheck = request.headers.get("X-Bypass-Email-Check") === "true"
 
@@ -19,7 +21,7 @@ export const GET: APIRoute = async ({request, cookies}) => {
     // check if token is valid
     try {
         const decodedIdToken = await auth.verifyIdToken(idToken)
-        const email = decodedIdToken.email || ""
+        email = decodedIdToken.email || ""
         const user = await auth.getUserByEmail(email) // TODO: need to have error response that user does not exists
         if (user.customClaims && (user.customClaims as any).admin === true) { // if the email is admin then does not need to go through email check
           console.log(email, "admin user!")
@@ -34,6 +36,7 @@ export const GET: APIRoute = async ({request, cookies}) => {
         else {
           const emailReg = /^[a-zA-Z0-9._%+-]+@uic\.edu$/
           if (!emailReg.test(email)) {
+              await logEvent({ type: "sign_in", result: "rejected_non_uic", email, request })
               return new Response (
                   "Please sign in with UIC email", {status: 401}
               )
@@ -52,9 +55,10 @@ export const GET: APIRoute = async ({request, cookies}) => {
         path: "/",
         sameSite: "strict"
     })
+    await logEvent({ type: "sign_in", result: "success", email, request })
 
     if (isAdmin) {
       return new Response("/admin/qr")
     }
     return new Response("/dashboard")
-}   
+}

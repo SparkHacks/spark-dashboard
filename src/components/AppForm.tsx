@@ -1,5 +1,5 @@
 import { Box, Button, FormControl, FormLabel, Modal, TextField } from "@mui/material"
-import { useRef, useState, type FormEvent } from "react"
+import { useEffect, useRef, useState, type FormEvent } from "react"
 import Radios from "./components/Radios";
 import { questions } from "../utils/questions";
 import Checkboxes from "./components/Checkboxes";
@@ -38,7 +38,23 @@ export default function AppForm({ email, registered, applicationData, isAdmin, a
   const [modal, setModal] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
   const [updateModal, setUpdateModal] = useState(false)
+  const submittedRef = useRef(false)
   console.log(applicationData)
+
+  useEffect(() => {
+    const openedAt = Date.now()
+    const reportClose = () => {
+      const payload = JSON.stringify({
+        type: "application_closed",
+        durationSec: (Date.now() - openedAt) / 1000,
+        registered,
+        submitted: submittedRef.current,
+      })
+      navigator.sendBeacon("/api/track", new Blob([payload], { type: "application/json" }))
+    }
+    window.addEventListener("pagehide", reportClose)
+    return () => window.removeEventListener("pagehide", reportClose)
+  }, [])
 
   // Determine if form fields should be disabled
   const isDisabled = registered && !isEditing
@@ -59,6 +75,7 @@ export default function AppForm({ email, registered, applicationData, isAdmin, a
         body: formData
       })
       if (response.ok) {
+        submittedRef.current = true
         if (isEditing) {
           setUpdateModal(true)
           setIsEditing(false)

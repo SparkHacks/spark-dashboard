@@ -2,6 +2,7 @@ import type { APIRoute } from "astro";
 import { getAuth } from "firebase-admin/auth";
 import { app, db } from "../../../firebase/server";
 import { FORMS_COLLECTION } from "../../../utils/utils";
+import { logEvent } from "../../../utils/events";
 
 export const POST: APIRoute = async ({ request, cookies, redirect }) => {
 
@@ -40,15 +41,19 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
 
     // invalid action
     if (action !== "accepted" && action !== "declined") {
+      await logEvent({ type: "decision", result: "invalid", email, detail: { action }, request })
       return new Response("Invalid action", { status: 400 })
     }
 
     // disallow action when current appStatus is not "invited" or there is no form
     const docSnap = await db.collection(FORMS_COLLECTION).doc(email).get()
     if (!docSnap.exists) {
+      await logEvent({ type: "decision", result: "rejected_no_application", email, detail: { action }, request })
       return new Response("Invalid action", {status: 400})
     }
-    if (docSnap.data()?.appStatus !== "invited") {
+    const currentStatus = docSnap.data()?.appStatus
+    if (currentStatus !== "invited") {
+      await logEvent({ type: "decision", result: "rejected_not_invited", email, detail: { action, appStatus: currentStatus }, request })
       return new Response("Invalid action: user not invited", {status: 400})
     }
 
@@ -56,12 +61,14 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
     const res = await db.collection(FORMS_COLLECTION).doc(email).update({
       appStatus: action
     })
-    
+    await logEvent({ type: "decision", result: action, email, request })
+
     console.log(`${email}: Successfully ${action} the hackathon`)
     return new Response(`Successfully ${action} the hackathon`)
   }
   catch (err) {
     console.error(err)
+    await logEvent({ type: "decision", result: "error", email, request })
     return new Response("Something is wrong with server", { status: 500 })
   }
 }
